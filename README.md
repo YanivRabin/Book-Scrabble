@@ -85,6 +85,7 @@ Clone the repo
 * Scoring system based on the values of each letter tile
 * Validation of word placement according to the rules of Scrabble
 
+
 <p align="right"><a href="#readme-top">back to top</a></p>
 
 
