@@ -10,16 +10,11 @@
 
 <h3 align="center">Scrabble Project</h3>
   <p align="center">
-    This is a simple implementation of the classic game Scrabble using Java programming language.
-    <br/>
-    <a href="https://github.com/github_username/repo_name"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
     <a href="https://github.com/github_username/repo_name">View Demo</a>
     ·
-    <a href="https://github.com/github_username/repo_name/issues">Report Bug</a>
+    <a href="https://view.monday.com/1187919453-d087be1e389a3575ae0b3f30a8bc5adb?r=euc1">View Gantt</a>
     ·
-    <a href="https://github.com/github_username/repo_name/issues">Request Feature</a>
+    <a href="https://github.com/github_username/repo_name/issues">Report Bug</a>
   </p>
 </div>
 
@@ -31,16 +26,11 @@ You can download the version of Java from the official website: https://www.orac
 or from your local IDE.
 
 After installing Java, you can clone this repository using the following command in your terminal:
-<p align="right"><a href="#readme-top">back to top</a></p>
 
-
-## bash
-Clone the repo
    ```sh
    git clone https://github.com/YanivRabin/Scrabble-Project.git
    ```
 <p align="right"><a href="#readme-top">back to top</a></p>
-
 
 
 ## How to Play
@@ -73,9 +63,7 @@ Clone the repo
 * A word that appears in one of the selected books for the game
 * Leans on one of the existing tiles on the board
 * Does not create other words on the board that are invalid.
-
 <p align="right"><a href="#readme-top">back to top</a></p>
-
 
 
 ## Features
@@ -84,13 +72,11 @@ Clone the repo
 * Ability to exchange tiles and skip turns
 * Scoring system based on the values of each letter tile
 * Validation of word placement according to the rules of Scrabble
-
-
 <p align="right"><a href="#readme-top">back to top</a></p>
-
 
 
 ## Contributors
-This project was developed by Yaniv Rabin, Yehonatan Malki and Roy Toledo as part of a programming course/project.
+* [Yaniv Rabin](https://github.com/YanivRabin)
+* [Yehonatan Malki](https://github.com/JoniMalki)
+* [Roy Toledo](https://github.com/Roytol)
 <p align="right"><a href="#readme-top">back to top</a></p>
-
