@@ -1,7 +1,7 @@
 package model.logic;
-import test.IOSearcher;
-import test.LFU;
-import test.LRU;
+import model.logic.IOSearcher;
+import model.logic.LFU;
+import model.logic.LRU;
 
 import java.io.*;
 import java.util.Scanner;
