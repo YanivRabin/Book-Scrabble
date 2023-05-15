@@ -64,6 +64,7 @@ public class MyServer implements ClientHandler {
         server.close();
     }
 
+    //return responses to client and close the socket
     @Override
     public void handleClient(InputStream inFromClient, OutputStream outToClient) {}
 

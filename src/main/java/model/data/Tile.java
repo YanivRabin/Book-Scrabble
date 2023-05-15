@@ -1,6 +1,4 @@
 package model.data;
-
-
 import java.util.Objects;
 import java.util.Random;
 
@@ -17,6 +15,7 @@ public class Tile {
 
     @Override
     public boolean equals(Object o) {
+
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Tile tile = (Tile) o;
@@ -32,8 +31,8 @@ public class Tile {
     public static class Bag {
 
         private static Bag singleBag = null;
-        int[] letterQuantity =  { 9,  2,  2,  4,  12, 2,  3,  2,  9,  1,  1,  4,  2,  6,  8,  2,  1,  6,  4,  6,  4,  2,  2,  1,  2,  1 };
-        final int[] checkQuantity =  { 9,  2,  2,  4,  12, 2,  3,  2,  9,  1,  1,  4,  2,  6,  8,  2,  1,  6,  4,  6,  4,  2,  2,  1,  2,  1 };
+        int[] letterQuantity =  {9,  2,  2,  4,  12, 2,  3,  2,  9,  1,  1,  4,  2,  6,  8,  2,  1,  6,  4,  6,  4,  2,  2,  1,  2,  1 };
+        final int[] checkQuantity =  {9,  2,  2,  4,  12, 2,  3,  2,  9,  1,  1,  4,  2,  6,  8,  2,  1,  6,  4,  6,  4,  2,  2,  1,  2,  1 };
         final Tile[] tiles = new Tile[26];
 
         private Bag() {
@@ -42,8 +41,7 @@ public class Tile {
             int[] letterScore = { 1,  3,  3,  2,  1,  4,  2,  4,  1,  8,  5,  1,  3,  1,  1,  3,  10, 1,  1,  1,  1,  4,  4,  8,  4,  10};
 
             for (int i = 0; i < 26; i++)
-                tiles[i] = new Tile(letters[i],letterScore[i]);
-
+                tiles[i] = new Tile(letters[i], letterScore[i]);
         }
 
         public Tile getRand() {
@@ -60,6 +58,7 @@ public class Tile {
 
         public static Bag getBag() {
 
+            // // create new bag, if already created then return the current
             if (singleBag == null)
                 singleBag = new Bag();
 
@@ -77,24 +76,20 @@ public class Tile {
 
         public int[] getQuantities() { return letterQuantity.clone(); }
 
-//            int[] temp = new int[26];
-//            System.arraycopy(letterQuantity, 0, temp, 0, letterQuantity.length);
-//            return temp;
-
         public Tile getTile(char c) {
+
+            // check if the letter is valid and that there's no 0 amount of that letter
             if (c < 'A' || c > 'Z' || letterQuantity[c - 'A'] < 1)
                 return null;
 
-            letterQuantity[c-'A']--;
-            return tiles[c-'A'];
+            letterQuantity[c - 'A']--;
+            return tiles[c - 'A'];
         }
 
         public void put(Tile t) {
 
-            if (checkQuantity[t.letter-'A'] > letterQuantity[t.letter-'A'])
-                letterQuantity[t.letter-'A']++;
+            if (checkQuantity[t.letter - 'A'] > letterQuantity[t.letter - 'A'])
+                letterQuantity[t.letter - 'A']++;
         }
-
-
     }
 }

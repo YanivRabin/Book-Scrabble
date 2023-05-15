@@ -39,6 +39,7 @@ public class Board {
 
     public static Board getBoard() {
 
+        // create new board, if already created then return the current
         if (singleBoard == null)
             singleBoard = new Board();
 
@@ -115,9 +116,7 @@ public class Board {
                 if (t == null)
                     if (board[w.row][i] == null)
                         return false;
-//                else
-//                    if (board[w.row][i] != null)
-//                        return false;
+
                 i++;
             }
         }
