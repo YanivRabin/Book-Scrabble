@@ -1,25 +1,28 @@
 package model.logic;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
+import java.util.List;
 
-public class MyServer implements ClientHandler {
+public class MyServer {
 
     int port;
-    ClientHandler clientHandler;
     ServerSocket server;
     boolean stop;
+    final int maxPleyers = 4;
+    List<Client> clients ;
+    int connectedClients ;
 
     //ctr
-    public MyServer(int p, ClientHandler ch) {
+    public MyServer(int port) {
 
-        port = p;
-        clientHandler = ch;
-        stop = false;
+        this.port = port;
+        this.stop = false;
+        this.clients = new ArrayList<>();
+        this.connectedClients = 0;
     }
 
     //start server
@@ -37,38 +40,48 @@ public class MyServer implements ClientHandler {
     }
 
     public void runServer() throws IOException {
-
         //open server with the port that given
-        server = new ServerSocket(port);
-        server.setSoTimeout(1000);
-
-        while (!stop) {
-
+        this.server = new ServerSocket(port);
+        System.out.println("Server started on port :" + this.port);
+        this.server.setSoTimeout(1000);
+        String hostAddress = this.server.getInetAddress().getHostAddress();
+        while (!stop && this.connectedClients < this.maxPleyers) {
             try {
-
                 //try to connect a client
-                Socket client = server.accept();
-                try {
+                Socket socketClient = this.server.accept();
+                Client client = new Client(socketClient);
+                this.clients.add(client);
+                this.connectedClients ++;
+                client.start();
 
-                    //handle the given client with handleClient func
-                    clientHandler.handleClient(client.getInputStream(), client.getOutputStream());
-                    client.close();
-                    clientHandler.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                if (this.connectedClients == this.maxPleyers)
+                {
+                    System.out.println("Maximum number of players reached");
+                    break;
                 }
             } catch (SocketTimeoutException e) {
                 e.printStackTrace();
             }
+            finally {
+                this.ServerClose();
+            }
         }
-        server.close();
     }
 
-    //return responses to client and close the socket
-    @Override
-    public void handleClient(InputStream inFromClient, OutputStream outToClient) {}
+    public void ServerClose() throws IOException {
+        stop = true;
+        for (Client c : this.clients){
+            c.close();
+        }
+        this.clients.clear();
 
-    @Override
-    public void close() { stop = true; }
+        if (this.server != null && !this.server.isClosed()) {
+            this.server.close();
+            System.out.println("Server closed.");
+        }
 
+    }
 }
+
+
+
