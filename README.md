@@ -28,7 +28,7 @@ or from your local IDE.
 After installing Java, you can clone this repository using the following command in your terminal:
 
    ```sh
-   git clone https://github.com/YanivRabin/Scrabble-Project.git
+   git clone https://github.com/YanivRabin/Book-Scrabble.git
    ```
 <p align="right"><a href="#readme-top">back to top</a></p>
 
