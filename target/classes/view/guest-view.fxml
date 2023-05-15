@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="332.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="view.GuestController">
+   <children>
+      <Label fx:id="guestLabel" layoutX="145.0" layoutY="46.0" text="Enter IP and Port for the game">
+         <font>
+            <Font size="25.0" />
+         </font>
+      </Label>
+      <Button layoutX="542.0" layoutY="292.0" mnemonicParsing="false" onAction="#backToMenuButton" text="Back" />
+      <TextField id="ipTextField" fx:id="ipTextField" layoutX="203.0" layoutY="140.0" />
+      <TextField id="portTextField" fx:id="portTextField" layoutX="203.0" layoutY="188.0" />
+      <Label layoutX="170.0" layoutY="138.0" text="IP:">
+         <font>
+            <Font size="25.0" />
+         </font>
+      </Label>
+      <Label layoutX="146.0" layoutY="186.0" text="Port:">
+         <font>
+            <Font size="25.0" />
+         </font>
+      </Label>
+      <Button layoutX="256.0" layoutY="234.0" mnemonicParsing="false" onAction="#checkIpPort" text="Enter" />
+   </children>
+</AnchorPane>
