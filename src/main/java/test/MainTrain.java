@@ -7,6 +7,7 @@ import static test.DictionaryTest.dictionaryTest;
 import static test.IOSearchTest.iOSearchTest;
 import static test.LFUTest.lfuTest;
 import static test.LRUTest.lruTest;
+import static test.MyServerTest.serverTest;
 
 
 public class MainTrain {
@@ -25,6 +26,7 @@ public class MainTrain {
             System.out.println("you got some exception");
         }
         dictionaryTest();
+        serverTest();
 //        if(testServer()) {
 //
 //            testDM();
