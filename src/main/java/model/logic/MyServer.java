@@ -1,28 +1,29 @@
 package model.logic;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MyServer {
+public class MyServer implements ClientHandler {
 
+    ClientHandler clientHandler;
     int port;
     ServerSocket server;
     boolean stop;
-    final int maxPleyers = 4;
-    List<Client> clients ;
-    int connectedClients ;
+    public final int maxPlayers = 4;
+    public List<Socket> clients ;
 
     //ctr
-    public MyServer(int port) {
+    public MyServer(int port, ClientHandler ch) {
 
+        this.clientHandler = ch;
         this.port = port;
         this.stop = false;
         this.clients = new ArrayList<>();
-        this.connectedClients = 0;
     }
 
     //start server
@@ -39,47 +40,51 @@ public class MyServer {
         }).start();
     }
 
+
     public void runServer() throws IOException {
+
         //open server with the port that given
         this.server = new ServerSocket(port);
         System.out.println("Server started on port :" + this.port);
-        this.server.setSoTimeout(1000);
-        String hostAddress = this.server.getInetAddress().getHostAddress();
-        while (!stop && this.connectedClients < this.maxPleyers) {
-            try {
-                //try to connect a client
-                Socket socketClient = this.server.accept();
-                Client client = new Client(socketClient);
-                this.clients.add(client);
-                this.connectedClients ++;
-                client.start();
+//        this.server.setSoTimeout(1000);
+//        String hostAddress = this.server.getInetAddress().getHostAddress();
+        while (!stop && this.clients.size() < this.maxPlayers) {
 
-                if (this.connectedClients == this.maxPleyers)
-                {
-                    System.out.println("Maximum number of players reached");
-                    break;
-                }
-            } catch (SocketTimeoutException e) {
-                e.printStackTrace();
+            Socket socketClient = this.server.accept();
+            addClient(socketClient);
             }
-            finally {
-                this.ServerClose();
-            }
-        }
+
+        if (this.clients.size() == this.maxPlayers)
+            System.out.println("Maximum number of players reached");
     }
 
-    public void ServerClose() throws IOException {
+    public void addClient(Socket socketClient) {
+
+        this.clients.add(socketClient);
+        System.out.println("Client Connected " + socketClient.toString());
+    }
+
+    @Override
+    public void handleClient(InputStream inFromClient, OutputStream outToClient) {
+
+    }
+
+    @Override
+    public void close() {
+
         stop = true;
-        for (Client c : this.clients){
-            c.close();
+        for (Socket c : this.clients) {
+            try { c.close(); }
+            catch (IOException e) { e.printStackTrace(); }
         }
+
         this.clients.clear();
 
         if (this.server != null && !this.server.isClosed()) {
-            this.server.close();
+            try { this.server.close(); }
+            catch (IOException e) { e.printStackTrace(); }
             System.out.println("Server closed.");
         }
-
     }
 }
 
