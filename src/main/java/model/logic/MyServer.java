@@ -1,21 +1,20 @@
 package model.logic;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MyServer implements ClientHandler {
+public class MyServer {
 
     ClientHandler clientHandler;
-    int port;
     ServerSocket server;
+    private static MyServer singleServer = null;
+    int port;
+    String IP;
     boolean stop;
-    public final int maxPlayers = 4;
-    public List<Socket> clients ;
+    public List<Socket> hosts;
 
     //ctr
     public MyServer(int port, ClientHandler ch) {
@@ -23,7 +22,15 @@ public class MyServer implements ClientHandler {
         this.clientHandler = ch;
         this.port = port;
         this.stop = false;
-        this.clients = new ArrayList<>();
+        this.hosts = new ArrayList<>();
+    }
+
+    public static MyServer getServer(int port, ClientHandler ch) {
+
+        if (singleServer == null)
+            singleServer = new MyServer(port, ch);
+
+        return singleServer;
     }
 
     //start server
@@ -47,38 +54,27 @@ public class MyServer implements ClientHandler {
         this.server = new ServerSocket(port);
         System.out.println("Server started on port :" + this.port);
 //        this.server.setSoTimeout(1000);
-//        String hostAddress = this.server.getInetAddress().getHostAddress();
-        while (!stop && this.clients.size() < this.maxPlayers) {
+        this.IP = this.server.getInetAddress().getHostAddress();
+        while (!stop) {
 
-            Socket socketClient = this.server.accept();
-            addClient(socketClient);
+            Socket host = this.server.accept();
+            this.hosts.add(host);
+
+            clientHandler.handleClient(host.getInputStream(), host.getOutputStream());
+            // Implement with thread pool
             }
-
-        if (this.clients.size() == this.maxPlayers)
-            System.out.println("Maximum number of players reached");
     }
 
-    public void addClient(Socket socketClient) {
 
-        this.clients.add(socketClient);
-        System.out.println("Client Connected " + socketClient.toString());
-    }
-
-    @Override
-    public void handleClient(InputStream inFromClient, OutputStream outToClient) {
-
-    }
-
-    @Override
     public void close() {
 
         stop = true;
-        for (Socket c : this.clients) {
+        for (Socket c : this.hosts) {
             try { c.close(); }
             catch (IOException e) { e.printStackTrace(); }
         }
 
-        this.clients.clear();
+        this.hosts.clear();
 
         if (this.server != null && !this.server.isClosed()) {
             try { this.server.close(); }

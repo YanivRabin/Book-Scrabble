@@ -3,14 +3,14 @@ package model.logic;
 import java.io.*;
 import java.net.Socket;
 
-public class Client implements ClientHandler {
+public class Guest implements ClientHandler {
 
     private Socket clientSocket;
     private InputStream in;
     private OutputStream out;
     public String ipClient;
 
-    public Client(int port) {
+    public Guest(int port) {
 
 //        clientSocket = socket;
         try {

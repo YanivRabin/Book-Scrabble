@@ -1,6 +1,7 @@
 package model.data;
 import model.data.Tile;
 import model.data.Word;
+import model.logic.Host;
 
 import java.util.*;
 
@@ -155,7 +156,11 @@ public class Board {
     }
 
     public boolean dictionaryLegal(Word w) {
-        return true;
+//        return true;
+        StringBuilder text = new StringBuilder("Q," + w.toString());
+        Host.getHostServer()
+
+
     }
 
     public ArrayList<Word> getWords(Word w) {
