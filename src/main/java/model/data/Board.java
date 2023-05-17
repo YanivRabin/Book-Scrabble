@@ -158,8 +158,8 @@ public class Board {
     public boolean dictionaryLegal(Word w) {
 //        return true;
         StringBuilder text = new StringBuilder("Q," + w.toString());
-        Host.getHostServer()
-
+//        Host.getHostServer();
+        return true;
 
     }
 
