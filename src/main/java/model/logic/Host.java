@@ -11,6 +11,7 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 
 public class Host implements ClientHandler{
@@ -22,9 +23,9 @@ public class Host implements ClientHandler{
     boolean HostStop;
     final int MaxGuests = 4;
     public List<Socket> guests;
-    Board board ; // singelton ?
+    Board board ; // singleton and get instance model
 
-    public String NickName; // how we get it toledo
+    public String NickName; // how we get it toledo ?
     public Tile.Bag bag;
 
     Socket HostToMyServer;
@@ -32,9 +33,9 @@ public class Host implements ClientHandler{
 
     public Host(){
         this.board = new Board();
-        this.HostPort = 1234; // remove this toledo !
+        this.HostPort = GeneratePort();
         this.HostStop = false;
-        this.bag = Tile.Bag.getBag();
+        this.bag = Tile.Bag.getBagModel();
     }
 
     //
@@ -50,6 +51,10 @@ public class Host implements ClientHandler{
         this.HostToMyServer = new Socket(server.IP, server.port);
     }
 
+    public void CreateProfile(String NickName){
+        this.NickName = NickName;
+        // add Photo or avatar
+    }
 
 
     // up a host server
@@ -69,8 +74,6 @@ public class Host implements ClientHandler{
 
 
     public void runServer() throws IOException {
-        // add generate port for host toledo !
-
         //open server with the port that given
         this.HostServer = new ServerSocket(this.HostPort);
         System.out.println("Server started on port :" + this.HostPort);
@@ -132,11 +135,25 @@ public class Host implements ClientHandler{
         Tile[] ts = new Tile[s.length()];
         int i = 0;
         for(char c: s.toCharArray()) {
-            ts[i] = Tile.Bag.getBag().getTile(c);
+            ts[i] = Tile.Bag.getBagModel().getTile(c);
             i++;
         }
         return ts;
     }
+
+    public int GeneratePort(){
+        int minPort = 1024;
+        int maxPort = 65535;
+
+        int randomPort = generateRandomPort(minPort, maxPort);
+        return randomPort;
+    }
+
+    public static int generateRandomPort(int minPort, int maxPort) {
+        Random random = new Random();
+        return random.nextInt(maxPort - minPort + 1) + minPort;
+    }
+
 
     @Override
     public void close() {

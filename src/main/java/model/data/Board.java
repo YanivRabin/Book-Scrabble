@@ -47,6 +47,16 @@ public class Board {
         return singleBoard;
     }
 
+    private static class BoardModelHelper {
+        public static final Host model_instance = new Host();
+    }
+
+    public static Host getBoardModel() {
+        return Board.BoardModelHelper.model_instance;
+    }
+
+
+
     public Tile[][] getTiles() {
         return board.clone();
     }

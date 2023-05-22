@@ -22,7 +22,12 @@ public class Guest {
     public Guest(String NickName){
         this.NickName = NickName;
         this.score = 0;
-        this.bag = Bag.getBag();
+        this.bag = Bag.getBagModel();
+    }
+
+    public void CreateProfile(String NickName){
+        this.NickName = NickName;
+        // add Photo or avatar
     }
 
     public void CreateSocketToHost(String HostIp, int Port) throws IOException {
