@@ -18,6 +18,7 @@ public class Word {
         col = c;
     }
 
+
     public Tile[] getTiles() { return tiles; }
     public boolean isVertical() { return vertical; }
     public int getRow() { return row; }

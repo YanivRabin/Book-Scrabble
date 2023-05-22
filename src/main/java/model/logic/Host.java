@@ -23,25 +23,34 @@ public class Host implements ClientHandler{
     final int MaxGuests = 4;
     public List<Socket> guests;
     Board board ; // singelton ?
-    private static Host singleHost = null;
+
+    public String NickName; // how we get it toledo
+    public Tile.Bag bag;
 
     Socket HostToMyServer;
 
 
-    public Host(MyServer server, int HostPort) throws IOException {
-        this.HostToMyServer = new Socket(server.IP, server.port);
+    public Host(){
         this.board = new Board();
-        this.HostPort = HostPort;
+        this.HostPort = 1234; // remove this toledo !
         this.HostStop = false;
+        this.bag = Tile.Bag.getBag();
     }
 
-    public static Host getHostServer(MyServer server, int HostPort) throws IOException {
-
-        if (singleHost == null)
-            singleHost = new Host(server, HostPort);
-
-        return singleHost;
+    //
+    private static class HostModelHelper {
+        public static final Host model_instance = new Host();
     }
+
+    public static Host getModel() {
+        return HostModelHelper.model_instance;
+    }
+
+    public void CreateSocketToServer(MyServer server) throws IOException {
+        this.HostToMyServer = new Socket(server.IP, server.port);
+    }
+
+
 
     // up a host server
     //start server
@@ -60,6 +69,7 @@ public class Host implements ClientHandler{
 
 
     public void runServer() throws IOException {
+        // add generate port for host toledo !
 
         //open server with the port that given
         this.HostServer = new ServerSocket(this.HostPort);
@@ -85,7 +95,8 @@ public class Host implements ClientHandler{
         PrintWriter out = new PrintWriter(outToClient);
         String[] text = in.nextLine().split(",");
         boolean vertical = text[3].equals("true");
-        Word word = new Word(getTileArray(text[0]), Integer.parseInt(text[1]), Integer.parseInt(text[2]), vertical);
+
+        Word word = new Word(this.getTileArray(text[0]), Integer.parseInt(text[1]), Integer.parseInt(text[2]), vertical);
 
         // try place
         int score =  this.board.tryPlaceWord(word);
@@ -109,6 +120,8 @@ public class Host implements ClientHandler{
     public  void OutToServer(String text){
         try {
             PrintWriter printWriter = new PrintWriter(this.HostToMyServer.getOutputStream());
+            printWriter.println(text);
+            printWriter.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
