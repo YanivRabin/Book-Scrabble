@@ -11,21 +11,16 @@ import java.net.Socket;
 public class Guest {
 
 
-
+    //Logic Members
     private Socket SocketToHost;
     private BufferedReader reader;
     private PrintWriter writer;
-
-
     private String ipAddress;
-    public int score;
 
-    public String getNickName() {
-        return NickName;
-    }
-
+    //Data-Game Members
     public String NickName;
     public Bag bag;
+    public int score;
 
 
     public Guest(String NickName){
@@ -51,6 +46,9 @@ public class Guest {
     }
     public Socket getSocketToHost() {
         return SocketToHost;
+    }
+    public String getNickName() {
+        return NickName;
     }
     public BufferedReader getReader() {
         return reader;

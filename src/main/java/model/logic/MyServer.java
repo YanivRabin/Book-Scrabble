@@ -14,7 +14,7 @@ public class MyServer {
     int port;
     String IP;
     boolean stop;
-    public List<Socket> hosts;
+    public List<Socket> HostsList;
 
     //ctr
     public MyServer(int port, ClientHandler ch) {
@@ -22,7 +22,7 @@ public class MyServer {
         this.clientHandler = ch;
         this.port = port;
         this.stop = false;
-        this.hosts = new ArrayList<>();
+        this.HostsList = new ArrayList<>();
     }
 
     public static MyServer getServer(int port, ClientHandler ch) {
@@ -31,6 +31,16 @@ public class MyServer {
             singleServer = new MyServer(port, ch);
 
         return singleServer;
+    }
+    public int getPort() {
+        return port;
+    }
+    public String getIP() {
+        return IP;
+    }
+
+    public List<Socket> getHostsList() {
+        return HostsList;
     }
 
     //start server
@@ -46,8 +56,6 @@ public class MyServer {
             }
         }).start();
     }
-
-
     public void runServer() throws IOException {
 
         //open server with the port that given
@@ -58,29 +66,26 @@ public class MyServer {
         while (!stop) {
 
             Socket host = this.server.accept();
-            this.hosts.add(host);
-            System.out.println("Host Connected, Number of Hosts Connected: "+hosts.size());
+            this.HostsList.add(host);
+            System.out.println("Host Connected, Number of Hosts Connected: "+ HostsList.size());
 
-            clientHandler.handleClient(host.getInputStream(), host.getOutputStream());
+           // clientHandler.handleClient(host.getInputStream(), host.getOutputStream());
             // Implement with thread pool
             }
     }
 
-
     public void close() {
 
         stop = true;
-        for (Socket c : this.hosts) {
+        for (Socket c : this.HostsList) {
             try { c.close(); }
             catch (IOException e) { e.printStackTrace(); }
         }
-
-        this.hosts.clear();
-
+        this.HostsList.clear();
         if (this.server != null && !this.server.isClosed()) {
             try { this.server.close(); }
             catch (IOException e) { e.printStackTrace(); }
-            System.out.println("Server closed.");
+            System.out.println("Main Server closed.");
         }
     }
 }

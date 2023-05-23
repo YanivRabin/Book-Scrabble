@@ -17,40 +17,32 @@ import java.util.Scanner;
 
 public class Host implements ClientHandler{
 
-    public int getPort() {
-        return Port;
-    }
 
-    public String getIpAddress() {
-        return IP;
-    }
-
-
-    public ServerSocket getHostServer() {
-        return HostServer;
-    }
+    //Logic Members
     int Port;
     String IP;
-    ServerSocket HostServer;
+    ServerSocket Server;
     Socket HostSocket;
     boolean Stop;
     final int MaxGuests = 4;
-    public List<Socket> guests;
-    Board board ; // singleton and get instance model
+    public List<Socket> GuestList;
+    Socket SocketToMyServer;
+    MyServer GameServer; // The MyServer this host connected to
 
+    //Data-Game Members
     public String NickName; // how we get it toledo ?
     public Tile.Bag bag;
+    Board board ; // singleton and get instance model
 
-    Socket HostToMyServer;
 
-
+    //Default CTOR
     public Host(){
         this.board = new Board();
         this.Port = GeneratePort();
-        // this.Port=1235;
+        this.NickName="Host "+getPort();
         this.Stop = false;
         this.bag = Tile.Bag.getBagModel();
-        guests=new ArrayList<>();
+        GuestList =new ArrayList<>();
     }
 
     //
@@ -61,9 +53,25 @@ public class Host implements ClientHandler{
     public static Host getModel() {
         return HostModelHelper.model_instance;
     }
+    public int getPort() {
+        return Port;
+    }
 
+    public String getIpAddress() {
+        return IP;
+    }
+
+    public String getNickName() {
+        return NickName;
+    }
+
+    public ServerSocket getServer() {
+        return Server;
+    }
+    //Connects Host to Main Server
     public void CreateSocketToServer(MyServer server) throws IOException {
-        this.HostToMyServer = new Socket(server.IP, server.port);
+        GameServer=server;
+        this.SocketToMyServer = new Socket(server.getIP(), server.getPort());
         System.out.println("Host Connected to Main Server");
     }
 
@@ -91,18 +99,21 @@ public class Host implements ClientHandler{
 
     public void runServer() throws IOException {
         //open server with the port that given
-        this.HostServer = new ServerSocket(this.Port);
+        this.Server = new ServerSocket(this.Port);
         System.out.println("Host Server started on port :" + this.Port);
 //        this.server.setSoTimeout(1000);
-        this.IP = this.HostServer.getInetAddress().getHostAddress();
+        this.IP = this.Server.getInetAddress().getHostAddress();
         this.HostSocket = new Socket(this.IP, this.Port);
-        this.guests.add(HostSocket);
+        this.GuestList.add(HostSocket);
         while (!this.Stop ) {
-            //if(this.guests.size() < this.MaxGuests) {
-                Socket guest = this.HostServer.accept();
-                this.guests.add(guest);
-                System.out.println("Guest Connected, Number of guests: "+guests.size());
-          //  }
+            if(this.GuestList.size() < this.MaxGuests) {
+                Socket guest = this.Server.accept();
+                this.GuestList.add(guest);
+                System.out.println("Guest Connected, Number of guests: "+ GuestList.size());
+            }
+            else {
+                // Wait for Players to disconnect??
+            }
 
 
             // Implement with thread pool
@@ -142,7 +153,7 @@ public class Host implements ClientHandler{
 
     public  void OutToServer(String text){
         try {
-            PrintWriter printWriter = new PrintWriter(this.HostToMyServer.getOutputStream());
+            PrintWriter printWriter = new PrintWriter(this.SocketToMyServer.getOutputStream());
             printWriter.println(text);
             printWriter.flush();
         } catch (IOException e) {
@@ -179,20 +190,24 @@ public class Host implements ClientHandler{
     public void close() {
 
         this.Stop = true;
-        for (Socket g : this.guests) {
+        for (Socket g : this.GuestList) {
             try { g.close(); }
             catch (IOException e) { e.printStackTrace(); }
         }
+        //Delete this Host from the Main Server HostsList
+        GameServer.getHostsList().remove(SocketToMyServer); //FIX IT
 
-        this.guests.clear();
 
-        if (this.HostServer != null && !this.HostServer.isClosed()) {
+        this.GuestList.clear();
+
+
+        if (this.Server != null && !this.Server.isClosed()) {
             try {
-                this.HostServer.close();
+                this.Server.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            System.out.println("Server closed.");
+            System.out.println("Host "+getNickName()+" Server closed.");
         }
     }
 

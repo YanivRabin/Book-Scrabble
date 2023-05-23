@@ -50,7 +50,7 @@ public class MyServerTest {
         try { Thread.sleep(1000); }
         catch (InterruptedException e) { e.printStackTrace(); }
 
-        if (server.hosts.size() != 4)
+        if (server.HostsList.size() != 4)
             System.out.println("The server didn't connect 4 players");
 
         server.close();

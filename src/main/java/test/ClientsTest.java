@@ -6,7 +6,6 @@ import model.logic.Host;
 import model.logic.MyServer;
 
 import java.io.IOException;
-import java.util.Random;
 
 public class ClientsTest {
     // need to write test for Host Guest and my server connection and
@@ -27,17 +26,18 @@ public class ClientsTest {
                 host.CreateSocketToServer(gameServer);
                 host.start();
                 Thread.sleep(5000);
-                System.out.println("Host IP: "+host.getIpAddress());
-                System.out.println("Host Port: "+host.getPort());
+                System.out.println("Host IP: " + host.getIpAddress());
+                System.out.println("Host Port: " + host.getPort());
 
                 // Create 5 Guests for each Host
                 for (int j = 0; j < 5; j++) {
                     Guest guest = new Guest("Guest" + (i * 5 + j + 1));
                     guest.CreateSocketToHost(host.getIpAddress(), host.getPort());
-                   // Thread.sleep(5000);
-                   // System.out.println("Guest Connected: "+guest.NickName +"Port: "+host.getPort());
+                    // Thread.sleep(5000);
+                    // System.out.println("Guest Connected: "+guest.NickName +"Port: "+host.getPort());
                 }
                 Thread.sleep(5000);
+                host.close();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -47,6 +47,7 @@ public class ClientsTest {
 
         // Close the GameServer
         gameServer.close();
+
 
         // Test Scenario 1: Test Server Initialization
 //        MyServer server = MyServer.getServer(1234, new BookScrabbleHandler());
@@ -76,17 +77,19 @@ public class ClientsTest {
 //        guest.getSocketToHost().close();
 //        host.getHostServer().close();
 //        server.close();
-    }
+//    }
+//
+//    public static String generateRandomWord() {
+//        int wordLength = 5; // Length of the random word
+//        Random random = new Random();
+//        StringBuilder word = new StringBuilder();
+//        for (int i = 0; i < wordLength; i++) {
+//            char randomChar = (char) (random.nextInt(26) + 'a');
+//            word.append(randomChar);
+//        }
+//        return word.toString();
 
-    public static String generateRandomWord() {
-        int wordLength = 5; // Length of the random word
-        Random random = new Random();
-        StringBuilder word = new StringBuilder();
-        for (int i = 0; i < wordLength; i++) {
-            char randomChar = (char) (random.nextInt(26) + 'a');
-            word.append(randomChar);
-        }
-        return word.toString();
+
     }
 }
 
