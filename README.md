@@ -8,13 +8,11 @@
   </a>
 
 
-<h3 align="center">Scrabble Project</h3>
+<h3 align="center">Book Scrabble</h3>
   <p align="center">
     <a href="https://github.com/github_username/repo_name">View Demo</a>
     ·
     <a href="https://view.monday.com/1187919453-d087be1e389a3575ae0b3f30a8bc5adb?r=euc1">View Gantt</a>
-    ·
-    <a href="https://github.com/github_username/repo_name/issues">Report Bug</a>
   </p>
 </div>
 

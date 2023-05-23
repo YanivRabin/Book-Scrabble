@@ -1,25 +1,36 @@
 package model.logic;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
+import java.util.ArrayList;
+import java.util.List;
 
-public class MyServer implements ClientHandler {
+public class MyServer {
 
-    int port;
     ClientHandler clientHandler;
     ServerSocket server;
+    private static MyServer singleServer = null;
+    int port;
+    String IP;
     boolean stop;
+    public List<Socket> hosts;
 
     //ctr
-    public MyServer(int p, ClientHandler ch) {
+    public MyServer(int port, ClientHandler ch) {
 
-        port = p;
-        clientHandler = ch;
-        stop = false;
+        this.clientHandler = ch;
+        this.port = port;
+        this.stop = false;
+        this.hosts = new ArrayList<>();
+    }
+
+    public static MyServer getServer(int port, ClientHandler ch) {
+
+        if (singleServer == null)
+            singleServer = new MyServer(port, ch);
+
+        return singleServer;
     }
 
     //start server
@@ -36,39 +47,42 @@ public class MyServer implements ClientHandler {
         }).start();
     }
 
+
     public void runServer() throws IOException {
 
         //open server with the port that given
-        server = new ServerSocket(port);
-        server.setSoTimeout(1000);
-
+        this.server = new ServerSocket(port);
+        System.out.println("Main Server started on port :" + this.port);
+//        this.server.setSoTimeout(1000);
+        this.IP = this.server.getInetAddress().getHostAddress();
         while (!stop) {
 
-            try {
+            Socket host = this.server.accept();
+            this.hosts.add(host);
+            System.out.println("Host Connected, Number of Hosts Connected: "+hosts.size());
 
-                //try to connect a client
-                Socket client = server.accept();
-                try {
-
-                    //handle the given client with handleClient func
-                    clientHandler.handleClient(client.getInputStream(), client.getOutputStream());
-                    client.close();
-                    clientHandler.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } catch (SocketTimeoutException e) {
-                e.printStackTrace();
+            clientHandler.handleClient(host.getInputStream(), host.getOutputStream());
+            // Implement with thread pool
             }
-        }
-        server.close();
     }
 
-    //return responses to client and close the socket
-    @Override
-    public void handleClient(InputStream inFromClient, OutputStream outToClient) {}
 
-    @Override
-    public void close() { stop = true; }
+    public void close() {
 
+        stop = true;
+        for (Socket c : this.hosts) {
+            try { c.close(); }
+            catch (IOException e) { e.printStackTrace(); }
+        }
+
+        this.hosts.clear();
+
+        if (this.server != null && !this.server.isClosed()) {
+            try { this.server.close(); }
+            catch (IOException e) { e.printStackTrace(); }
+            System.out.println("Server closed.");
+        }
+    }
 }
+
+

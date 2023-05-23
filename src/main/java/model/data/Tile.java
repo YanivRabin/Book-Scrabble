@@ -1,4 +1,9 @@
 package model.data;
+import model.logic.Host;
+import model.logic.MyServer;
+
+import java.io.IOException;
+import java.net.Socket;
 import java.util.Objects;
 import java.util.Random;
 
@@ -64,6 +69,16 @@ public class Tile {
 
             return singleBag;
         }
+
+
+        private static class BagModelHelper {
+            public static final Bag model_instance = new Bag();
+        }
+
+        public static Bag getBagModel() {
+            return Bag.BagModelHelper.model_instance;
+        }
+
 
         public int bagSize() {
 

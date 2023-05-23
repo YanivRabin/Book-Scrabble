@@ -1,8 +1,8 @@
 package model.data;
-import model.data.Tile;
-import model.data.Word;
 
-import java.util.*;
+import model.logic.Host;
+
+import java.util.ArrayList;
 
 public class Board {
 
@@ -45,6 +45,16 @@ public class Board {
 
         return singleBoard;
     }
+
+    private static class BoardModelHelper {
+        public static final Host model_instance = new Host();
+    }
+
+    public static Host getBoardModel() {
+        return Board.BoardModelHelper.model_instance;
+    }
+
+
 
     public Tile[][] getTiles() {
         return board.clone();
@@ -155,7 +165,10 @@ public class Board {
     }
 
     public boolean dictionaryLegal(Word w) {
+        StringBuilder text = new StringBuilder("Q," + w.toString());
+        Host.getModel().OutToServer(text.toString());
         return true;
+
     }
 
     public ArrayList<Word> getWords(Word w) {
