@@ -16,6 +16,7 @@ public class MyServer {
     boolean stop;
     public List<Socket> HostsList;
 
+
     //ctr
     public MyServer(int port, ClientHandler ch) {
 
@@ -74,7 +75,7 @@ public class MyServer {
             }
     }
 
-    public void close() {
+    public void close() throws IOException {
 
         stop = true;
         for (Socket c : this.HostsList) {
@@ -82,6 +83,7 @@ public class MyServer {
             catch (IOException e) { e.printStackTrace(); }
         }
         this.HostsList.clear();
+
         if (this.server != null && !this.server.isClosed()) {
             try { this.server.close(); }
             catch (IOException e) { e.printStackTrace(); }

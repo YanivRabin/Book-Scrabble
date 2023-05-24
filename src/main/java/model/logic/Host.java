@@ -4,10 +4,7 @@ import model.data.Board;
 import model.data.Tile;
 import model.data.Word;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -110,11 +107,8 @@ public class Host implements ClientHandler{
                 Socket guest = this.Server.accept();
                 this.GuestList.add(guest);
                 System.out.println("Guest Connected, Number of guests: "+ GuestList.size());
+                this.handleClient(guest.getInputStream(), guest.getOutputStream());
             }
-            else {
-                // Wait for Players to disconnect??
-            }
-
 
             // Implement with thread pool
         }
@@ -124,26 +118,36 @@ public class Host implements ClientHandler{
     @Override
     public void handleClient(InputStream inFromClient, OutputStream outToClient) {
 
-        // get input the text contain ['word' ',' 'start' ',' 'end' ',' 'vertical/not']
+        // get input the text contain ['Q or C' ',' 'word' ',' 'start' ',' 'end' ',' 'vertical/not']
         Scanner in = new Scanner(inFromClient);
         PrintWriter out = new PrintWriter(outToClient);
         String[] text = in.nextLine().split(",");
-        boolean vertical = text[3].equals("true");
+        int score = 0;
 
-        Word word = new Word(this.getTileArray(text[0]), Integer.parseInt(text[1]), Integer.parseInt(text[2]), vertical);
-
-        // try place
-        int score =  this.board.tryPlaceWord(word);
+        switch (text[0]){
+            case "Q":
+                boolean Q_vertical = text[4].equals("true");
+                Word Q_word = new Word(this.getTileArray(text[1]), Integer.parseInt(text[2]), Integer.parseInt(text[3]), Q_vertical);
+                score =  this.board.tryPlaceWord(Q_word);
+            case "C":
+                boolean C_vertical = text[4].equals("true");
+                Word C_word = new Word(this.getTileArray(text[1]), Integer.parseInt(text[2]), Integer.parseInt(text[3]), C_vertical);
+                //score =
+        }
 
         //if true go to my server, else out try again to the guest
         if (score == 0){
             // ignore to guest
-            out.println("false");
+            out.println("Not Legal");
             out.flush();
         }
         else {
             // ack , score to guest
-            // query , challenge in my server
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("Success,");
+            stringBuilder.append(score);
+            out.println(stringBuilder.toString());
+            out.flush();
 
         }
 
@@ -159,6 +163,16 @@ public class Host implements ClientHandler{
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    public String InFromServer() throws IOException {
+        Scanner in = new Scanner(new InputStreamReader(this.SocketToMyServer.getInputStream()));
+        StringBuilder stringBuilder = new StringBuilder();
+        while(in.hasNext()){
+            stringBuilder.append(in.nextLine());
+        }
+        String resultText = stringBuilder.toString();
+
+        return resultText;
     }
 
     private static Tile[] getTileArray(String s) {
@@ -194,11 +208,18 @@ public class Host implements ClientHandler{
             try { g.close(); }
             catch (IOException e) { e.printStackTrace(); }
         }
-        //Delete this Host from the Main Server HostsList
-        GameServer.getHostsList().remove(SocketToMyServer); //FIX IT
-
-
         this.GuestList.clear();
+
+        //Delete this Host from the Main Server HostsList
+
+        if (GameServer != null) {
+            for (Socket host : GameServer.HostsList) {
+                if(host.getPort()==SocketToMyServer.getLocalPort()) {
+                    GameServer.HostsList.remove(host);
+                    break;
+                }
+                }
+            }
 
 
         if (this.Server != null && !this.Server.isClosed()) {

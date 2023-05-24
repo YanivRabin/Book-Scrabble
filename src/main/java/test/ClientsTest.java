@@ -21,13 +21,13 @@ public class ClientsTest {
 
         try {
             // Create multiple Hosts and connect them to the GameServer
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < 1; i++) {
                 Host host = new Host();
                 host.CreateSocketToServer(gameServer);
                 host.start();
                 Thread.sleep(5000);
-                System.out.println("Host IP: " + host.getIpAddress());
-                System.out.println("Host Port: " + host.getPort());
+//                System.out.println("Host IP: " + host.getIpAddress());
+//                System.out.println("Host Port: " + host.getPort());
 
                 // Create 5 Guests for each Host
                 for (int j = 0; j < 5; j++) {
@@ -47,7 +47,7 @@ public class ClientsTest {
 
         // Close the GameServer
         gameServer.close();
-
+        System.out.println("Done");
 
         // Test Scenario 1: Test Server Initialization
 //        MyServer server = MyServer.getServer(1234, new BookScrabbleHandler());

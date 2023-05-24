@@ -16,6 +16,7 @@ public class Guest {
     private BufferedReader reader;
     private PrintWriter writer;
     private String ipAddress;
+    Host HostServer; // The Host this Guest connected to
 
     //Data-Game Members
     public String NickName;
@@ -41,6 +42,19 @@ public class Guest {
         this.ipAddress = SocketToHost.getInetAddress().getHostAddress();
     }
 
+    public void Disconnect(){
+        if (HostServer != null) {
+            for (Socket host : HostServer.GuestList) {
+                if(host.getPort()==SocketToHost.getLocalPort()) {
+                    HostServer.GuestList.remove(host);
+                    break;
+                }
+            }
+        }
+    }
+    public  void OutToHost(String text) {
+        this.writer.println(text);
+    }
     public String readInput() throws IOException {
         return reader.readLine();
     }

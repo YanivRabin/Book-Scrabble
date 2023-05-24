@@ -2,6 +2,7 @@ package model.data;
 
 import model.logic.Host;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class Board {
@@ -167,10 +168,14 @@ public class Board {
     public boolean dictionaryLegal(Word w) {
         StringBuilder text = new StringBuilder("Q," + w.toString());
         Host.getModel().OutToServer(text.toString());
-        return true;
-
+        boolean res;
+        try {
+            res = Host.getModel().InFromServer().equals("true");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return res;
     }
-
     public ArrayList<Word> getWords(Word w) {
 
         ArrayList<Word> words = new ArrayList<>();

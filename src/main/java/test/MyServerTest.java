@@ -34,7 +34,7 @@ public class MyServerTest {
         }
     }
 
-    public static void serverTest() {
+    public static void serverTest() throws IOException {
 
         int port = 1234;
 
