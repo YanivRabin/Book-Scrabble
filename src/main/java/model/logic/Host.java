@@ -119,6 +119,7 @@ public class Host implements ClientHandler{
     public void handleClient(InputStream inFromClient, OutputStream outToClient) {
 
         // get input the text contain ['Q or C' ',' 'word' ',' 'start' ',' 'end' ',' 'vertical/not']
+        //may in try catch (Scanner)
         Scanner in = new Scanner(inFromClient);
         PrintWriter out = new PrintWriter(outToClient);
         String[] text = in.nextLine().split(",");
