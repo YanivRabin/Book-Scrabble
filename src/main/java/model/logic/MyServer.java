@@ -68,6 +68,14 @@ public class MyServer {
 
             Socket host = this.server.accept();
             this.HostsList.add(host);
+            Thread hostThread = new Thread(() -> {
+                try {
+                    this.clientHandler.handleClient(host.getInputStream(), host.getOutputStream());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            hostThread.start();
             System.out.println("Host Connected, Number of Hosts Connected: "+ HostsList.size());
 
            // clientHandler.handleClient(host.getInputStream(), host.getOutputStream());

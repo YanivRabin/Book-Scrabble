@@ -32,13 +32,14 @@ public class ClientsTest {
                 host.SendMessageToLocalServer(stringBuilder.toString());
 
                 // Create 5 Guests for each Host
-                for (int j = 0; j < 5; j++) {
+                for (int j = 0; j < 3; j++) {
                     Guest guest = new Guest("Guest" + (j + 1));
                     guest.CreateSocketToHost(host.getIpAddress(), host.getPort());
                     stringBuilder = new StringBuilder();
                     stringBuilder.append(guest.getNickName());
                     stringBuilder.append(": The message has been received");
                     guest.SendToHost(stringBuilder.toString());
+//                    guest.SendToHost("Q,WIN,7,7,true");
                      Thread.sleep(5000);
                 }
                 Thread.sleep(5000);

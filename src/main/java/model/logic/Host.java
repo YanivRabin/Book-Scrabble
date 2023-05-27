@@ -2,6 +2,7 @@ package model.logic;
 
 import model.data.Board;
 import model.data.Tile;
+import model.data.Word;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -119,18 +120,22 @@ public class Host implements ClientHandler{
             try{
                 if(this.GuestList.size() < this.MaxGuests) {
                     Socket guest = this.LocalServer.accept();
-                    if (guest != HostSocketToLocalServer) {
-                        this.GuestList.add(guest);
-                        System.out.println("Guest Connected, Number of guests: " + GuestList.size());
-                        clientThread = new Thread(() -> {
-                            try {
-                                handleClient(guest.getInputStream(), guest.getOutputStream());
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        });
-                        clientThread.start();
+                    this.GuestList.add(guest);
+                    if (guest.getPort() == this.HostSocketToLocalServer.getLocalPort()){
+                        System.out.println("Host Connected, Number of players: " + GuestList.size());
                     }
+                    else{
+                        System.out.println("Guest Connected, Number of players: " + GuestList.size());
+                    }
+                    clientThread = new Thread(() -> {
+                        try {
+                            handleClient(guest.getInputStream(), guest.getOutputStream());
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+                    clientThread.start();
+
                 }
             }catch (IOException e){
                 e.printStackTrace();
@@ -142,14 +147,50 @@ public class Host implements ClientHandler{
     // the host need to try place word
     @Override
     public void handleClient(InputStream inFromClient, OutputStream outToClient) {
+        //initialize data-game
+        int score = 0;
+
+        PrintWriter out = new PrintWriter(outToClient);
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inFromClient))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
+            String line = reader.readLine();
+            if (line != null) {
                 System.out.println(line);
+                // get input the text contain ['Q or C' ',' 'word' ',' 'start' ',' 'end' ',' 'vertical/not']
+                /*String[] text = line.split(",");
+                switch (text[0]) {
+                    case "Q":
+                        boolean Q_vertical = text[4].equals("true");
+                        Word Q_word = new Word(getTileArray(text[1]), Integer.parseInt(text[2]), Integer.parseInt(text[3]), Q_vertical);
+                        score = this.board.tryPlaceWord(Q_word);
+                        break;
+                    case "C":
+                        boolean C_vertical = text[4].equals("true");
+                        Word C_word = new Word(getTileArray(text[1]), Integer.parseInt(text[2]), Integer.parseInt(text[3]), C_vertical);
+                        //score =
+                        break;
+                }
+                //if true go to my server, else out try again to the guest
+                if (score == 0){
+                    // ignore to guest
+                    out.println("Not Legal");
+                    out.flush();
+                }
+                else {
+                    // ack , score to guest
+                    String stringBuilder = "Success," +
+                            score;
+                    out.println(stringBuilder);
+                    System.out.println(stringBuilder);
+                    out.flush();
+
+                }*/
             }
+            /*while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }*/
         } catch (IOException e) {
             throw new RuntimeException("Error while handling client: " + e.getMessage(), e);
-        } finally {
+        } /*finally {
             // Clean up resources, such as closing the input and output streams
             try {
                 inFromClient.close();
@@ -158,45 +199,7 @@ public class Host implements ClientHandler{
                 // Handle the exception appropriately
                 e.printStackTrace();
             }
-        }
-
-
-
-        /*// get input the text contain ['Q or C' ',' 'word' ',' 'start' ',' 'end' ',' 'vertical/not']
-        Scanner in = new Scanner(inFromClient);
-        PrintWriter out = new PrintWriter(outToClient);
-        String[] text = in.nextLine().split(",");
-        int score = 0;
-
-        switch (text[0]){
-            case "Q":
-                boolean Q_vertical = text[4].equals("true");
-                Word Q_word = new Word(this.getTileArray(text[1]), Integer.parseInt(text[2]), Integer.parseInt(text[3]), Q_vertical);
-                score =  this.board.tryPlaceWord(Q_word);
-            case "C":
-                boolean C_vertical = text[4].equals("true");
-                Word C_word = new Word(this.getTileArray(text[1]), Integer.parseInt(text[2]), Integer.parseInt(text[3]), C_vertical);
-                //score =
-        }
-
-        //if true go to my server, else out try again to the guest
-        if (score == 0){
-            // ignore to guest
-            out.println("Not Legal");
-            out.flush();
-        }
-        else {
-            // ack , score to guest
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append("Success,");
-            stringBuilder.append(score);
-            out.println(stringBuilder.toString());
-            out.flush();
-
         }*/
-
-
-//        out.flush();
     }
 
     public  void SendMessageToGameServer(String text){
