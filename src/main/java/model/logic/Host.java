@@ -2,7 +2,6 @@ package model.logic;
 
 import model.data.Board;
 import model.data.Tile;
-import model.data.Word;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -13,23 +12,25 @@ import java.util.Random;
 import java.util.Scanner;
 
 public class Host implements ClientHandler{
-
-
     //Logic Members
     int Port;
     String IP;
-    ServerSocket Server;
-    Socket HostSocket;
+    ServerSocket LocalServer;
+    Socket HostSocketToLocalServer;
     boolean Stop;
+
     final int MaxGuests = 4;
     public List<Socket> GuestList;
     Socket SocketToMyServer;
     MyServer GameServer; // The MyServer this host connected to
 
+
     //Data-Game Members
     public String NickName; // how we get it toledo ?
     public Tile.Bag bag;
     Board board ; // singleton and get instance model
+    private BufferedReader reader;
+    private PrintWriter writer;
 
 
     //Default CTOR
@@ -63,13 +64,19 @@ public class Host implements ClientHandler{
     }
 
     public ServerSocket getServer() {
-        return Server;
+        return LocalServer;
     }
     //Connects Host to Main Server
     public void CreateSocketToServer(MyServer server) throws IOException {
         GameServer=server;
         this.SocketToMyServer = new Socket(server.getIP(), server.getPort());
         System.out.println("Host Connected to Main Server");
+    }
+    public void CreateSocketToLocalServer(String HostIp, int Port) throws IOException {
+        this.HostSocketToLocalServer = new Socket(HostIp, Port);
+        this.reader = new BufferedReader(new InputStreamReader(HostSocketToLocalServer.getInputStream()));
+        this.writer = new PrintWriter(HostSocketToLocalServer.getOutputStream(), true);
+        System.out.println("Host Connected to local Host Server");
     }
 
     public void CreateProfile(String NickName){
@@ -96,20 +103,38 @@ public class Host implements ClientHandler{
 
     public void runServer() throws IOException {
         //open server with the port that given
-        this.Server = new ServerSocket(this.Port);
+        this.LocalServer = new ServerSocket(this.Port);
         System.out.println("Host Server started on port :" + this.Port);
-//        this.server.setSoTimeout(1000);
-        this.IP = this.Server.getInetAddress().getHostAddress();
-        this.HostSocket = new Socket(this.IP, this.Port);
-        this.GuestList.add(HostSocket);
-        while (!this.Stop ) {
-            if(this.GuestList.size() < this.MaxGuests) {
-                Socket guest = this.Server.accept();
-                this.GuestList.add(guest);
-                System.out.println("Guest Connected, Number of guests: "+ GuestList.size());
-                this.handleClient(guest.getInputStream(), guest.getOutputStream());
+        this.IP = this.LocalServer.getInetAddress().getHostAddress();
+        this.CreateSocketToLocalServer(this.IP, this.Port);
+        Thread clientThread = new Thread(() -> {
+            try {
+                handleClient(this.HostSocketToLocalServer.getInputStream(), this.HostSocketToLocalServer.getOutputStream());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-
+        });
+        clientThread.start();
+        while (!this.Stop ) {
+            try{
+                if(this.GuestList.size() < this.MaxGuests) {
+                    Socket guest = this.LocalServer.accept();
+                    if (guest != HostSocketToLocalServer) {
+                        this.GuestList.add(guest);
+                        System.out.println("Guest Connected, Number of guests: " + GuestList.size());
+                        clientThread = new Thread(() -> {
+                            try {
+                                handleClient(guest.getInputStream(), guest.getOutputStream());
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
+                        clientThread.start();
+                    }
+                }
+            }catch (IOException e){
+                e.printStackTrace();
+            }
             // Implement with thread pool
         }
     }
@@ -117,9 +142,27 @@ public class Host implements ClientHandler{
     // the host need to try place word
     @Override
     public void handleClient(InputStream inFromClient, OutputStream outToClient) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inFromClient))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error while handling client: " + e.getMessage(), e);
+        } finally {
+            // Clean up resources, such as closing the input and output streams
+            try {
+                inFromClient.close();
+                outToClient.close();
+            } catch (IOException e) {
+                // Handle the exception appropriately
+                e.printStackTrace();
+            }
+        }
 
-        // get input the text contain ['Q or C' ',' 'word' ',' 'start' ',' 'end' ',' 'vertical/not']
-        //may in try catch (Scanner)
+
+
+        /*// get input the text contain ['Q or C' ',' 'word' ',' 'start' ',' 'end' ',' 'vertical/not']
         Scanner in = new Scanner(inFromClient);
         PrintWriter out = new PrintWriter(outToClient);
         String[] text = in.nextLine().split(",");
@@ -150,13 +193,13 @@ public class Host implements ClientHandler{
             out.println(stringBuilder.toString());
             out.flush();
 
-        }
+        }*/
 
 
 //        out.flush();
     }
 
-    public  void OutToServer(String text){
+    public  void SendMessageToGameServer(String text){
         try {
             PrintWriter printWriter = new PrintWriter(this.SocketToMyServer.getOutputStream());
             printWriter.println(text);
@@ -165,8 +208,23 @@ public class Host implements ClientHandler{
             e.printStackTrace();
         }
     }
-    public String InFromServer() throws IOException {
+    public String GetMessageFromGameServer() throws IOException {
         Scanner in = new Scanner(new InputStreamReader(this.SocketToMyServer.getInputStream()));
+        StringBuilder stringBuilder = new StringBuilder();
+        while(in.hasNext()){
+            stringBuilder.append(in.nextLine());
+        }
+        String resultText = stringBuilder.toString();
+
+        return resultText;
+    }
+
+    public  void SendMessageToLocalServer(String text){
+        writer.println(text);
+
+    }
+    public String GetMessageFromLocalServer() throws IOException {
+        Scanner in = new Scanner(this.reader);
         StringBuilder stringBuilder = new StringBuilder();
         while(in.hasNext()){
             stringBuilder.append(in.nextLine());
@@ -223,9 +281,9 @@ public class Host implements ClientHandler{
             }
 
 
-        if (this.Server != null && !this.Server.isClosed()) {
+        if (this.LocalServer != null && !this.LocalServer.isClosed()) {
             try {
-                this.Server.close();
+                this.LocalServer.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }

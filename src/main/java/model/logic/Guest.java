@@ -52,7 +52,7 @@ public class Guest {
             }
         }
     }
-    public  void OutToHost(String text) {
+    public  void SendToHost(String text) {
         this.writer.println(text);
     }
     public String readInput() throws IOException {
@@ -75,8 +75,4 @@ public class Guest {
     public String getIpAddress() {
         return ipAddress;
     }
-    public void sendOutput(String message) {
-        writer.println(message);
-    }
-
 }

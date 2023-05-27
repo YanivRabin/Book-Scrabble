@@ -167,10 +167,10 @@ public class Board {
 
     public boolean dictionaryLegal(Word w) {
         StringBuilder text = new StringBuilder("Q," + w.toString());
-        Host.getModel().OutToServer(text.toString());
+        Host.getModel().SendMessageToGameServer(text.toString());
         boolean res;
         try {
-            res = Host.getModel().InFromServer().equals("true");
+            res = Host.getModel().GetMessageFromGameServer().equals("true");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

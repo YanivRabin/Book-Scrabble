@@ -21,23 +21,28 @@ public class ClientsTest {
 
         try {
             // Create multiple Hosts and connect them to the GameServer
-            for (int i = 0; i < 1; i++) {
+            for (int i = 0; i < 3; i++) {
                 Host host = new Host();
                 host.CreateSocketToServer(gameServer);
                 host.start();
                 Thread.sleep(5000);
-//                System.out.println("Host IP: " + host.getIpAddress());
-//                System.out.println("Host Port: " + host.getPort());
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.append("Host"+(i+1));
+                stringBuilder.append(": The message has been received");
+                host.SendMessageToLocalServer(stringBuilder.toString());
 
                 // Create 5 Guests for each Host
                 for (int j = 0; j < 5; j++) {
-                    Guest guest = new Guest("Guest" + (i * 5 + j + 1));
+                    Guest guest = new Guest("Guest" + (j + 1));
                     guest.CreateSocketToHost(host.getIpAddress(), host.getPort());
-                    // Thread.sleep(5000);
-                    // System.out.println("Guest Connected: "+guest.NickName +"Port: "+host.getPort());
+                    stringBuilder = new StringBuilder();
+                    stringBuilder.append(guest.getNickName());
+                    stringBuilder.append(": The message has been received");
+                    guest.SendToHost(stringBuilder.toString());
+                     Thread.sleep(5000);
                 }
                 Thread.sleep(5000);
-                host.close();
+//                host.close();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -46,7 +51,7 @@ public class ClientsTest {
         // Perform your test operations...
 
         // Close the GameServer
-        gameServer.close();
+//        gameServer.close();
         System.out.println("Done");
 
         // Test Scenario 1: Test Server Initialization
