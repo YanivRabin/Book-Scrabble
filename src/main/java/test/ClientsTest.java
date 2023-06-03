@@ -21,31 +21,30 @@ public class ClientsTest {
 
         try {
             // Create multiple Hosts and connect them to the GameServer
-            for (int i = 0; i < 3; i++) {
-//                Host host = new Host();
-                Host host = Host.getModel();
-                host.CreateSocketToServer(gameServer);
-                host.start();
-                Thread.sleep(5000);
-                StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.append("Host"+(i+1));
-                stringBuilder.append(": The message has been received");
-                host.SendMessageToLocalServer(stringBuilder.toString());
+            Host host = Host.getModel();
+            host.CreateSocketToServer(gameServer);
+            host.start();
+            Thread.sleep(2000);
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("Host"+(1));
+            stringBuilder.append(": The message has been received");
 
-                // Create 3 Guests for each Host
-                for (int j = 0; j < 3; j++) {
-                    Guest guest = new Guest("Guest" + (j + 1));
-                    guest.CreateSocketToHost(host.getIpAddress(), host.getPort());
-//                    stringBuilder = new StringBuilder();
-//                    stringBuilder.append(guest.getNickName());
-//                    stringBuilder.append(": The message has been received");
-//                    guest.SendToHost(stringBuilder.toString());
-                    guest.SendToHost("Q,WIN,7,7,true");
-                     Thread.sleep(5000);
-                }
-                Thread.sleep(5000);
-//                host.close();
-            }
+            // Create 3 Guests for each Host
+            Guest guest1 = new Guest("Guest" + (1));
+            guest1.CreateSocketToHost(host.getIpAddress(), host.getPort());
+            guest1.SendToHost("Q,WIN,7,7,true");
+            Thread.sleep(2000);
+            Guest guest2 = new Guest("Guest" + (1 + 1));
+            guest2.CreateSocketToHost(host.getIpAddress(), host.getPort());
+            guest2.SendToHost("Q,W_N,8,6,false");
+            Thread.sleep(2000);
+            Guest guest3 = new Guest("Guest" + (2 + 1));
+            guest3.CreateSocketToHost(host.getIpAddress(), host.getPort());
+            guest3.SendToHost("Q,_IN,7,7,true");
+            Thread.sleep(2000);
+//            host.close();
+
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -55,46 +54,6 @@ public class ClientsTest {
         // Close the GameServer
 //        gameServer.close();
         System.out.println("Done");
-
-        // Test Scenario 1: Test Server Initialization
-//        MyServer server = MyServer.getServer(1234, new BookScrabbleHandler());
-//        server.start();
-//
-//        // Test Scenario 2: Test Host Connection
-//        Host host = new Host();
-//        host.CreateSocketToServer(server);
-//        host.start();
-//        Thread.sleep(2000);
-//        System.out.println("Host IP: "+host.getIpAddress());
-//        System.out.println("Host connected to server.");
-//
-//        // Test Scenario 3: Test Guest Connection
-//        Guest guest = new Guest("Guest1");
-//        guest.CreateSocketToHost(host.getIpAddress(), host.getPort());
-//        System.out.println("Guest connected to host.");
-//
-//        // Test Scenario 4: Test Word Placement
-//        String randomWord = generateRandomWord();
-//        String request = randomWord + ",0,0,true"; // Example word placement request
-//        guest.sendOutput(request);
-//        String response = guest.readInput();
-//        System.out.println("Response from host: " + response);
-//
-//        // Clean up and close connections
-//        guest.getSocketToHost().close();
-//        host.getHostServer().close();
-//        server.close();
-//    }
-//
-//    public static String generateRandomWord() {
-//        int wordLength = 5; // Length of the random word
-//        Random random = new Random();
-//        StringBuilder word = new StringBuilder();
-//        for (int i = 0; i < wordLength; i++) {
-//            char randomChar = (char) (random.nextInt(26) + 'a');
-//            word.append(randomChar);
-//        }
-//        return word.toString();
 
 
     }

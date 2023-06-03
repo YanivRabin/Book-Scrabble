@@ -38,6 +38,14 @@ public class Dictionary {
         }
     }
 
+    private static class DictionaryModelHelper {
+        public static final Dictionary model_instance = new Dictionary();
+    }
+
+    public static Dictionary getModel() {
+        return DictionaryModelHelper.model_instance;
+    }
+
     public boolean query(String str) {
 
         //check if string in the exist list

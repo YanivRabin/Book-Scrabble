@@ -10,9 +10,11 @@ public class DictionaryManager {
 
     //ctr
     public DictionaryManager() {
-
+        // add books
         books = new HashMap<>();
-//        books.put()
+        books.put("AliceInWonderland", new Dictionary("src/main/resources/books/alice_in_wonderland.txt"));
+        books.put("HarryPotter", new Dictionary("src/main/resources/books/HarrayPotter.txt"));
+        books.put("TheMatrix", new Dictionary("src/main/resources/books/TheMatrix.txt"));
     }
 
     public static DictionaryManager get() {
@@ -22,6 +24,14 @@ public class DictionaryManager {
             singleDM = new DictionaryManager();
 
         return singleDM;
+    }
+
+    private static class DictionaryManagerModelHelper {
+        public static final DictionaryManager model_instance = new DictionaryManager();
+    }
+
+    public static DictionaryManager getModel() {
+        return DictionaryManagerModelHelper.model_instance;
     }
 
     public boolean query(String... args) {

@@ -75,6 +75,7 @@ public class Board {
     }
 
     public boolean checkNeighbors(Word w) {
+    // part of another word
 
         int i;
         if (w.vertical) {
@@ -88,6 +89,9 @@ public class Board {
             //last letter
             if (i < 14 && board[w.row + 1][w.col] != null)
                 return true;
+
+
+
         }
         if (!w.vertical) {
             if (w.col > 0 && board[w.col - 1][w.row] != null)
@@ -110,12 +114,14 @@ public class Board {
             int i = w.row;
             for (Tile t : w.tiles) {
 
-                if (t == null)
+                if (t == null){
                     if (board[i][w.col] == null)
                         return false;
-//                else
-//                    if (board[i][w.col] != null)
-//                        return false;
+                }
+                else{
+                    if (board[i][w.col] != null)
+                        return false;
+                }
                 i++;
             }
         }
@@ -127,7 +133,9 @@ public class Board {
                 if (t == null)
                     if (board[w.row][i] == null)
                         return false;
-
+                else
+                    if (board[i][w.row] != null)
+                        return false;
                 i++;
             }
         }
@@ -360,28 +368,26 @@ public class Board {
 
     public int tryPlaceWord(Word w) {
 
-        if (!dictionaryLegal(w)) return 0;
-        if (!boardLegal(w)) return 0;
-        return getScore(w);
+//        if (!dictionaryLegal(w)) return 0;
+//        if (!boardLegal(w)) return 0;
+//        return getScore(w);
+        if (boardLegal(w))
+         {
+            int i = 0;
+            for (Tile t : w.tiles) {
 
-//         {
-//
-//            int i = 0;
-//            for (Tile t : w.tiles) {
-//
-//                if (w.vertical)
-//                    if (t != null)
-//                        board[w.row + i][w.col] = t;
-//
-//                if (!w.vertical)
-//                    if (t != null)
-//                        board[w.row][w.col + i] = t;
-//
-//                i++;
-//            }
-//            return getScore(w);
-//        }
+                if (w.vertical)
+                    if (t != null)
+                        board[w.row + i][w.col] = t;
 
+                if (!w.vertical)
+                    if (t != null)
+                        board[w.row][w.col + i] = t;
 
+                i++;
+            }
+            return getScore(w);
+        }
+        return 0;
     }
 }

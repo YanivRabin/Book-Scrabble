@@ -19,14 +19,12 @@ public class BookScrabbleHandler implements ClientHandler {
         if (scanner.hasNextLine())
             str = scanner.nextLine();
 
-        System.out.println(str);
-
         arrWords = str.split(",");
 
         //first word is Query or Challenge
         String QorC = arrWords[0];
 
-        DictionaryManager dictionaryManager = DictionaryManager.get();
+        DictionaryManager dictionaryManager = DictionaryManager.getModel();
         String[] args = new String[arrWords.length - 1];
 
         //copy all the files and the word to args

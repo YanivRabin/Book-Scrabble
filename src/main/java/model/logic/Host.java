@@ -160,14 +160,13 @@ public class Host implements ClientHandler{
 
 //                System.out.println(line);
 
-                // get input the text contain ['Q or C' ',' 'word' ',' 'start' ',' 'end' ',' 'vertical/not']
+                // get input the text contain ['Q or C' ',' 'word' ',' 'row' ',' 'column' ',' 'vertical/not']
                 String[] text = line.split(",");
                 switch (text[0]) {
                     case "Q":
                         boolean Q_vertical = text[4].equals("true");
                         Word Q_word = new Word(getTileArray(text[1]), Integer.parseInt(text[2]), Integer.parseInt(text[3]), Q_vertical);
                         score = this.board.tryPlaceWord(Q_word);
-                        System.out.println(score);
                         break;
                     case "C":
                         boolean C_vertical = text[4].equals("true");
@@ -182,6 +181,7 @@ public class Host implements ClientHandler{
                     // ignore to guest
                     out.println("Not Legal");
                     out.flush();
+                    System.out.println("Not Legal");
                 }
                 else {
                     // ack , score to guest
