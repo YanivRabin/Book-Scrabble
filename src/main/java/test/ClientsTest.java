@@ -22,7 +22,8 @@ public class ClientsTest {
         try {
             // Create multiple Hosts and connect them to the GameServer
             for (int i = 0; i < 3; i++) {
-                Host host = new Host();
+//                Host host = new Host();
+                Host host = Host.getModel();
                 host.CreateSocketToServer(gameServer);
                 host.start();
                 Thread.sleep(5000);
@@ -31,15 +32,15 @@ public class ClientsTest {
                 stringBuilder.append(": The message has been received");
                 host.SendMessageToLocalServer(stringBuilder.toString());
 
-                // Create 5 Guests for each Host
+                // Create 3 Guests for each Host
                 for (int j = 0; j < 3; j++) {
                     Guest guest = new Guest("Guest" + (j + 1));
                     guest.CreateSocketToHost(host.getIpAddress(), host.getPort());
-                    stringBuilder = new StringBuilder();
-                    stringBuilder.append(guest.getNickName());
-                    stringBuilder.append(": The message has been received");
-                    guest.SendToHost(stringBuilder.toString());
-//                    guest.SendToHost("Q,WIN,7,7,true");
+//                    stringBuilder = new StringBuilder();
+//                    stringBuilder.append(guest.getNickName());
+//                    stringBuilder.append(": The message has been received");
+//                    guest.SendToHost(stringBuilder.toString());
+                    guest.SendToHost("Q,WIN,7,7,true");
                      Thread.sleep(5000);
                 }
                 Thread.sleep(5000);

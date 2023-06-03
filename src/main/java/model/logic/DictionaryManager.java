@@ -9,7 +9,11 @@ public class DictionaryManager {
     HashMap<String, Dictionary> books;
 
     //ctr
-    public DictionaryManager() { books = new HashMap<>(); }
+    public DictionaryManager() {
+
+        books = new HashMap<>();
+//        books.put()
+    }
 
     public static DictionaryManager get() {
 

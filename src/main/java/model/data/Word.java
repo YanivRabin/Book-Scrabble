@@ -31,4 +31,15 @@ public class Word {
         Word word = (Word) o;
         return vertical == word.vertical && row == word.row && col == word.col && Arrays.equals(tiles, word.tiles);
     }
+
+    @Override
+    public String toString() {
+
+        StringBuilder sb = new StringBuilder();
+
+        for (Tile tile : this.tiles)
+            sb.append(tile.letter);
+
+        return sb.toString();
+    }
 }

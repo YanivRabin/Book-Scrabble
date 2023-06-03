@@ -166,8 +166,20 @@ public class Board {
     }
 
     public boolean dictionaryLegal(Word w) {
+
+//      w is word object
+//      w = word, row, col, vert
+
         StringBuilder text = new StringBuilder("Q," + w.toString());
+
+
         Host.getModel().SendMessageToGameServer(text.toString());
+//        try {
+//            Thread.sleep(5000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+
         boolean res;
         try {
             res = Host.getModel().GetMessageFromGameServer().equals("true");
@@ -176,6 +188,7 @@ public class Board {
         }
         return res;
     }
+
     public ArrayList<Word> getWords(Word w) {
 
         ArrayList<Word> words = new ArrayList<>();
@@ -184,6 +197,7 @@ public class Board {
 
             int i = w.row;
 
+            //w.tile = [w,i,n]
             for (Tile t : w.tiles) {
 
                 int j = w.col;
@@ -346,24 +360,28 @@ public class Board {
 
     public int tryPlaceWord(Word w) {
 
-        if (boardLegal(w)) {
+        if (!dictionaryLegal(w)) return 0;
+        if (!boardLegal(w)) return 0;
+        return getScore(w);
 
-            int i = 0;
-            for (Tile t : w.tiles) {
+//         {
+//
+//            int i = 0;
+//            for (Tile t : w.tiles) {
+//
+//                if (w.vertical)
+//                    if (t != null)
+//                        board[w.row + i][w.col] = t;
+//
+//                if (!w.vertical)
+//                    if (t != null)
+//                        board[w.row][w.col + i] = t;
+//
+//                i++;
+//            }
+//            return getScore(w);
+//        }
 
-                if (w.vertical)
-                    if (t != null)
-                        board[w.row + i][w.col] = t;
 
-                if (!w.vertical)
-                    if (t != null)
-                        board[w.row][w.col + i] = t;
-
-                i++;
-            }
-            return getScore(w);
-        }
-
-        return 0;
     }
 }

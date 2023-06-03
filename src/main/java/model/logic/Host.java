@@ -34,6 +34,9 @@ public class Host implements ClientHandler{
     private PrintWriter writer;
 
 
+//    private static Host host = null;
+
+
     //Default CTOR
     public Host(){
         this.board = new Board();
@@ -44,7 +47,7 @@ public class Host implements ClientHandler{
         GuestList =new ArrayList<>();
     }
 
-    //
+
     private static class HostModelHelper {
         public static final Host model_instance = new Host();
     }
@@ -154,20 +157,25 @@ public class Host implements ClientHandler{
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inFromClient))) {
             String line = reader.readLine();
             if (line != null) {
-                System.out.println(line);
+
+//                System.out.println(line);
+
                 // get input the text contain ['Q or C' ',' 'word' ',' 'start' ',' 'end' ',' 'vertical/not']
-                /*String[] text = line.split(",");
+                String[] text = line.split(",");
                 switch (text[0]) {
                     case "Q":
                         boolean Q_vertical = text[4].equals("true");
                         Word Q_word = new Word(getTileArray(text[1]), Integer.parseInt(text[2]), Integer.parseInt(text[3]), Q_vertical);
                         score = this.board.tryPlaceWord(Q_word);
+                        System.out.println(score);
                         break;
                     case "C":
                         boolean C_vertical = text[4].equals("true");
                         Word C_word = new Word(getTileArray(text[1]), Integer.parseInt(text[2]), Integer.parseInt(text[3]), C_vertical);
                         //score =
                         break;
+                    default:
+                        return;
                 }
                 //if true go to my server, else out try again to the guest
                 if (score == 0){
@@ -177,13 +185,12 @@ public class Host implements ClientHandler{
                 }
                 else {
                     // ack , score to guest
-                    String stringBuilder = "Success," +
-                            score;
+                    String stringBuilder = "Success," + score;
                     out.println(stringBuilder);
                     System.out.println(stringBuilder);
                     out.flush();
 
-                }*/
+                }
             }
             /*while ((line = reader.readLine()) != null) {
                 System.out.println(line);

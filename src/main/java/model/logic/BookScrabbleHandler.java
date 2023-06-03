@@ -18,6 +18,9 @@ public class BookScrabbleHandler implements ClientHandler {
         //read line and split words by comma
         if (scanner.hasNextLine())
             str = scanner.nextLine();
+
+        System.out.println(str);
+
         arrWords = str.split(",");
 
         //first word is Query or Challenge
