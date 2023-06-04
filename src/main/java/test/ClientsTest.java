@@ -20,7 +20,7 @@ public class ClientsTest {
         gameServer.start();
 
         try {
-            // Create multiple Hosts and connect them to the GameServer
+            // Create Host and connect them to the GameServer
             Host host = Host.getModel();
             host.CreateSocketToServer(gameServer);
             host.start();
@@ -33,15 +33,16 @@ public class ClientsTest {
             Guest guest1 = new Guest("Guest" + (1));
             guest1.CreateSocketToHost(host.getIpAddress(), host.getPort());
             guest1.SendToHost("Q,WIN,7,7,true");
-            Thread.sleep(2000);
-            Guest guest2 = new Guest("Guest" + (1 + 1));
+            Thread.sleep(5000);
+            System.out.println(guest1.score);
+            /*Guest guest2 = new Guest("Guest" + (1 + 1));
             guest2.CreateSocketToHost(host.getIpAddress(), host.getPort());
             guest2.SendToHost("Q,W_N,8,6,false");
             Thread.sleep(2000);
             Guest guest3 = new Guest("Guest" + (2 + 1));
             guest3.CreateSocketToHost(host.getIpAddress(), host.getPort());
             guest3.SendToHost("Q,_IN,7,7,true");
-            Thread.sleep(2000);
+            Thread.sleep(2000);*/
 //            host.close();
 
 
