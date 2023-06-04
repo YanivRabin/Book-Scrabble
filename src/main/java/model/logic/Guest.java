@@ -1,6 +1,5 @@
 package model.logic;
 
-import com.google.gson.JsonObject;
 import model.data.Tile;
 import model.data.Tile.Bag;
 
@@ -9,6 +8,8 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 public class Guest {
+
+
     //Logic Members
     private Socket SocketToHost;
     private BufferedReader reader;
@@ -17,11 +18,107 @@ public class Guest {
     Host HostServer; // The Host this Guest connected to
 
     //Data-Game Members
-    public Player player;
     public String NickName;
+    public Bag bag;
+    public int score;
+    public ArrayList<Tile> currentTiles = new ArrayList();
 
     public Guest(String NickName){
         this.NickName = NickName;
+        this.score = 0;
+        this.bag = Bag.getBagModel();
+        this.GenerateTiles(7); // remove outside
+        getCurrentTiles();
+    }
+
+    public void CreateProfile(String NickName){
+        this.NickName = NickName;
+        // add Photo or avatar
+    }
+
+    public void CreateSocketToHost(String HostIp, int Port) throws IOException {
+        this.SocketToHost = new Socket(HostIp, Port);
+        this.reader = new BufferedReader(new InputStreamReader(SocketToHost.getInputStream()));
+        this.writer = new PrintWriter(SocketToHost.getOutputStream(), true);
+        this.ipAddress = SocketToHost.getInetAddress().getHostAddress();
+        Thread clientThread = new Thread(() -> {
+            try {
+                GetFromHost();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        clientThread.start();
+    }
+
+    public void Disconnect(){
+        if (HostServer != null) {
+            for (Socket host : HostServer.GuestList) {
+                if(host.getPort()==SocketToHost.getLocalPort()) {
+                    HostServer.GuestList.remove(host);
+                    break;
+                }
+            }
+        }
+    }
+
+    // add validate string to host
+
+    public  void SendToHost(String line) {
+        String[] text = line.split(",");
+        String word = text[1];
+        int c = 0;
+        int counterNull = 0;
+        for(int i = 0 ; i < word.length();i++){
+            if(word.charAt(i) != '_'){
+                // checking null
+                for(Tile t : this.currentTiles){
+                    if(t.letter == word.charAt(i)){
+                        c++;
+                    }
+                }
+            }
+            else{
+                counterNull++;
+            }
+        }
+        if(c == word.length() - counterNull){
+            this.writer.println(text);
+        }
+        else{
+            System.out.println(this.NickName + "You don't have the tiles, try again");
+        }
+    }
+    public void GetFromHost() throws IOException {
+        String line = this.reader.readLine();
+        System.out.println(line);
+        String[] text = line.split(",");
+        if (line == "Not Legal") {
+            System.out.println(this.NickName + "Didn't success, try again");
+        } else {
+            switch (text[0]) {
+                case "Success":
+                    //Handle score
+                    int placeWordScore = Integer.parseInt(text[2]);
+                    this.score += placeWordScore;
+                    //Handle Bag
+                    //reduce the tiles from currentTiles
+                    //Add tiles from getRand at bag  == word.size() without nulls
+
+
+                    break;
+                case "Not":
+                    break;
+
+            }
+
+        }
+
+    }
+    public void GenerateTiles(int number){
+        for(int i = 0 ; i < number ; i++){
+            this.currentTiles.add(this.bag.getRand());
+        }
     }
 
     public Socket getSocketToHost() {
@@ -42,110 +139,11 @@ public class Guest {
         return ipAddress;
     }
 
-    public void CreateProfile(String NickName){
-        this.NickName = NickName;
-
-        // add Photo or avatar
-    }
-
-    public void CreateSocketToHost(String HostIp, int Port) throws IOException {
-        this.SocketToHost = new Socket(HostIp, Port);
-        this.reader = new BufferedReader(new InputStreamReader(SocketToHost.getInputStream()));
-        this.writer = new PrintWriter(SocketToHost.getOutputStream(), true);
-        this.ipAddress = SocketToHost.getInetAddress().getHostAddress();
-        Thread clientThread = new Thread(() -> {
-            try {
-                GetFromHost();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        clientThread.start();
-    }
-
-    // create all options Messages
-    public void SendTryPlaceWordMessage(String source, String destination, String word,
-                                          int row, int column, boolean vertical){
-        System.out.println(this.player.getNickName()+": try place word");
-        if(!this.player.usingCurrentTiles(word)){
-            System.out.println("You are not using your tiles");
+    public void getCurrentTiles() {
+        System.out.print("current tiles: ");
+        for(int i = 0 ; i < this.currentTiles.size(); i++){
+            System.out.print(this.currentTiles.get(i).letter);
         }
-        else{
-            MessageHandler messageHandler = new MessageHandler();
-            messageHandler.CreateTryPlaceWordMessage(source, destination, word, row, column,
-                    vertical, this.player.getCurrentTiles());
-            this.SendToHost(messageHandler.jsonHandler);
-        }
+        System.out.println();
     }
-    public void SendChallengeMessage(String source, String destination, String word,
-                                       int row, int column, boolean vertical){
-        MessageHandler messageHandler = new MessageHandler();
-        messageHandler.CreateChallengeMessage(source, destination, word, row, column,
-                vertical, this.player.getCurrentTiles());
-        this.SendToHost(messageHandler.jsonHandler);
-    }
-
-    public  void SendToHost(JsonHandler json) {
-        this.writer.println(json.toJsonString());
-    }
-
-    public void GetFromHost() throws IOException {
-        String jsonString = this.reader.readLine();
-        System.out.println(jsonString);
-        JsonObject json = JsonHandler.convertStringToJsonObject(jsonString);
-        switch (json.get("MessageType").getAsString()){
-            case "start game":
-                this.player = new Player(this.ipAddress, this.NickName, 0);
-                this.player.addTiles(json.get("StartTiles").getAsString());
-                break;
-            case "success":
-                switch (json.get("Action").getAsString()) {
-                    case "try place word":
-                        System.out.println(this.NickName + "Try Place Word: " + "Success");
-                        this.player.addScore(Integer.parseInt(json.get("NewScore").getAsString()));
-                        this.player.prevScore = this.player.currentScore;
-                        this.player.setCurrentTiles(json.get("NewCurrentTiles").getAsString());
-                        // board change in Host.notifyall
-                        break;
-                    case "challenge":
-                        System.out.println(this.NickName + "Challenge: " + "Success");
-                        // score don't change
-                        // board change in Host.notifyall
-                        break;
-                }
-            case "try again":
-                switch (json.get("Action").getAsString()){
-                    case "try place word":
-                        System.out.println(this.NickName + "Try Place Word: "+ "Didn't success, try again");
-                        break;
-                    case "challenge":
-                        System.out.println(this.NickName + "Challenge: "+ "Didn't success, try again");
-                        break;
-                }
-                break;
-            case "succeeded in challenging you":
-                System.out.println(this.NickName + ": i have been complicated");
-                this.player.currentScore = this.player.prevScore;
-                this.player.currentBoard = this.player.prevBoard;
-                this.player.currentTiles = this.player.prevTiles;
-                break;
-            case "update board":
-                System.out.println(this.NickName + " updated Board");
-                this.player.setCurrentBoard(json.get("Board").getAsString());
-                break;
-        }
-    }
-
-
-    public void Disconnect(){
-        if (HostServer != null) {
-            for (Socket host : HostServer.GuestList) {
-                if(host.getPort()==SocketToHost.getLocalPort()) {
-                    HostServer.GuestList.remove(host);
-                    break;
-                }
-            }
-        }
-    }
-
 }
