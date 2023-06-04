@@ -185,9 +185,9 @@ public class Host implements ClientHandler{
                 }
                 else {
                     // ack , score to guest
-                    String stringBuilder = "Success," + score;
+                    String stringBuilder = "Success," + text[1] + ","+ score;
                     out.println(stringBuilder);
-                    System.out.println(stringBuilder);
+//                    System.out.println(stringBuilder);
                     out.flush();
 
                 }
