@@ -32,7 +32,7 @@ public class ClientsTest {
             // Create 3 Guests for each Host
             Guest guest1 = new Guest("Guest" + (1));
             guest1.CreateSocketToHost(host.getIpAddress(), host.getPort());
-            guest1.SendToHost("Q,WIN,7,7,true");
+//            guest1.SendToHost("Q,WIN,7,7,true");
             Thread.sleep(5000);
             System.out.println(guest1.score);
             /*Guest guest2 = new Guest("Guest" + (1 + 1));
