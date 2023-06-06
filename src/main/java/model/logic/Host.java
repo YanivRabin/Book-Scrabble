@@ -1,5 +1,6 @@
 package model.logic;
 
+import com.google.gson.JsonObject;
 import model.data.Board;
 import model.data.Tile;
 import model.data.Word;
@@ -27,26 +28,22 @@ public class Host implements ClientHandler{
 
 
     //Data-Game Members
-    public String NickName; // how we get it toledo ?
+    public String NickName;
     public Tile.Bag bag;
+    public Player player;
     Board board ; // singleton and get instance model
     private BufferedReader reader;
     private PrintWriter writer;
 
-
-//    private static Host host = null;
-
-
     //Default CTOR
     public Host(){
-        this.board = new Board();
-        this.Port = GeneratePort();
-        this.NickName="Host "+getPort();
-        this.Stop = false;
+        this.board = Board.getBoard();
         this.bag = Tile.Bag.getBagModel();
+        this.Port = GeneratePort();
+        this.Stop = false;
         GuestList =new ArrayList<>();
+        this.NickName="Host "+ getPort();
     }
-
 
     private static class HostModelHelper {
         public static final Host model_instance = new Host();
@@ -70,6 +67,7 @@ public class Host implements ClientHandler{
     public ServerSocket getServer() {
         return LocalServer;
     }
+
     //Connects Host to Main Server
     public void CreateSocketToServer(MyServer server) throws IOException {
         GameServer=server;
@@ -80,6 +78,15 @@ public class Host implements ClientHandler{
         this.HostSocketToLocalServer = new Socket(HostIp, Port);
         this.reader = new BufferedReader(new InputStreamReader(HostSocketToLocalServer.getInputStream()));
         this.writer = new PrintWriter(HostSocketToLocalServer.getOutputStream(), true);
+        this.player = new Player(HostIp ,this.NickName, 0, this.GenerateTiles(8));
+        Thread clientThread = new Thread(() -> {
+            try {
+                this.GetMessageFromLocalServer();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        clientThread.start();
         System.out.println("Host Connected to local Host Server");
     }
 
@@ -88,9 +95,7 @@ public class Host implements ClientHandler{
         // add Photo or avatar
     }
 
-
-    // lunch a host server
-    //start server
+    //start Host server
     public void start() {
 
         //run server in the background
@@ -103,7 +108,6 @@ public class Host implements ClientHandler{
             }
         }).start();
     }
-
 
     public void runServer() throws IOException {
         //open server with the port that given
@@ -147,66 +151,52 @@ public class Host implements ClientHandler{
         }
     }
 
+
     // the host need to try place word
     @Override
     public void handleClient(InputStream inFromClient, OutputStream outToClient) {
-        //initialize data-game
         int score = 0;
-
         PrintWriter out = new PrintWriter(outToClient);
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inFromClient))) {
-            String line = reader.readLine();
-            if (line != null) {
-
-//                System.out.println(line);
-
-                // get input the text contain ['Q or C' ',' 'word' ',' 'row' ',' 'column' ',' 'vertical/not']
-                String[] text = line.split(",");
-                switch (text[0]) {
-                    case "Q":
-                        boolean Q_vertical = text[4].equals("true");
-                        Word Q_word = new Word(getTileArray(text[1]), Integer.parseInt(text[2]), Integer.parseInt(text[3]), Q_vertical);
+            String jsonString = reader.readLine();
+            if (jsonString != null) {
+                JsonObject json = JsonHandler.convertStringToJsonObject(jsonString);
+                switch (String.valueOf(json.get("MessageType"))){
+                    case "try place word":
+                        String q_word = String.valueOf(json.get("Word"));
+                        boolean q_vertical = String.valueOf(json.get("Vertical")).equals("true");
+                        int q_row = Integer.parseInt(String.valueOf(json.get("Row")));
+                        int q_column = Integer.parseInt(String.valueOf(json.get("Column")));
+                        Word Q_word = new Word(getTileArray(q_word), q_row, q_column, q_vertical);
                         score = this.board.tryPlaceWord(Q_word);
                         break;
-                    case "C":
-                        boolean C_vertical = text[4].equals("true");
-                        Word C_word = new Word(getTileArray(text[1]), Integer.parseInt(text[2]), Integer.parseInt(text[3]), C_vertical);
-                        //score =
+                    case "challenge":
+                        String c_word = String.valueOf(json.get("Word"));
+                        boolean c_vertical = String.valueOf(json.get("Vertical")).equals("true");
+                        int c_row = Integer.parseInt(String.valueOf(json.get("Row")));
+                        int c_column = Integer.parseInt(String.valueOf(json.get("Column")));
+                        Word C_word = new Word(getTileArray(c_word), c_row, c_column, c_vertical);
+                        // do the Challenge
                         break;
-                    default:
-                        return;
                 }
                 //if true go to my server, else out try again to the guest
                 if (score == 0){
-                    // ignore to guest
+                    // ignore to guest Create try again message
                     out.println("Not Legal");
                     out.flush();
                     System.out.println("Not Legal");
                 }
                 else {
-                    // ack , score to guest
-                    String stringBuilder = "Success," + text[1] + ","+ score;
-                    out.println(stringBuilder);
-//                    System.out.println(stringBuilder);
+                    // ack , score to guest Create success message
+                    /*String stringBuilder = "Success," + text[1] + ","+ score;
+                    out.println(stringBuilder);*/
                     out.flush();
 
                 }
             }
-            /*while ((line = reader.readLine()) != null) {
-                System.out.println(line);
-            }*/
         } catch (IOException e) {
             throw new RuntimeException("Error while handling client: " + e.getMessage(), e);
-        } /*finally {
-            // Clean up resources, such as closing the input and output streams
-            try {
-                inFromClient.close();
-                outToClient.close();
-            } catch (IOException e) {
-                // Handle the exception appropriately
-                e.printStackTrace();
-            }
-        }*/
+        }
     }
 
     public  void SendMessageToGameServer(String text){
@@ -229,30 +219,54 @@ public class Host implements ClientHandler{
         return resultText;
     }
 
-    public  void SendMessageToLocalServer(String text){
-        writer.println(text);
+    public  void SendMessageToLocalServer(JsonHandler json){
+        writer.println(json.toJsonString());
 
     }
-    public String GetMessageFromLocalServer() throws IOException {
-        Scanner in = new Scanner(this.reader);
-        StringBuilder stringBuilder = new StringBuilder();
-        while(in.hasNext()){
-            stringBuilder.append(in.nextLine());
+    public void GetMessageFromLocalServer() throws IOException {
+        String jsonString = this.reader.readLine();
+        JsonObject json = JsonHandler.convertStringToJsonObject(jsonString);
+        switch (String.valueOf(json.get("MessageType"))){
+            case "start game":
+                this.player = new Player(this.IP, this.NickName, 0);
+                this.player.addTiles(String.valueOf(json.get("StartTiles")));
+                break;
+            case "success":
+                switch (String.valueOf(json.get("Action"))) {
+                    case "try place word":
+                        System.out.println(this.NickName + "Try Place Word: " + "Success");
+                        this.player.addScore(Integer.parseInt(String.valueOf(json.get("NewScore"))));
+                        this.player.prevScore = this.player.currentScore;
+                        this.player.setCurrentTiles(String.valueOf(json.get("NewCurrentTiles")));
+                        // board change in Host.notifyall
+                        break;
+                    case "challenge":
+                        System.out.println(this.NickName + "Challenge: " + "Success");
+                        // score don't change
+                        // board change in Host.notifyall
+                        break;
+                }
+            case "try again":
+                switch (String.valueOf(json.get("Action"))){
+                    case "try place word":
+                        System.out.println(this.NickName + "Try Place Word: "+ "Didn't success, try again");
+                        break;
+                    case "challenge":
+                        System.out.println(this.NickName + "Challenge: "+ "Didn't success, try again");
+                        break;
+                }
+                break;
+            case "succeeded in challenging you":
+                System.out.println(this.NickName + ": i have been complicated");
+                this.player.currentScore = this.player.prevScore;
+                this.player.currentBoard = this.player.prevBoard;
+                this.player.currentTiles = this.player.prevTiles;
+                break;
+            case "update board":
+                System.out.println(this.NickName + " updated Board");
+                this.player.setCurrentBoard(String.valueOf(json.get("Board")));
+                break;
         }
-        String resultText = stringBuilder.toString();
-
-        return resultText;
-    }
-
-    private static Tile[] getTileArray(String s) {
-
-        Tile[] ts = new Tile[s.length()];
-        int i = 0;
-        for(char c: s.toCharArray()) {
-            ts[i] = Tile.Bag.getBagModel().getTile(c);
-            i++;
-        }
-        return ts;
     }
 
     public int GeneratePort(){
@@ -268,6 +282,25 @@ public class Host implements ClientHandler{
         return random.nextInt(maxPort - minPort + 1) + minPort;
     }
 
+
+    public List<Character> GenerateTiles(int number){
+        List<Character> currentTiles = new ArrayList<>();
+        for(int i = 0 ; i < number-1 ; i++){
+            currentTiles.add(this.bag.getRand().letter);
+        }
+        return currentTiles;
+    }
+
+    private static Tile[] getTileArray(String s) {
+
+        Tile[] ts = new Tile[s.length()];
+        int i = 0;
+        for(char c: s.toCharArray()) {
+            ts[i] = Tile.Bag.getBagModel().getTile(c);
+            i++;
+        }
+        return ts;
+    }
 
     @Override
     public void close() {

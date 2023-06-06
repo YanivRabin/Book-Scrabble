@@ -27,7 +27,6 @@ public class Player {
         this.socketIP = socketIP;
         this.nickName = nickName;
         this.currentScore = score;
-        this.currentTiles = new ArrayList<>();
     }
 
     public String getSocketIP() {
@@ -92,12 +91,20 @@ public class Player {
     }
 
 
-    public void printCurrentTiles() {
-        System.out.print("current tiles: ");
-        for (Character currentTile : this.currentTiles) {
-            System.out.print(currentTile);
+    public int reduceTilesFromCurrentTiles(String word){
+        // return how much current tiles have been used
+        int counterUsed = 0;
+        for(int i = 0 ; i < word.length();i++){
+            if(word.charAt(i) != '_'){
+                for(Character t : this.currentTiles){
+                    if(t == word.charAt(i)){
+                        this.currentTiles.remove(t);
+                        counterUsed ++;
+                    }
+                }
+            }
         }
-        System.out.println();
+        return counterUsed;
     }
 
     public boolean usingCurrentTiles(String word){
@@ -118,6 +125,14 @@ public class Player {
             }
         }
         return c == word.length() - counterNull;
+    }
+
+    public void printCurrentTiles() {
+        System.out.print("current tiles: ");
+        for (Character currentTile : this.currentTiles) {
+            System.out.print(currentTile);
+        }
+        System.out.println();
     }
 
 }
