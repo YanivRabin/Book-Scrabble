@@ -35,15 +35,6 @@ public class ClientsTest {
             guest1.SendToHost("Q,WIN,7,7,true");
             Thread.sleep(5000);
             System.out.println(guest1.score);
-            /*Guest guest2 = new Guest("Guest" + (1 + 1));
-            guest2.CreateSocketToHost(host.getIpAddress(), host.getPort());
-            guest2.SendToHost("Q,W_N,8,6,false");
-            Thread.sleep(2000);
-            Guest guest3 = new Guest("Guest" + (2 + 1));
-            guest3.CreateSocketToHost(host.getIpAddress(), host.getPort());
-            guest3.SendToHost("Q,_IN,7,7,true");
-            Thread.sleep(2000);*/
-//            host.close();
 
 
         } catch (IOException e) {
