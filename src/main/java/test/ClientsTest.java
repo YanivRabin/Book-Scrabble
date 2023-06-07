@@ -34,7 +34,7 @@ public class ClientsTest {
             guest1.CreateSocketToHost(host.getIpAddress(), host.getPort());
 //            guest1.SendToHost("Q,WIN,7,7,true");
             Thread.sleep(5000);
-            System.out.println(guest1.score);
+            System.out.println(guest1.player.getCurrentScore());
             /*Guest guest2 = new Guest("Guest" + (1 + 1));
             guest2.CreateSocketToHost(host.getIpAddress(), host.getPort());
             guest2.SendToHost("Q,W_N,8,6,false");

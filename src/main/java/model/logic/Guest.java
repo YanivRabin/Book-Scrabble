@@ -66,10 +66,15 @@ public class Guest {
     // create all options Messages
     public void SendTryPlaceWordMessage(String source, String destination, String word,
                                           int row, int column, boolean vertical){
-        MessageHandler messageHandler = new MessageHandler();
-        messageHandler.CreateTryPlaceWordMessage(source, destination, word, row, column,
-                vertical, this.player.getCurrentTiles());
-        this.SendToHost(messageHandler.jsonHandler);
+        if(!this.player.usingCurrentTiles(word)){
+            System.out.println("You are not using your tiles");
+        }
+        else{
+            MessageHandler messageHandler = new MessageHandler();
+            messageHandler.CreateTryPlaceWordMessage(source, destination, word, row, column,
+                    vertical, this.player.getCurrentTiles());
+            this.SendToHost(messageHandler.jsonHandler);
+        }
     }
     public void SendChallengeMessage(String source, String destination, String word,
                                        int row, int column, boolean vertical){

@@ -91,20 +91,12 @@ public class Player {
     }
 
 
-    public int reduceTilesFromCurrentTiles(String word){
-        // return how much current tiles have been used
-        int counterUsed = 0;
-        for(int i = 0 ; i < word.length();i++){
-            if(word.charAt(i) != '_'){
-                for(Character t : this.currentTiles){
-                    if(t == word.charAt(i)){
-                        this.currentTiles.remove(t);
-                        counterUsed ++;
-                    }
-                }
-            }
+    public void printCurrentTiles() {
+        System.out.print("current tiles: ");
+        for (Character currentTile : this.currentTiles) {
+            System.out.print(currentTile);
         }
-        return counterUsed;
+        System.out.println();
     }
 
     public boolean usingCurrentTiles(String word){
@@ -125,14 +117,6 @@ public class Player {
             }
         }
         return c == word.length() - counterNull;
-    }
-
-    public void printCurrentTiles() {
-        System.out.print("current tiles: ");
-        for (Character currentTile : this.currentTiles) {
-            System.out.print(currentTile);
-        }
-        System.out.println();
     }
 
 }
