@@ -151,6 +151,56 @@ public class Host implements ClientHandler{
         }
     }
 
+    public String SendStartGameMessage(String hostNickName){
+        // only serverHost
+        MessageHandler messageHandler = new MessageHandler();
+        List<Character> StartGameTiles = this.GenerateTiles(8);
+        messageHandler.CreateStartGameMessage(this.CharavterslistToString(StartGameTiles), hostNickName);
+        return messageHandler.jsonHandler.toJsonString();
+    }
+    public String SendTryAgainMessage(String destination, int prevScore, String action, String hostNickName){
+        // only serverHost
+        MessageHandler messageHandler = new MessageHandler();
+        messageHandler.CreateTryAgainMessage(destination, prevScore, action, hostNickName);
+        return messageHandler.jsonHandler.toJsonString();
+    }
+    public String SendSuccessMessage(String destination, int newScore, String action, String newCurrentTiles, String hostNickName){
+        // only serverHost
+        MessageHandler messageHandler = new MessageHandler();
+        messageHandler.CreateSuccessMessage(destination, newScore, action, newCurrentTiles, hostNickName);
+        return messageHandler.jsonHandler.toJsonString();    }
+    public String SendSucceededChallengeYouMessage(Character[][] board, String hostNickName){
+        // only serverHost
+        MessageHandler messageHandler = new MessageHandler();
+        messageHandler.CreateSucceededChallengeYouMessage(board, hostNickName);
+        return messageHandler.jsonHandler.toJsonString();    }
+    public String SendUpdateBoardMessage(Character[][] board, String hostNickName){
+        // only serverHost
+        MessageHandler messageHandler = new MessageHandler();
+        messageHandler.CreateUpdateBoardMessage(board, hostNickName);
+        return messageHandler.jsonHandler.toJsonString();
+    }
+    public void SendTryPlaceWordMessage(String source, String destination, String word,
+                                        int row, int column, boolean vertical){
+        // as a player
+        if(!this.player.usingCurrentTiles(word)){
+            System.out.println("You are not using your tiles, Not Sending");
+        }
+        else{
+            MessageHandler messageHandler = new MessageHandler();
+            messageHandler.CreateTryPlaceWordMessage(source, destination, word, row, column,
+                    vertical, this.player.getCurrentTiles());
+            this.SendMessageToLocalServer(messageHandler.jsonHandler);
+        }
+    }
+    public void SendChallengeMessage(String source, String destination, String word,
+                                     int row, int column, boolean vertical){
+        // as a player
+        MessageHandler messageHandler = new MessageHandler();
+        messageHandler.CreateChallengeMessage(source, destination, word, row, column,
+                vertical, this.player.getCurrentTiles());
+        this.SendMessageToLocalServer(messageHandler.jsonHandler);
+    }
 
     // the host need to try place word
     @Override
@@ -182,16 +232,18 @@ public class Host implements ClientHandler{
                 //if true go to my server, else out try again to the guest
                 if (score == 0){
                     // ignore to guest Create try again message
-                    out.println("Not Legal");
+                    out.println(this.SendTryAgainMessage(String.valueOf(json.get("Source")), 0,
+                            "try place word" , this.NickName));
                     out.flush();
-                    System.out.println("Not Legal");
                 }
                 else {
                     // ack , score to guest Create success message
-                    /*String stringBuilder = "Success," + text[1] + ","+ score;
-                    out.println(stringBuilder);*/
+                    String guestCurrentTiles = String.valueOf(json.get("CurrentTiles"));
+                    List<Character> NewCurrentTiles = this.reduceTilesFromCurrentTiles(String.valueOf(json.get("Word")),
+                            this.ConvertCurrentTilesToList(guestCurrentTiles));
+                    out.println(this.SendSuccessMessage(String.valueOf(json.get("Source")), score,
+                            "try place word", this.CharavterslistToString(NewCurrentTiles), this.NickName));
                     out.flush();
-
                 }
             }
         } catch (IOException e) {
@@ -282,11 +334,35 @@ public class Host implements ClientHandler{
         return random.nextInt(maxPort - minPort + 1) + minPort;
     }
 
+    public List<Character> reduceTilesFromCurrentTiles(String word , List<Character> currentTiles){
+        // return New current tiles after reduce and generate
+        int counterUsed = 0;
+        for(int i = 0 ; i < word.length();i++){
+            if(word.charAt(i) != '_'){
+                for(Character t : currentTiles){
+                    if(t == word.charAt(i)){
+                        currentTiles.remove(t);
+                        counterUsed ++;
+                    }
+                }
+            }
+        }
+        currentTiles.addAll(this.GenerateTiles(counterUsed));
+        return currentTiles;
+    }
 
     public List<Character> GenerateTiles(int number){
         List<Character> currentTiles = new ArrayList<>();
         for(int i = 0 ; i < number-1 ; i++){
             currentTiles.add(this.bag.getRand().letter);
+        }
+        return currentTiles;
+    }
+
+    public List<Character> ConvertCurrentTilesToList(String capitalTiles) {
+        List<Character> currentTiles = new ArrayList<>();
+        for(int i = 0 ; i < capitalTiles.length() ; i++){
+            currentTiles.add(capitalTiles.charAt(i));
         }
         return currentTiles;
     }
@@ -300,6 +376,14 @@ public class Host implements ClientHandler{
             i++;
         }
         return ts;
+    }
+
+    public String CharavterslistToString(List<Character> characterList) {
+        StringBuilder sb = new StringBuilder();
+        for (Character c : characterList) {
+            sb.append(c);
+        }
+        return sb.toString();
     }
 
     @Override
