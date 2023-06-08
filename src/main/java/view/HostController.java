@@ -8,25 +8,14 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.stage.Stage;
-import viewModel.VM_Host;
+
 import java.io.IOException;
 import java.util.Objects;
 
-public class HostController  {
-
-    private VM_Host vm_host;
+public class HostController {
 
     @FXML
-    Label ipLabel, portLabel, players;
-
-    public void setVM_Host(VM_Host vm) {
-
-        vm_host = vm;
-
-        // bind the amount of players to the player label
-        players.textProperty().bind(vm_host.playersProperty().asString());
-
-    }
+    Label ipLabel, portLabel;
 
     public void display(String ip, String port) {
 
@@ -45,28 +34,21 @@ public class HostController  {
     }
 
     public void StartGameButton(ActionEvent actionEvent) {
-
         try {
-
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Board-view.fxml"));
             Parent root = fxmlLoader.load();
 
-            // send the vm to the board controller
-            BoardViewController boardController = fxmlLoader.getController();
-            boardController.setViewModel(vm_host);
-
             Scene scene = new Scene(root);
+
             Node source = (Node) actionEvent.getSource();
             Stage stage = (Stage) source.getScene().getWindow();
 
-            stage.setX(250);
-            stage.setY(50);
-            stage.setResizable(false);
             stage.setScene(scene);
             stage.show();
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
+            // Handle any exceptions that may occur while loading the FXML file
         }
     }
+
 }

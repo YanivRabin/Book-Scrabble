@@ -1,77 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.Pane?>
-<?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.text.Font?>
-<?import javafx.scene.text.Text?>
-
-<AnchorPane fx:id="anchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="650.0" prefWidth="878.0" style="-fx-background-color: #EDEADE;" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="view.BoardViewController">
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: #EDEADE;"  xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="view.BoardViewController">
    <children>
-      <Button fx:id="EndTurn" layoutX="703.0" layoutY="591.0" mnemonicParsing="false" onAction="#EndTurnButtonClick" prefHeight="50.0" prefWidth="68.0" stylesheets="@../css/button.css" text="End Turn" />
-      <Button fx:id="EndGame" layoutX="8.0" layoutY="161.0" mnemonicParsing="false" onAction="#EndGameButtonClick" prefHeight="50.0" prefWidth="77.0" text="End Game" />
-      <Text layoutX="713.0" layoutY="59.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Score:" textAlignment="CENTER" wrappingWidth="91.00000000000011">
-         <font>
-            <Font size="32.0" />
-         </font>
-      </Text>
-      <Text layoutX="10.0" layoutY="624.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Tiles:" textAlignment="CENTER" wrappingWidth="84.16746520996094">
-         <font>
-            <Font size="32.0" />
-         </font>
-      </Text>
-      <Pane layoutX="10.0" layoutY="60.0" prefHeight="20.0" prefWidth="20.0" style="-fx-background-color: #0096FF;" />
-      <Pane layoutX="10.0" layoutY="90.0" prefHeight="20.0" prefWidth="20.0" style="-fx-background-color: #E8B828;" />
-      <Pane layoutX="10.0" layoutY="30.0" prefHeight="20.0" prefWidth="20.0" style="-fx-background-color: red;" />
-      <Pane layoutX="10.0" layoutY="120.0" prefHeight="20.0" prefWidth="20.0" style="-fx-background-color: blue;" />
-      <Text layoutX="31.0" layoutY="75.0" strokeType="OUTSIDE" strokeWidth="0.0" text="X2 Letter" wrappingWidth="63.892091684827506">
-         <font>
-            <Font size="14.0" />
-         </font>
-      </Text>
-      <Text layoutX="31.0" layoutY="45.0" strokeType="OUTSIDE" strokeWidth="0.0" text="X3 Word" wrappingWidth="59.455723992607545">
-         <font>
-            <Font size="14.0" />
-         </font>
-      </Text>
-      <Text layoutX="31.0" layoutY="106.0" strokeType="OUTSIDE" strokeWidth="0.0" text="X2 Word" wrappingWidth="55.953369140625">
-         <font>
-            <Font size="14.0" />
-         </font>
-      </Text>
-      <Text layoutX="31.0" layoutY="135.0" strokeType="OUTSIDE" strokeWidth="0.0" text="X3 Letter" wrappingWidth="65.85350799560547">
-         <font>
-            <Font size="14.0" />
-         </font>
-      </Text>
-      <AnchorPane id="tiles-container" fx:id="tilesContainer" layoutX="100.0" layoutY="584.0" prefHeight="63.0" prefWidth="391.0">
-         <children>
-            <Button layoutX="100.0" layoutY="7.0" mnemonicParsing="false" onAction="#handleTileButtonClick" prefHeight="50.0" prefWidth="40.0" />
-            <Button layoutX="200.0" layoutY="7.0" mnemonicParsing="false" onAction="#handleTileButtonClick" prefHeight="50.0" prefWidth="40.0" />
-            <Button layoutY="7.0" mnemonicParsing="false" onAction="#handleTileButtonClick" prefHeight="50.0" prefWidth="40.0" />
-            <Button layoutX="50.0" layoutY="7.0" mnemonicParsing="false" onAction="#handleTileButtonClick" prefHeight="50.0" prefWidth="40.0" />
-            <Button layoutX="150.0" layoutY="7.0" mnemonicParsing="false" onAction="#handleTileButtonClick" prefHeight="50.0" prefWidth="40.0" />
-            <Button layoutX="350.0" layoutY="7.0" mnemonicParsing="false" onAction="#handleTileButtonClick" prefHeight="50.0" prefWidth="40.0" />
-            <Button layoutX="250.0" layoutY="7.0" mnemonicParsing="false" onAction="#handleTileButtonClick" prefHeight="50.0" prefWidth="40.0" />
-            <Button layoutX="300.0" layoutY="7.0" mnemonicParsing="false" onAction="#handleTileButtonClick" prefHeight="50.0" prefWidth="40.0" />
-         </children>
-      </AnchorPane>
-      <Text fx:id="score" layoutX="804.0" layoutY="59.0" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" wrappingWidth="68.0">
-         <font>
-            <Font size="32.0" />
-         </font>
-      </Text>
-      <Button fx:id="TryPlaceWord" layoutX="502.0" layoutY="591.0" mnemonicParsing="false" onAction="#TryPlaceWordButtonClick" prefHeight="50.0" prefWidth="99.0" text="Try place word" />
-      <Button fx:id="resetWord" layoutX="612.0" layoutY="591.0" mnemonicParsing="false" onAction="#resetTilesButtonClick" prefHeight="50.0" prefWidth="80.0" text="Reset word" />
-      <Text fx:id="message" fill="#720000" layoutX="100.0" layoutY="566.0" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" wrappingWidth="600.733154296875">
-         <font>
-            <Font size="21.0" />
-         </font>
-      </Text>
-      <GridPane fx:id="boardGrid" alignment="CENTER" gridLinesVisible="true" layoutX="100.0" layoutY="30.0" prefHeight="500.0" prefWidth="600.0" style="-fx-background-color: #228B22;">
+      <GridPane fx:id="boardGrid" alignment="CENTER" gridLinesVisible="true" layoutX="168.0" layoutY="97.0"  prefHeight="762.0" prefWidth="1166.0" style="-fx-background-color: #228B22;">
          <columnConstraints>
             <ColumnConstraints percentWidth="6.66667" />
             <ColumnConstraints percentWidth="6.66667" />
@@ -115,22 +49,22 @@
             <Pane onMouseClicked="#handlePaneClick" prefHeight="54.0" prefWidth="65.0" style="-fx-background-color: red;" GridPane.columnIndex="14" GridPane.rowIndex="14" />
             <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: red;" GridPane.columnIndex="7" GridPane.rowIndex="0" />
             <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: red;" GridPane.columnIndex="7" GridPane.rowIndex="14" />
-            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #E8B828;" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #E8B828;" GridPane.columnIndex="2" GridPane.rowIndex="2" />
-            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #E8B828;" GridPane.columnIndex="3" GridPane.rowIndex="3" />
-            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #E8B828;" GridPane.columnIndex="4" GridPane.rowIndex="4" />
-            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #E8B828;" GridPane.columnIndex="13" GridPane.rowIndex="1" />
-            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #E8B828;" GridPane.columnIndex="12" GridPane.rowIndex="2" />
-            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #E8B828;" GridPane.columnIndex="11" GridPane.rowIndex="3" />
-            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #E8B828;" GridPane.columnIndex="10" GridPane.rowIndex="4" />
-            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #E8B828;" GridPane.columnIndex="1" GridPane.rowIndex="13" />
-            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #E8B828;" GridPane.columnIndex="2" GridPane.rowIndex="12" />
-            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #E8B828;" GridPane.columnIndex="3" GridPane.rowIndex="11" />
-            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #E8B828;" GridPane.columnIndex="4" GridPane.rowIndex="10" />
-            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #E8B828;" GridPane.columnIndex="13" GridPane.rowIndex="13" />
-            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #E8B828;" GridPane.columnIndex="12" GridPane.rowIndex="12" />
-            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: #E8B828;" GridPane.columnIndex="11" GridPane.rowIndex="11" />
-            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #E8B828;" GridPane.columnIndex="10" GridPane.rowIndex="10" />
+            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #FFFF8F;" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #FFFF8F;" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #FFFF8F;" GridPane.columnIndex="3" GridPane.rowIndex="3" />
+            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #FFFF8F;" GridPane.columnIndex="4" GridPane.rowIndex="4" />
+            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #FFFF8F;" GridPane.columnIndex="13" GridPane.rowIndex="1" />
+            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #FFFF8F;" GridPane.columnIndex="12" GridPane.rowIndex="2" />
+            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #FFFF8F;" GridPane.columnIndex="11" GridPane.rowIndex="3" />
+            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #FFFF8F;" GridPane.columnIndex="10" GridPane.rowIndex="4" />
+            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #FFFF8F;" GridPane.columnIndex="1" GridPane.rowIndex="13" />
+            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #FFFF8F;" GridPane.columnIndex="2" GridPane.rowIndex="12" />
+            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #FFFF8F;" GridPane.columnIndex="3" GridPane.rowIndex="11" />
+            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #FFFF8F;" GridPane.columnIndex="4" GridPane.rowIndex="10" />
+            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #FFFF8F;" GridPane.columnIndex="13" GridPane.rowIndex="13" />
+            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #FFFF8F;" GridPane.columnIndex="12" GridPane.rowIndex="12" />
+            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: #FFFF8F;" GridPane.columnIndex="11" GridPane.rowIndex="11" />
+            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color:  #FFFF8F;" GridPane.columnIndex="10" GridPane.rowIndex="10" />
             <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: #0096FF;" GridPane.columnIndex="3" GridPane.rowIndex="0" />
             <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: #0096FF;" GridPane.columnIndex="11" GridPane.rowIndex="0" />
             <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: #0096FF;" GridPane.columnIndex="3" GridPane.rowIndex="14" />
@@ -311,7 +245,6 @@
             <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="12" GridPane.rowIndex="4" />
             <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="12" GridPane.rowIndex="3" />
             <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="12" GridPane.rowIndex="1" />
-            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="13" GridPane.rowIndex="0" />
             <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="13" GridPane.rowIndex="2" />
             <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="13" GridPane.rowIndex="3" />
             <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="13" GridPane.rowIndex="4" />
@@ -335,6 +268,47 @@
 
          </children>
       </GridPane>
-      <Button fx:id="challenge" layoutX="781.0" layoutY="591.0" mnemonicParsing="false" onAction="#challengeButtonClick" prefHeight="50.0" prefWidth="84.0" stylesheets="@../css/button.css" text="Challenge" />
+      <Text fx:id="Title" layoutX="594.0" layoutY="49.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Book Scrabble" textAlignment="CENTER" wrappingWidth="234.13671875">
+         <font>
+            <Font size="32.0" />
+         </font>
+      </Text>
+      <Button fx:id="EndTurn" layoutX="22.0" layoutY="614.0" mnemonicParsing="false" onAction="#EndTurnButtonClick" prefHeight="47.0" prefWidth="85.0" text="End Turn" stylesheets="@../css/button.css"/>
+      <Button fx:id="EndGame" layoutX="22.0" layoutY="687.0" mnemonicParsing="false" onAction="#EndGameButtonClick" prefHeight="47.0" prefWidth="85.0" text="End Game" />
+      <Button fx:id="TryPlaceWord" layoutX="22.0" layoutY="760.0" mnemonicParsing="false" onAction="#TryPlaceWordButtonClick" prefHeight="47.0" prefWidth="116.0" text="TryPlaceWord" />
+      <Text fx:id="Title1" layoutX="1462.0" layoutY="91.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Score: " textAlignment="CENTER" wrappingWidth="126.13671875">
+         <font>
+            <Font size="32.0" />
+         </font>
+      </Text>
+      <Text fx:id="Title11" layoutX="1452.0" layoutY="173.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Tiles:" textAlignment="CENTER" wrappingWidth="126.13671875">
+         <font>
+            <Font size="32.0" />
+         </font>
+      </Text>
+      <Pane layoutX="33.0" layoutY="124.0" prefHeight="48.0" prefWidth="19.0" style="-fx-background-color: #0096FF;" />
+      <Pane layoutX="33.0" layoutY="191.0" prefHeight="48.0" prefWidth="19.0" style="-fx-background-color: #FFFF8F;" />
+      <Pane layoutX="33.0" layoutY="55.0" prefHeight="48.0" prefWidth="19.0" style="-fx-background-color: red;" />
+      <Pane layoutX="33.0" layoutY="269.0" prefHeight="48.0" prefWidth="19.0" style="-fx-background-color: blue;" />
+      <Text layoutX="64.0" layoutY="148.0" strokeType="OUTSIDE" strokeWidth="0.0" text="2x Letter" wrappingWidth="50.767578125">
+         <font>
+            <Font size="14.0" />
+         </font>
+      </Text>
+      <Text layoutX="64.0" layoutY="75.0" strokeType="OUTSIDE" strokeWidth="0.0" text="3x Word" wrappingWidth="50.767578125">
+         <font>
+            <Font size="14.0" />
+         </font>
+      </Text>
+      <Text layoutX="64.0" layoutY="211.0" strokeType="OUTSIDE" strokeWidth="0.0" text="2x Word" wrappingWidth="50.767578125">
+         <font>
+            <Font size="14.0" />
+         </font>
+      </Text>
+      <Text layoutX="64.0" layoutY="289.0" strokeType="OUTSIDE" strokeWidth="0.0" text="3x Letter" wrappingWidth="50.767578125">
+         <font>
+            <Font size="14.0" />
+         </font>
+      </Text>
    </children>
 </AnchorPane>
