@@ -8,8 +8,9 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.stage.Stage;
-import java.io.IOException;
 import test.GUITest;
+
+import java.io.IOException;
 
 public class MainController {
 
@@ -31,25 +32,25 @@ public class MainController {
         titleLabel.setText("Created new game at\nIP: " + ip + "\nPort: " + port);
     }
 
-//    @FXML
-//    protected void hostButton(ActionEvent event) throws IOException {
-//
-//        test = GUITest.getGuiTest();
-//        ip = test.getIp();
-//        port = test.getPort();
-//
-//        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("host-view.fxml"));
-//        root = fxmlLoader.load();
-//
-//        // Get the controller associated with the FXML file
-//        HostController hostController = fxmlLoader.getController();
-//        hostController.display(ip, port);
-//
-//        stage = (Stage) ((Node)event.getSource()).getScene().getWindow();
-//        scene = new Scene(root);
-//        stage.setScene(scene);
-//        stage.show();
-//    }
+    @FXML
+    protected void hostButton(ActionEvent event) throws IOException {
+
+        test = GUITest.getGuiTest();
+        ip = test.getIp();
+        port = test.getPort();
+
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("host-view.fxml"));
+        root = fxmlLoader.load();
+
+        // Get the controller associated with the FXML file
+        HostController hostController = fxmlLoader.getController();
+        hostController.display(ip, port);
+
+        stage = (Stage) ((Node)event.getSource()).getScene().getWindow();
+        scene = new Scene(root);
+        stage.setScene(scene);
+        stage.show();
+    }
 
     @FXML
     protected void guestButton(ActionEvent event) throws IOException {
