@@ -32,4 +32,23 @@ public class HostController {
         stage.setScene(scene);
         stage.show();
     }
+
+    public void StartGameButton(ActionEvent actionEvent) {
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Board-view.fxml"));
+            Parent root = fxmlLoader.load();
+
+            Scene scene = new Scene(root);
+
+            Node source = (Node) actionEvent.getSource();
+            Stage stage = (Stage) source.getScene().getWindow();
+
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+            // Handle any exceptions that may occur while loading the FXML file
+        }
+    }
+
 }
