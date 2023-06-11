@@ -66,6 +66,7 @@ public class Guest {
     // create all options Messages
     public void SendTryPlaceWordMessage(String source, String destination, String word,
                                           int row, int column, boolean vertical){
+        System.out.println(this.player.getNickName()+": try place word");
         if(!this.player.usingCurrentTiles(word)){
             System.out.println("You are not using your tiles");
         }
@@ -90,19 +91,20 @@ public class Guest {
 
     public void GetFromHost() throws IOException {
         String jsonString = this.reader.readLine();
+        System.out.println(jsonString);
         JsonObject json = JsonHandler.convertStringToJsonObject(jsonString);
-        switch (String.valueOf(json.get("MessageType"))){
+        switch (json.get("MessageType").getAsString()){
             case "start game":
                 this.player = new Player(this.ipAddress, this.NickName, 0);
-                this.player.addTiles(String.valueOf(json.get("StartTiles")));
+                this.player.addTiles(json.get("StartTiles").getAsString());
                 break;
             case "success":
-                switch (String.valueOf(json.get("Action"))) {
+                switch (json.get("Action").getAsString()) {
                     case "try place word":
                         System.out.println(this.NickName + "Try Place Word: " + "Success");
-                        this.player.addScore(Integer.parseInt(String.valueOf(json.get("NewScore"))));
+                        this.player.addScore(Integer.parseInt(json.get("NewScore").getAsString()));
                         this.player.prevScore = this.player.currentScore;
-                        this.player.setCurrentTiles(String.valueOf(json.get("NewCurrentTiles")));
+                        this.player.setCurrentTiles(json.get("NewCurrentTiles").getAsString());
                         // board change in Host.notifyall
                         break;
                     case "challenge":
@@ -112,7 +114,7 @@ public class Guest {
                         break;
                 }
             case "try again":
-                switch (String.valueOf(json.get("Action"))){
+                switch (json.get("Action").getAsString()){
                     case "try place word":
                         System.out.println(this.NickName + "Try Place Word: "+ "Didn't success, try again");
                         break;
@@ -129,7 +131,7 @@ public class Guest {
                 break;
             case "update board":
                 System.out.println(this.NickName + " updated Board");
-                this.player.setCurrentBoard(String.valueOf(json.get("Board")));
+                this.player.setCurrentBoard(json.get("Board").getAsString());
                 break;
         }
     }
