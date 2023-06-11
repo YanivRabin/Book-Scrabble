@@ -78,7 +78,7 @@ public class Host implements ClientHandler{
         this.HostSocketToLocalServer = new Socket(HostIp, Port);
         this.reader = new BufferedReader(new InputStreamReader(HostSocketToLocalServer.getInputStream()));
         this.writer = new PrintWriter(HostSocketToLocalServer.getOutputStream(), true);
-        this.player = new Player(HostIp ,this.NickName, 0, this.GenerateTiles(8));
+//        this.player = new Player(HostIp ,this.NickName, 0, this.GenerateTiles(8));
         Thread clientThread = new Thread(() -> {
             try {
                 this.GetMessageFromLocalServer();
@@ -151,12 +151,22 @@ public class Host implements ClientHandler{
         }
     }
 
-    public String SendStartGameMessage(String hostNickName){
+    public void SendStartGameMessage(String hostNickName){
         // only serverHost
-        MessageHandler messageHandler = new MessageHandler();
-        List<Character> StartGameTiles = this.GenerateTiles(8);
-        messageHandler.CreateStartGameMessage(this.CharavterslistToString(StartGameTiles), hostNickName);
-        return messageHandler.jsonHandler.toJsonString();
+
+        for(Socket socket : this.GuestList){
+            try {
+                MessageHandler messageHandler = new MessageHandler();
+                List<Character> StartGameTiles = this.GenerateTiles(8);
+                messageHandler.CreateStartGameMessage(this.CharavterslistToString(StartGameTiles), hostNickName);
+                OutputStream outToClient = socket.getOutputStream();
+                PrintWriter out = new PrintWriter(outToClient);
+                out.println(messageHandler.jsonHandler.toJsonString());
+                out.flush();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
     public String SendTryAgainMessage(String destination, int prevScore, String action, String hostNickName){
         // only serverHost
@@ -168,17 +178,28 @@ public class Host implements ClientHandler{
         // only serverHost
         MessageHandler messageHandler = new MessageHandler();
         messageHandler.CreateSuccessMessage(destination, newScore, action, newCurrentTiles, hostNickName);
-        return messageHandler.jsonHandler.toJsonString();    }
+        return messageHandler.jsonHandler.toJsonString();
+    }
     public String SendSucceededChallengeYouMessage(Character[][] board, String hostNickName){
         // only serverHost
         MessageHandler messageHandler = new MessageHandler();
         messageHandler.CreateSucceededChallengeYouMessage(board, hostNickName);
-        return messageHandler.jsonHandler.toJsonString();    }
-    public String SendUpdateBoardMessage(Character[][] board, String hostNickName){
+        return messageHandler.jsonHandler.toJsonString();
+    }
+    public void SendUpdateBoardMessage(Character[][] board, String hostNickName){
         // only serverHost
         MessageHandler messageHandler = new MessageHandler();
         messageHandler.CreateUpdateBoardMessage(board, hostNickName);
-        return messageHandler.jsonHandler.toJsonString();
+        for(Socket socket : this.GuestList){
+            try {
+                OutputStream outToClient = socket.getOutputStream();
+                PrintWriter out = new PrintWriter(outToClient);
+                out.println(messageHandler.jsonHandler.toJsonString());
+                out.flush();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
     public void SendTryPlaceWordMessage(String source, String destination, String word,
                                         int row, int column, boolean vertical){
@@ -209,22 +230,25 @@ public class Host implements ClientHandler{
         PrintWriter out = new PrintWriter(outToClient);
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inFromClient))) {
             String jsonString = reader.readLine();
+            System.out.println(jsonString);
+            out.println(out);
+            /*out.flush();*/
             if (jsonString != null) {
                 JsonObject json = JsonHandler.convertStringToJsonObject(jsonString);
-                switch (String.valueOf(json.get("MessageType"))){
+                switch (json.get("MessageType").getAsString()){
                     case "try place word":
-                        String q_word = String.valueOf(json.get("Word"));
-                        boolean q_vertical = String.valueOf(json.get("Vertical")).equals("true");
-                        int q_row = Integer.parseInt(String.valueOf(json.get("Row")));
-                        int q_column = Integer.parseInt(String.valueOf(json.get("Column")));
+                        String q_word = json.get("Word").getAsString();
+                        boolean q_vertical = json.get("Vertical").getAsString().equals("true");
+                        int q_row = Integer.parseInt(json.get("Row").getAsString());
+                        int q_column = Integer.parseInt(json.get("Column").getAsString());
                         Word Q_word = new Word(getTileArray(q_word), q_row, q_column, q_vertical);
                         score = this.board.tryPlaceWord(Q_word);
                         break;
                     case "challenge":
-                        String c_word = String.valueOf(json.get("Word"));
-                        boolean c_vertical = String.valueOf(json.get("Vertical")).equals("true");
-                        int c_row = Integer.parseInt(String.valueOf(json.get("Row")));
-                        int c_column = Integer.parseInt(String.valueOf(json.get("Column")));
+                        String c_word = json.get("Word").getAsString();
+                        boolean c_vertical = json.get("Vertical").getAsString().equals("true");
+                        int c_row = Integer.parseInt(json.get("Row").getAsString());
+                        int c_column = Integer.parseInt(json.get("Column").getAsString());
                         Word C_word = new Word(getTileArray(c_word), c_row, c_column, c_vertical);
                         // do the Challenge
                         break;
@@ -232,17 +256,19 @@ public class Host implements ClientHandler{
                 //if true go to my server, else out try again to the guest
                 if (score == 0){
                     // ignore to guest Create try again message
-                    out.println(this.SendTryAgainMessage(String.valueOf(json.get("Source")), 0,
+                    out.println(this.SendTryAgainMessage(json.get("Source").getAsString(), 0,
                             "try place word" , this.NickName));
                     out.flush();
                 }
                 else {
                     // ack , score to guest Create success message
-                    String guestCurrentTiles = String.valueOf(json.get("CurrentTiles"));
-                    List<Character> NewCurrentTiles = this.reduceTilesFromCurrentTiles(String.valueOf(json.get("Word")),
+                    String guestCurrentTiles = json.get("CurrentTiles").getAsString();
+                    List<Character> NewCurrentTiles = this.reduceTilesFromCurrentTiles(json.get("Word").getAsString(),
                             this.ConvertCurrentTilesToList(guestCurrentTiles));
-                    out.println(this.SendSuccessMessage(String.valueOf(json.get("Source")), score,
-                            "try place word", this.CharavterslistToString(NewCurrentTiles), this.NickName));
+                    System.out.println("New Score to add: "+score);
+                    String jsonSuccess = this.SendSuccessMessage(json.get("Source").getAsString(), score,
+                            "try place word", this.CharavterslistToString(NewCurrentTiles), this.NickName);
+                    out.println(jsonSuccess);
                     out.flush();
                 }
             }
@@ -278,18 +304,18 @@ public class Host implements ClientHandler{
     public void GetMessageFromLocalServer() throws IOException {
         String jsonString = this.reader.readLine();
         JsonObject json = JsonHandler.convertStringToJsonObject(jsonString);
-        switch (String.valueOf(json.get("MessageType"))){
+        switch (json.get("MessageType").getAsString()){
             case "start game":
                 this.player = new Player(this.IP, this.NickName, 0);
-                this.player.addTiles(String.valueOf(json.get("StartTiles")));
+                this.player.addTiles(json.get("StartTiles").getAsString());
                 break;
             case "success":
-                switch (String.valueOf(json.get("Action"))) {
+                switch (json.get("Action").getAsString()) {
                     case "try place word":
                         System.out.println(this.NickName + "Try Place Word: " + "Success");
-                        this.player.addScore(Integer.parseInt(String.valueOf(json.get("NewScore"))));
+                        this.player.addScore(Integer.parseInt(json.get("NewScore").getAsString()));
                         this.player.prevScore = this.player.currentScore;
-                        this.player.setCurrentTiles(String.valueOf(json.get("NewCurrentTiles")));
+                        this.player.setCurrentTiles(json.get("NewCurrentTiles").getAsString());
                         // board change in Host.notifyall
                         break;
                     case "challenge":
@@ -299,7 +325,7 @@ public class Host implements ClientHandler{
                         break;
                 }
             case "try again":
-                switch (String.valueOf(json.get("Action"))){
+                switch (json.get("Action").getAsString()){
                     case "try place word":
                         System.out.println(this.NickName + "Try Place Word: "+ "Didn't success, try again");
                         break;
@@ -316,7 +342,7 @@ public class Host implements ClientHandler{
                 break;
             case "update board":
                 System.out.println(this.NickName + " updated Board");
-                this.player.setCurrentBoard(String.valueOf(json.get("Board")));
+                this.player.setCurrentBoard(json.get("Board").getAsString());
                 break;
         }
     }
@@ -343,8 +369,12 @@ public class Host implements ClientHandler{
                     if(t == word.charAt(i)){
                         currentTiles.remove(t);
                         counterUsed ++;
+                        break;
                     }
                 }
+            }
+            if(counterUsed == word.length()){
+                break;
             }
         }
         currentTiles.addAll(this.GenerateTiles(counterUsed));
@@ -372,7 +402,7 @@ public class Host implements ClientHandler{
         Tile[] ts = new Tile[s.length()];
         int i = 0;
         for(char c: s.toCharArray()) {
-            ts[i] = Tile.Bag.getBagModel().getTile(c);
+            ts[i] = Tile.Bag.getBagModel().getTileForTileArray(c);
             i++;
         }
         return ts;

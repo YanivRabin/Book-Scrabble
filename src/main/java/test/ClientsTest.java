@@ -6,6 +6,8 @@ import model.logic.Host;
 import model.logic.MyServer;
 
 import java.io.IOException;
+import java.net.Socket;
+import java.util.Scanner;
 
 public class ClientsTest {
     // need to write test for Host Guest and my server connection and
@@ -32,9 +34,64 @@ public class ClientsTest {
             // Create 3 Guests for each Host
             Guest guest1 = new Guest("Guest" + (1));
             guest1.CreateSocketToHost(host.getIpAddress(), host.getPort());
+            Guest guest2 = new Guest("Guest" + (1 + 1));
+            guest2.CreateSocketToHost(host.getIpAddress(), host.getPort());
 //            guest1.SendToHost("Q,WIN,7,7,true");
+            Thread.sleep(2000);
+            host.SendStartGameMessage(host.NickName);
+            System.out.println();
+            System.out.println();
+            System.out.println("Start Game !!");
+            Thread.sleep(2000);
+            System.out.println();
+            System.out.println(host.player.getNickName());
+            System.out.println(host.player.getCurrentScore());
+            host.player.printCurrentTiles();
+            System.out.println();
+            System.out.println(guest1.player.getNickName());
+            System.out.println(guest1.player.getCurrentScore());
+            guest1.player.printCurrentTiles();
+            System.out.println();
+            System.out.println(guest2.player.getNickName());
+            System.out.println(guest2.player.getCurrentScore());
+            guest2.player.printCurrentTiles();
+
+
+            /*Scanner scanner = new Scanner(System.in);
+            System.out.println();
+            // Prompt the user to enter a string
+            System.out.print("Enter a string: ");
+
+            // Read the string input from the console
+            String input = scanner.nextLine();
+
+            // Print the input string
+            System.out.println("You entered: " + input);
+            Thread.sleep(5000);*/
+            Thread.sleep(10000);
+            for(Socket socket : host.GuestList){
+                if(socket.isConnected()){
+                    System.out.println("Alive");
+                }
+            }
+
+            guest1.player.setCurrentTiles("WINAGGED");
+            guest1.SendTryPlaceWordMessage(guest1.NickName, host.NickName, "WIN", 7,7,true);
             Thread.sleep(5000);
             System.out.println(guest1.player.getCurrentScore());
+            Thread.sleep(1000);
+//            scanner.close();
+            // Close the Scanner object
+
+
+            String s = String.valueOf(System.in.read());
+            System.out.println(s);
+
+
+
+
+
+
             /*Guest guest2 = new Guest("Guest" + (1 + 1));
             guest2.CreateSocketToHost(host.getIpAddress(), host.getPort());
             guest2.SendToHost("Q,W_N,8,6,false");

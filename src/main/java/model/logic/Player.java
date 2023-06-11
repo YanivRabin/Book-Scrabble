@@ -27,6 +27,7 @@ public class Player {
         this.socketIP = socketIP;
         this.nickName = nickName;
         this.currentScore = score;
+        this.currentTiles = new ArrayList<>();
     }
 
     public String getSocketIP() {
