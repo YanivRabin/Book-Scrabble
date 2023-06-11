@@ -31,18 +31,21 @@ public class ClientsTest {
             stringBuilder.append("Host"+(1));
             stringBuilder.append(": The message has been received");
 
+            System.out.println("threads: " + Thread.activeCount());
             // Create 3 Guests for each Host
             Guest guest1 = new Guest("Guest" + (1));
             guest1.CreateSocketToHost(host.getIpAddress(), host.getPort());
+            System.out.println("threads: " + Thread.activeCount());
             Guest guest2 = new Guest("Guest" + (1 + 1));
             guest2.CreateSocketToHost(host.getIpAddress(), host.getPort());
+            System.out.println("threads: " + Thread.activeCount());
 //            guest1.SendToHost("Q,WIN,7,7,true");
-            Thread.sleep(2000);
+            Thread.sleep(3000);
             host.SendStartGameMessage(host.NickName);
             System.out.println();
             System.out.println();
             System.out.println("Start Game !!");
-            Thread.sleep(2000);
+            Thread.sleep(3000);
             System.out.println();
             System.out.println(host.player.getNickName());
             System.out.println(host.player.getCurrentScore());
@@ -69,6 +72,7 @@ public class ClientsTest {
             System.out.println("You entered: " + input);
             Thread.sleep(5000);*/
             Thread.sleep(10000);
+            System.out.println("threads: " + Thread.activeCount());
             for(Socket socket : host.GuestList){
                 if(socket.isConnected()){
                     System.out.println("Alive");
@@ -78,14 +82,11 @@ public class ClientsTest {
             guest1.player.setCurrentTiles("WINAGGED");
             guest1.SendTryPlaceWordMessage(guest1.NickName, host.NickName, "WIN", 7,7,true);
             Thread.sleep(5000);
+//            guest1.SendTryPlaceWordMessage(guest1.NickName, host.NickName, "WIN", 7,7,true);
             System.out.println(guest1.player.getCurrentScore());
-            Thread.sleep(1000);
+//            Thread.sleep(5000);
 //            scanner.close();
             // Close the Scanner object
-
-
-            String s = String.valueOf(System.in.read());
-            System.out.println(s);
 
 
 
@@ -100,7 +101,10 @@ public class ClientsTest {
             guest3.CreateSocketToHost(host.getIpAddress(), host.getPort());
             guest3.SendToHost("Q,_IN,7,7,true");
             Thread.sleep(2000);*/
-//            host.close();
+            System.out.println("Toledo sharmuta");
+            guest1.Disconnect();
+            guest2.Disconnect();
+            host.close();
 
 
         } catch (IOException e) {
@@ -110,7 +114,7 @@ public class ClientsTest {
         // Perform your test operations...
 
         // Close the GameServer
-//        gameServer.close();
+        gameServer.close();
         System.out.println("Done");
 
 

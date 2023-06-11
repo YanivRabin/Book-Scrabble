@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Host implements ClientHandler{
     //Logic Members
@@ -25,6 +27,8 @@ public class Host implements ClientHandler{
     public List<Socket> GuestList;
     Socket SocketToMyServer;
     MyServer GameServer; // The MyServer this host connected to
+    static ExecutorService executorService = Executors.newFixedThreadPool(6); // only for one host
+
 
 
     //Data-Game Members
@@ -79,14 +83,21 @@ public class Host implements ClientHandler{
         this.reader = new BufferedReader(new InputStreamReader(HostSocketToLocalServer.getInputStream()));
         this.writer = new PrintWriter(HostSocketToLocalServer.getOutputStream(), true);
 //        this.player = new Player(HostIp ,this.NickName, 0, this.GenerateTiles(8));
-        Thread clientThread = new Thread(() -> {
+        /*Thread clientThread = new Thread(() -> {
             try {
                 this.GetMessageFromLocalServer();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         });
-        clientThread.start();
+        clientThread.start();*/
+        executorService.execute(()->{
+            try {
+                this.GetMessageFromLocalServer();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
         System.out.println("Host Connected to local Host Server");
     }
 
@@ -99,14 +110,22 @@ public class Host implements ClientHandler{
     public void start() {
 
         //run server in the background
-        new Thread(() -> {
+        /*new Thread(() -> {
 
             try {
                 runServer();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }).start();
+        }).start();*/
+
+        executorService.execute(()->{
+            try {
+                runServer();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public void runServer() throws IOException {
@@ -115,14 +134,23 @@ public class Host implements ClientHandler{
         System.out.println("Host Server started on port :" + this.Port);
         this.IP = this.LocalServer.getInetAddress().getHostAddress();
         this.CreateSocketToLocalServer(this.IP, this.Port);
-        Thread clientThread = new Thread(() -> {
+        /*Thread clientThread = new Thread(() -> {
             try {
                 handleClient(this.HostSocketToLocalServer.getInputStream(), this.HostSocketToLocalServer.getOutputStream());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         });
-        clientThread.start();
+        clientThread.start();*/
+        executorService.execute(()->{
+            try {
+                handleClient(this.HostSocketToLocalServer.getInputStream(), this.HostSocketToLocalServer.getOutputStream());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+
         while (!this.Stop ) {
             try{
                 if(this.GuestList.size() < this.MaxGuests) {
@@ -133,15 +161,25 @@ public class Host implements ClientHandler{
                     }
                     else{
                         System.out.println("Guest Connected, Number of players: " + GuestList.size());
+                        /*clientThread = new Thread(() -> {
+                            try {
+                                handleClient(guest.getInputStream(), guest.getOutputStream());
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
+                        clientThread.start();*/
+                        executorService.execute(()->{
+                            try {
+                                handleClient(guest.getInputStream(), guest.getOutputStream());
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
+
                     }
-                    clientThread = new Thread(() -> {
-                        try {
-                            handleClient(guest.getInputStream(), guest.getOutputStream());
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
-                    clientThread.start();
+
+
 
                 }
             }catch (IOException e){
@@ -268,8 +306,10 @@ public class Host implements ClientHandler{
                     System.out.println("New Score to add: "+score);
                     String jsonSuccess = this.SendSuccessMessage(json.get("Source").getAsString(), score,
                             "try place word", this.CharavterslistToString(NewCurrentTiles), this.NickName);
+                    System.out.println(jsonSuccess);
                     out.println(jsonSuccess);
                     out.flush();
+                    // notify all
                 }
             }
         } catch (IOException e) {
@@ -420,9 +460,12 @@ public class Host implements ClientHandler{
     public void close() {
 
         this.Stop = true;
+        executorService.shutdownNow();
         for (Socket g : this.GuestList) {
             try { g.close(); }
-            catch (IOException e) { e.printStackTrace(); }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         this.GuestList.clear();
 

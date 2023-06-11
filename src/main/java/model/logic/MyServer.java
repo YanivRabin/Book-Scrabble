@@ -5,6 +5,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MyServer {
 
@@ -15,6 +17,7 @@ public class MyServer {
     String IP;
     boolean stop;
     public List<Socket> HostsList;
+    static ExecutorService executorService = Executors.newFixedThreadPool(2); // only for one host
 
 
     //ctr
@@ -48,14 +51,22 @@ public class MyServer {
     public void start() {
 
         //run server in the background
-        new Thread(() -> {
+        /*new Thread(() -> {
 
             try {
                 runServer();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }).start();
+        }).start();*/
+
+        executorService.execute(()->{
+            try {
+                runServer();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
     public void runServer() throws IOException {
 
@@ -68,14 +79,22 @@ public class MyServer {
 
             Socket host = this.server.accept();
             this.HostsList.add(host);
-            Thread hostThread = new Thread(() -> {
+            /*Thread hostThread = new Thread(() -> {
                 try {
                     this.clientHandler.handleClient(host.getInputStream(), host.getOutputStream());
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             });
-            hostThread.start();
+            hostThread.start();*/
+
+            executorService.execute(() -> {
+                try {
+                    this.clientHandler.handleClient(host.getInputStream(), host.getOutputStream());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
             System.out.println("Host Connected, Number of Hosts Connected: "+ HostsList.size());
 
            // clientHandler.handleClient(host.getInputStream(), host.getOutputStream());
@@ -86,6 +105,7 @@ public class MyServer {
     public void close() throws IOException {
 
         stop = true;
+        executorService.shutdownNow();
         for (Socket c : this.HostsList) {
             try { c.close(); }
             catch (IOException e) { e.printStackTrace(); }

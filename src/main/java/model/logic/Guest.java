@@ -7,6 +7,8 @@ import model.data.Tile.Bag;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Guest {
     //Logic Members
@@ -15,6 +17,8 @@ public class Guest {
     private PrintWriter writer;
     private String ipAddress;
     Host HostServer; // The Host this Guest connected to
+    static ExecutorService executorService = Executors.newFixedThreadPool(1); // only for one host
+
 
     //Data-Game Members
     public Player player;
@@ -53,14 +57,21 @@ public class Guest {
         this.reader = new BufferedReader(new InputStreamReader(SocketToHost.getInputStream()));
         this.writer = new PrintWriter(SocketToHost.getOutputStream(), true);
         this.ipAddress = SocketToHost.getInetAddress().getHostAddress();
-        Thread clientThread = new Thread(() -> {
+        /*Thread clientThread = new Thread(() -> {
             try {
                 GetFromHost();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         });
-        clientThread.start();
+        clientThread.start();*/
+        executorService.execute(()->{
+            try {
+                GetFromHost(this.SocketToHost.getInputStream(), this.SocketToHost.getOutputStream());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     // create all options Messages
@@ -87,10 +98,12 @@ public class Guest {
 
     public  void SendToHost(JsonHandler json) {
         this.writer.println(json.toJsonString());
+        this.writer.flush();
     }
 
-    public void GetFromHost() throws IOException {
-        String jsonString = this.reader.readLine();
+    public void GetFromHost(InputStream inputStream, OutputStream outputStream) throws IOException {
+        BufferedReader readerFromHost = new BufferedReader(new InputStreamReader(inputStream));
+        String jsonString = readerFromHost.readLine();
         System.out.println(jsonString);
         JsonObject json = JsonHandler.convertStringToJsonObject(jsonString);
         switch (json.get("MessageType").getAsString()){
@@ -138,6 +151,7 @@ public class Guest {
 
 
     public void Disconnect(){
+        executorService.shutdownNow();
         if (HostServer != null) {
             for (Socket host : HostServer.GuestList) {
                 if(host.getPort()==SocketToHost.getLocalPort()) {
@@ -146,6 +160,20 @@ public class Guest {
                 }
             }
         }
+        try {
+            if (reader != null) {
+                reader.close();
+            }
+            if (writer != null) {
+                writer.close();
+            }
+            if (SocketToHost != null) {
+                SocketToHost.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
+
 
 }
