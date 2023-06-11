@@ -7,6 +7,8 @@ import model.data.Tile.Bag;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Guest {
     //Logic Members
@@ -15,6 +17,8 @@ public class Guest {
     private PrintWriter writer;
     private String ipAddress;
     Host HostServer; // The Host this Guest connected to
+    static ExecutorService executorService = Executors.newFixedThreadPool(1); // only for one host
+
 
     //Data-Game Members
     public Player player;
@@ -53,23 +57,36 @@ public class Guest {
         this.reader = new BufferedReader(new InputStreamReader(SocketToHost.getInputStream()));
         this.writer = new PrintWriter(SocketToHost.getOutputStream(), true);
         this.ipAddress = SocketToHost.getInetAddress().getHostAddress();
-        Thread clientThread = new Thread(() -> {
+        /*Thread clientThread = new Thread(() -> {
             try {
                 GetFromHost();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         });
-        clientThread.start();
+        clientThread.start();*/
+        executorService.execute(()->{
+            try {
+                GetFromHost(this.SocketToHost.getInputStream(), this.SocketToHost.getOutputStream());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     // create all options Messages
     public void SendTryPlaceWordMessage(String source, String destination, String word,
                                           int row, int column, boolean vertical){
-        MessageHandler messageHandler = new MessageHandler();
-        messageHandler.CreateTryPlaceWordMessage(source, destination, word, row, column,
-                vertical, this.player.getCurrentTiles());
-        this.SendToHost(messageHandler.jsonHandler);
+        System.out.println(this.player.getNickName()+": try place word");
+        if(!this.player.usingCurrentTiles(word)){
+            System.out.println("You are not using your tiles");
+        }
+        else{
+            MessageHandler messageHandler = new MessageHandler();
+            messageHandler.CreateTryPlaceWordMessage(source, destination, word, row, column,
+                    vertical, this.player.getCurrentTiles());
+            this.SendToHost(messageHandler.jsonHandler);
+        }
     }
     public void SendChallengeMessage(String source, String destination, String word,
                                        int row, int column, boolean vertical){
@@ -81,23 +98,26 @@ public class Guest {
 
     public  void SendToHost(JsonHandler json) {
         this.writer.println(json.toJsonString());
+        this.writer.flush();
     }
 
-    public void GetFromHost() throws IOException {
-        String jsonString = this.reader.readLine();
+    public void GetFromHost(InputStream inputStream, OutputStream outputStream) throws IOException {
+        BufferedReader readerFromHost = new BufferedReader(new InputStreamReader(inputStream));
+        String jsonString = readerFromHost.readLine();
+        System.out.println(jsonString);
         JsonObject json = JsonHandler.convertStringToJsonObject(jsonString);
-        switch (String.valueOf(json.get("MessageType"))){
+        switch (json.get("MessageType").getAsString()){
             case "start game":
                 this.player = new Player(this.ipAddress, this.NickName, 0);
-                this.player.addTiles(String.valueOf(json.get("StartTiles")));
+                this.player.addTiles(json.get("StartTiles").getAsString());
                 break;
             case "success":
-                switch (String.valueOf(json.get("Action"))) {
+                switch (json.get("Action").getAsString()) {
                     case "try place word":
                         System.out.println(this.NickName + "Try Place Word: " + "Success");
-                        this.player.addScore(Integer.parseInt(String.valueOf(json.get("NewScore"))));
+                        this.player.addScore(Integer.parseInt(json.get("NewScore").getAsString()));
                         this.player.prevScore = this.player.currentScore;
-                        this.player.setCurrentTiles(String.valueOf(json.get("NewCurrentTiles")));
+                        this.player.setCurrentTiles(json.get("NewCurrentTiles").getAsString());
                         // board change in Host.notifyall
                         break;
                     case "challenge":
@@ -107,7 +127,7 @@ public class Guest {
                         break;
                 }
             case "try again":
-                switch (String.valueOf(json.get("Action"))){
+                switch (json.get("Action").getAsString()){
                     case "try place word":
                         System.out.println(this.NickName + "Try Place Word: "+ "Didn't success, try again");
                         break;
@@ -124,13 +144,14 @@ public class Guest {
                 break;
             case "update board":
                 System.out.println(this.NickName + " updated Board");
-                this.player.setCurrentBoard(String.valueOf(json.get("Board")));
+                this.player.setCurrentBoard(json.get("Board").getAsString());
                 break;
         }
     }
 
 
     public void Disconnect(){
+        executorService.shutdownNow();
         if (HostServer != null) {
             for (Socket host : HostServer.GuestList) {
                 if(host.getPort()==SocketToHost.getLocalPort()) {
@@ -139,6 +160,20 @@ public class Guest {
                 }
             }
         }
+        try {
+            if (reader != null) {
+                reader.close();
+            }
+            if (writer != null) {
+                writer.close();
+            }
+            if (SocketToHost != null) {
+                SocketToHost.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
+
 
 }
