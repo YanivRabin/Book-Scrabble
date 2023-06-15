@@ -6,6 +6,16 @@ public class LRU implements CacheReplacementPolicy{
 
     LinkedHashSet<String> words = new LinkedHashSet<>();
 
+    /**
+     * The add function adds a word to the list of words.
+     *
+     *
+     * @param String word Add a word to the list of words
+     *
+     * @return Void
+     *
+     * @docauthor Trelent
+     */
     @Override
     public void add(String word) {
 
@@ -13,6 +23,15 @@ public class LRU implements CacheReplacementPolicy{
         words.add(word);
     }
 
+    /**
+     * The remove function removes the first element in the list.
+     *
+     *
+     *
+     * @return The next word in the list
+     *
+     * @docauthor Trelent
+     */
     @Override
     public String remove() {
 

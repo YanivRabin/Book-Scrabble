@@ -6,6 +6,17 @@ public class LFU implements CacheReplacementPolicy {
 
     LinkedHashMap<String, Integer> words = new LinkedHashMap<>();
 
+    /**
+     * The add function adds a word to the map. If the word is already in the map,
+     * it increments its value by 1. Otherwise, it creates a new entry with value 1.
+
+     *
+     * @param String word Add a word to the map
+     *
+     * @return Nothing, but it will add the word to the map if it is not already there
+     *
+     * @docauthor Trelent
+     */
     @Override
     public void add(String word) {
 
@@ -15,6 +26,15 @@ public class LFU implements CacheReplacementPolicy {
             words.put(word, 1);
     }
 
+    /**
+     * The remove function removes the least frequently used word from the map.
+     *
+     *
+     *
+     * @return The string that is removed from the map
+     *
+     * @docauthor Trelent
+     */
     @Override
     public String remove() {
 
