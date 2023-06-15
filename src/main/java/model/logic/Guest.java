@@ -3,12 +3,16 @@ package model.logic;
 import com.google.gson.JsonObject;
 import model.data.Tile;
 import model.data.Tile.Bag;
+import model.data.Word;
 
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class Guest {
     //Logic Members
@@ -17,7 +21,8 @@ public class Guest {
     private PrintWriter writer;
     private String ipAddress;
     Host HostServer; // The Host this Guest connected to
-    static ExecutorService executorService = Executors.newFixedThreadPool(1); // only for one host
+    static ExecutorService executorService = Executors.newFixedThreadPool(6); // only for one host
+    BlockingQueue<String> inputQueue = new LinkedBlockingQueue<>();
 
 
     //Data-Game Members
@@ -57,6 +62,7 @@ public class Guest {
         this.reader = new BufferedReader(new InputStreamReader(SocketToHost.getInputStream()));
         this.writer = new PrintWriter(SocketToHost.getOutputStream(), true);
         this.ipAddress = SocketToHost.getInetAddress().getHostAddress();
+        executorService.submit(this::handleRequests);
         /*Thread clientThread = new Thread(() -> {
             try {
                 GetFromHost();
@@ -67,7 +73,7 @@ public class Guest {
         clientThread.start();*/
         executorService.execute(()->{
             try {
-                GetFromHost(this.SocketToHost.getInputStream(), this.SocketToHost.getOutputStream());
+                handleHost(this.SocketToHost.getInputStream(), this.SocketToHost.getOutputStream());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -82,17 +88,27 @@ public class Guest {
             System.out.println("You are not using your tiles");
         }
         else{
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append(this.SocketToHost.getInetAddress());
+            stringBuilder.append(":");
+            stringBuilder.append(this.SocketToHost.getLocalPort());
+            String socketSource = stringBuilder.toString();
             MessageHandler messageHandler = new MessageHandler();
             messageHandler.CreateTryPlaceWordMessage(source, destination, word, row, column,
-                    vertical, this.player.getCurrentTiles());
+                    vertical, this.player.getCurrentTiles(), socketSource);
             this.SendToHost(messageHandler.jsonHandler);
         }
     }
     public void SendChallengeMessage(String source, String destination, String word,
                                        int row, int column, boolean vertical){
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(this.SocketToHost.getInetAddress());
+        stringBuilder.append(":");
+        stringBuilder.append(this.SocketToHost.getLocalPort());
+        String socketSource = stringBuilder.toString();
         MessageHandler messageHandler = new MessageHandler();
         messageHandler.CreateChallengeMessage(source, destination, word, row, column,
-                vertical, this.player.getCurrentTiles());
+                vertical, this.player.getCurrentTiles(), socketSource);
         this.SendToHost(messageHandler.jsonHandler);
     }
 
@@ -101,7 +117,81 @@ public class Guest {
         this.writer.flush();
     }
 
-    public void GetFromHost(InputStream inputStream, OutputStream outputStream) throws IOException {
+    // option d in {}
+    public void handleHost(InputStream inputStream, OutputStream outputStream) {
+        while (!this.SocketToHost.isClosed()) {
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+            try {
+                String jsonString = bufferedReader.readLine();
+                if (jsonString != null)// Read an object from the server
+                {
+                    try {
+                        inputQueue.put(jsonString); // Put the received object in the queue
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }  catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public void handleRequests() {
+        while (!this.SocketToHost.isClosed()) {
+            try {
+                String jsonString = inputQueue.take(); //blocking call
+                System.out.println(jsonString);
+                JsonObject json = JsonHandler.convertStringToJsonObject(jsonString);
+                switch (json.get("MessageType").getAsString()){
+                    case "start game":
+                        this.player = new Player(this.ipAddress, this.NickName, 0);
+                        this.player.addTiles(json.get("StartTiles").getAsString());
+                        break;
+                    case "success":
+                        switch (json.get("Action").getAsString()) {
+                            case "try place word":
+                                System.out.println(this.NickName + "Try Place Word: " + "Success");
+                                this.player.addScore(Integer.parseInt(json.get("NewScore").getAsString()));
+                                this.player.prevScore = this.player.currentScore;
+                                this.player.setCurrentTiles(json.get("NewCurrentTiles").getAsString());
+                                // board change in Host.notifyall
+                                break;
+                            case "challenge":
+                                System.out.println(this.NickName + "Challenge: " + "Success");
+                                // score don't change
+                                // board change in Host.notifyall
+                                break;
+                        }
+                        break;
+                    case "try again":
+                        switch (json.get("Action").getAsString()){
+                            case "try place word":
+                                System.out.println(this.NickName + "Try Place Word: "+ "Didn't success, try again");
+                                break;
+                            case "challenge":
+                                System.out.println(this.NickName + "Challenge: "+ "Didn't success, try again");
+                                break;
+                        }
+                        break;
+                    case "succeeded in challenging you":
+                        System.out.println(this.NickName + ": i have been complicated");
+                        this.player.currentScore = this.player.prevScore;
+                        this.player.currentBoard = this.player.prevBoard;
+                        this.player.currentTiles = this.player.prevTiles;
+                        break;
+                    case "update board":
+                        System.out.println(this.NickName + " updated Board");
+                        this.player.setCurrentBoard(json.get("Board").getAsString());
+                        break;
+                }
+
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+/*    public void GetFromHost(InputStream inputStream, OutputStream outputStream) throws IOException {
         BufferedReader readerFromHost = new BufferedReader(new InputStreamReader(inputStream));
         String jsonString = readerFromHost.readLine();
         System.out.println(jsonString);
@@ -147,9 +237,20 @@ public class Guest {
                 this.player.setCurrentBoard(json.get("Board").getAsString());
                 break;
         }
-    }
+    }*/
 
 
+    /**
+     * The Disconnect function is used to disconnect the client from the server.
+     * It closes all of the streams and sockets that were opened during connection,
+     * and removes itself from its host's guest list.
+
+     *
+     *
+     * @return A boolean
+     *
+     * @docauthor Trelent
+     */
     public void Disconnect(){
         executorService.shutdownNow();
         if (HostServer != null) {

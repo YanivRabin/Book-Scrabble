@@ -1,13 +1,9 @@
 package model.data;
 
-import model.logic.Dictionary;
-import model.logic.DictionaryManager;
 import model.logic.Host;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 public class Board {
 
@@ -15,11 +11,7 @@ public class Board {
     Tile[][] board;
     char[][] bonusBoard;
 
-    boolean firstTurn;
-
     public Board() {
-
-        firstTurn = true;
 
         board = new Tile[15][15];
         bonusBoard = new char[][]{
@@ -46,6 +38,16 @@ public class Board {
         };
     }
 
+    /**
+     * The getBoard function is a static function that returns the current board.
+     * If there is no board, it creates one and then returns it.
+
+     *
+     *
+     * @return The board object
+     *
+     * @docauthor Trelent
+     */
     public static Board getBoard() {
 
         // create new board, if already created then return the current
@@ -55,11 +57,19 @@ public class Board {
         return singleBoard;
     }
 
-
     private static class BoardModelHelper {
         public static final Board model_instance = new Board();
     }
 
+    /**
+     * The getBoardModel function returns the board model.
+     *
+     *
+     *
+     * @return The value of the boardmodelhelper
+     *
+     * @docauthor Trelent
+     */
     public static Board getBoardModel() {
         return Board.BoardModelHelper.model_instance;
     }
@@ -70,24 +80,41 @@ public class Board {
         return board.clone();
     }
 
+    /**
+     * The checkBoundaries function checks to see if the word is within the boundaries of the board.
+     *
+     *
+     * @param Word w Get the length of the word
+     *
+     * @return False if the word is placed outside of the board
+     *
+     * @docauthor Trelent
+     */
     public boolean checkBoundaries(Word w) {
 
-        if (w.vertical) {
-            if (w.tiles.length + w.row > 14) {
+        if (w.vertical)
+            if (w.tiles.length + w.row > 14)
                 return false;
-            }
-        }
 
-        if (!w.vertical) {
-            if (w.tiles.length + w.col > 14) {
+        if (!w.vertical)
+            if (w.tiles.length + w.col > 14)
                 return false;
-            }
-        }
 
         return true;
     }
 
+    /**
+     * The checkNeighbors function checks to see if the word being placed is touching another word.
+     *
+     *
+     * @param Word w Pass in the word that is being checked
+     *
+     * @return True if the word is adjacent to another
+     *
+     * @docauthor Trelent
+     */
     public boolean checkNeighbors(Word w) {
+    // part of another word
 
         int i;
         if (w.vertical) {
@@ -99,21 +126,91 @@ public class Board {
                 if (board[i][w.col - 1] != null || board[i][w.col + 1] != null)
                     return true;
             //last letter
-            if (i < 14 && board[i][w.col] != null)
+            if (i < 14 && board[w.row + 1][w.col] != null)
                 return true;
+
+
+
         }
         if (!w.vertical) {
-            if (w.col > 0 && board[w.row][w.col - 1] != null)
+            if (w.col > 0 && board[w.col - 1][w.row] != null)
                 return true;
             for (i = w.col; i < w.tiles.length + w.col; i++)
                 if (board[w.row - 1][i] != null || board[w.row + 1][i] != null)
                     return true;
-            if (i < 14 && board[w.row][i] != null)
+            if (i < 14 && board[w.col + 1][w.row] != null)
                 return true;
         }
         return false;
     }
 
+    /**
+     * The checkEmptyTile function checks if there are any old tiles in the right place.
+     *
+     *
+     * @param Word w Get the row and column of the word to be placed on the board
+     *
+     * @return True if the tiles of a word are placed in empty tiles on the board
+     *
+     * @docauthor Trelent
+     */
+    public boolean checkEmptyTile(Word w) {
+
+        //return true if there is old tiles in the right place
+
+        if (w.vertical) {
+
+            int i = w.row;
+            for (Tile t : w.tiles) {
+
+                if (t == null){
+                    if (board[i][w.col] == null)
+                        return false;
+                }
+                else{
+                    if (board[i][w.col] != null)
+                        return false;
+                }
+                i++;
+            }
+        }
+        if (!w.vertical) {
+
+            int i = w.col;
+            for (Tile t : w.tiles) {
+
+                if (t == null){
+                    if (board[w.row][i] == null){
+                        return false;
+                    }
+                }
+                else{
+                    if (board[w.row][i] != null){
+                        return false;
+                    }
+                }
+                i++;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * The boardLegal function checks if the word is legal to be placed on the board.
+     * It first checks if the word is within boundaries of the board, then it checks
+     * if there are any empty tiles in between words that are already on the board.
+     * Finally, it makes sure that all letters in a word touch at least one other letter.
+
+     *
+     * @param Word w Check if the word is legal on the board
+    public boolean checkboundaries(word w) {
+
+
+     *
+     * @return True if the word is legal on the board, false otherwise
+     *
+     * @docauthor Trelent
+     */
     public boolean boardLegal(Word w) {
 
         //check word size
@@ -128,46 +225,74 @@ public class Board {
             return false;
 
         //check if the first word placed on the center star
-        if (w.getRow() == 7 && w.getCol() == 7 && firstTurn) {
-
+        if (board[7][7] == null) {
             if ((w.vertical && (w.col != 7 || (w.row + w.tiles.length <= 7) || w.row >= 8)) ||
-                    (!w.vertical && (w.row != 7 || (w.col + w.tiles.length <= 7) || w.col >= 8))) {
-
+                    (!w.vertical && (w.row != 7 || (w.col + w.tiles.length <= 7) || w.col >= 8)))
                 return false;
-            }
-            else {
 
-                return true;
-            }
+            return true;
         }
 
         if (!checkNeighbors(w))
             return false;
 
+        if (!checkEmptyTile(w))
+            return false;
+
         return true;
     }
 
+    /**
+     * The dictionaryLegal function checks if the word is in the dictionary.
+     *
+     *
+     * @param Word w Pass in the word object that is being checked
+        public boolean dictionarylegal(word w) {
+
+            stringbuilder text = new stringbuilder(&quot;q,&quot; + w
+     *
+     * @return True if the word is legal according to
+     *
+     * @docauthor Trelent
+     */
     public boolean dictionaryLegal(Word w) {
+
+//      w is word object
+//      w = word, row, col, vert
 
         StringBuilder text = new StringBuilder("Q," + w.toString());
 
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(Host.getModel().getSocketToMyServer().getInetAddress());
-        stringBuilder.append(":");
-        stringBuilder.append(Host.getModel().getSocketToMyServer().getLocalPort());
-        String socketSource = stringBuilder.toString();
 
-        String jsonString = Host.getModel().CreateMessageToGameServer(text.toString(),socketSource);
-        Host.getModel().SendMessageToGameServer(jsonString);
-        boolean res = false;
+        Host.getModel().SendMessageToGameServer(text.toString());
+//        try {
+//            Thread.sleep(5000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+
+        boolean res;
         try {
-            res = Boolean.parseBoolean(Host.getModel().inputQueueFromGameServer.take());
-        } catch (InterruptedException e) {
+            res = Host.getModel().GetMessageFromGameServer().equals("true");
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
         return res;
     }
 
+    /**
+     * The getWords function takes in a Word object and returns an ArrayList of all the words that are formed by placing
+     * the tiles from this word on the board. The first element of this ArrayList is always w itself, since it is a word
+     * that has been placed on the board. The rest of these elements are new words formed by placing w's tiles onto existing
+     * letters already on the board. If there are no other words formed, then getWords will return an ArrayList with only one element: w itself.
+
+     *
+     * @param Word w Get the words that are formed by placing
+
+     *
+     * @return An arraylist of word objects
+     *
+     * @docauthor Trelent
+     */
     public ArrayList<Word> getWords(Word w) {
 
         ArrayList<Word> words = new ArrayList<>();
@@ -176,6 +301,7 @@ public class Board {
 
             int i = w.row;
 
+            //w.tile = [w,i,n]
             for (Tile t : w.tiles) {
 
                 int j = w.col;
@@ -195,15 +321,8 @@ public class Board {
 
                     Tile[] tempT = temp.toArray(new Tile[0]);
                     Word tempWord = new Word(tempT, i, tempCol, false);
-                    if (!tempWord.toString().equals("")) {
-                        if (dictionaryLegal(tempWord) && boardLegal(tempWord)) {
-                            words.add(tempWord);
-                        }
-                        else if (tempWord.getTiles().length > 1) {
-                            System.out.println("Error: " + tempWord + " not legal");
-                            return null;
-                        }
-                    }
+                    if (dictionaryLegal(tempWord) && boardLegal(tempWord))
+                        words.add(tempWord);
                 }
                 i++;
             }
@@ -230,142 +349,58 @@ public class Board {
 
                     Tile[] tempT = temp.toArray(new Tile[0]);
                     Word tempWord = new Word(tempT, tempRow, i, true);
-                    if (!tempWord.toString().equals("")) {
-                        if (dictionaryLegal(tempWord) && boardLegal(tempWord)) {
-                            words.add(tempWord);
-                        }
-                        else if (tempWord.getTiles().length > 1) {
-                            System.out.println("Error: " + tempWord + " not legal");
-                            return null;
-                        }
-                    }
+                    if (dictionaryLegal(tempWord) && boardLegal(tempWord))
+                        words.add(tempWord);
                 }
                 i++;
             }
         }
+
+        //make the new word full word if there is nulls
+
+        int i = 0;
+        for (Tile t : w.tiles) {
+
+            if (w.vertical) {
+
+                if (t == null)
+                    w.tiles[i] = board[w.row + i][w.col];
+
+                i++;
+            }
+            if (!w.vertical) {
+
+                if (t == null)
+                    w.tiles[i] = board[w.row][w.col + i];
+
+                i++;
+            }
+        }
+        words.add(0, w);
 
         return words;
     }
 
-    public ArrayList<Word> getWordsForChallenge(Word w) {
-
-        ArrayList<Word> words = new ArrayList<>();
-
-        if (w.vertical) {
-
-            int i = w.row;
-
-            for (Tile t : w.tiles) {
-
-                int j = w.col;
-                ArrayList<Tile> temp = new ArrayList<>();
-
-                // add only new words
-                if (t != null) {
-
-                    while (j > 0 && board[i][j - 1] != null)
-                        j--;
-
-                    int tempCol = j;
-                    while (j < 15 && board[i][j] != null) {
-                        temp.add(board[i][j]);
-                        j++;
-                    }
-
-                    Tile[] tempT = temp.toArray(new Tile[0]);
-                    Word tempWord = new Word(tempT, i, tempCol, false);
-                    if (!tempWord.toString().equals("") && boardLegal(tempWord)) {
-                        words.add(tempWord);
-                    }
-                }
-                i++;
-            }
-        }
-        if (!w.vertical) {
-
-            int i = w.col;
-
-            for (Tile t : w.tiles) {
-
-                int j = w.row;
-                ArrayList<Tile> temp = new ArrayList<>();
-
-                if (t != null) {
-
-                    while (j > 0 && board[j - 1][i] != null)
-                        j--;
-
-                    int tempRow = j;
-                    while (j < 15 && board[j][i] != null) {
-                        temp.add(board[j][i]);
-                        j++;
-                    }
-
-                    Tile[] tempT = temp.toArray(new Tile[0]);
-                    Word tempWord = new Word(tempT, tempRow, i, true);
-                    if (!tempWord.toString().equals("") && boardLegal(tempWord)) {
-                        words.add(tempWord);
-                    }
-                }
-                i++;
-            }
-        }
-        words.add(w);
-
-        return words;
-    }
-
+    /**
+     * The getScore function takes a Word object as an argument and returns the score of that word.
+     * The function first creates an ArrayList of words from the given Word object, then iterates through each word in this list.
+     * For each letter in a given word, it checks if there is any bonus on that tile (i.e., if it's on a red or yellow square).
+     * If so, it multiplies the score by 2 or 3 accordingly and adds this to its running total for that particular word.
+     * It also keeps track of whether there are multiple bonuses for one particular letter (i.e., if
+     *
+     * @param Word w Pass the word that is being played to the getscore function
+     *
+     * @return The total score of the word
+     *
+     * @docauthor Trelent
+     */
     public int getScore(Word w) {
 
         int sum = 0;
 
-        int row = w.getRow();
-        int col = w.getCol();
-        Tile[] tempTiles = new Tile[w.getTiles().length];
-        int count = 0;
-        for (Tile tile : w.getTiles()) {
-
-            if (board[row][col] == null) {
-                tempTiles[count] = tile;
-            }
-            else {
-                tempTiles[count] = board[row][col];
-            }
-
-            count++;
-
-            if (w.isVertical()) {
-                row++;
-            }
-            else {
-                col++;
-            }
-        }
-
-        Word tempWord = new Word(tempTiles, w.getRow(), w.getCol(), w.isVertical());
-        if (!dictionaryLegal(tempWord)) {
-            return 0;
-        }
-
-        ArrayList<Word> words = new ArrayList<>();
-        // don't check for other words in first turn
-        if (firstTurn) {
-
-            firstTurn = false;
-        }
-        else {
-
-            // getWords return null if one of the words that try to place is not legal
-            words = getWords(w);
-            if (words == null) {
-                return 0;
-            }
-        }
-        words.add(tempWord);
+        ArrayList<Word> words = getWords(w);
 
         for (Word word : words) {
-
-            System.out.println(word);
 
             int i = 0;
             int wordBonus = 1; // total word bonuses
@@ -401,6 +436,7 @@ public class Board {
                             wordScore += t.score;
                             break;
                     }
+                    //bonusBoard[word.row + i][word.col] = ' ';
                 }
                 if (!word.vertical) {
 
@@ -430,6 +466,7 @@ public class Board {
                             wordScore += t.score;
                             break;
                     }
+                    //bonusBoard[word.row][word.col + i] = ' ';
                 }
                 i++;
             }
@@ -438,93 +475,39 @@ public class Board {
         return sum;
     }
 
+    /**
+     * The tryPlaceWord function takes a Word object as an argument and returns the score of that word if it is placed on the board.
+     * If the word cannot be placed, 0 is returned.
+     *
+     *
+     * @param Word w Pass the word that is being placed on the board
+     *
+     * @return The score of the word if it fits on the board
+     *
+     * @docauthor Trelent
+     */
+    public int tryPlaceWord(Word w) {
 
-    public int tryPlaceWord(Word word) {
+//        if (!dictionaryLegal(w)) return 0;
+//        if (!boardLegal(w)) return 0;
+//        return getScore(w);
+        if (boardLegal(w))
+         {
+            int i = 0;
+            for (Tile t : w.tiles) {
 
-        if (boardLegal(word)) {
-            int score = getScore(word);
-            if (score > 0) {
+                if (w.vertical)
+                    if (t != null)
+                        board[w.row + i][w.col] = t;
 
-                int row = word.getRow();
-                int col = word.getCol();
-                for (Tile t : word.getTiles()) {
+                if (!w.vertical)
+                    if (t != null)
+                        board[w.row][w.col + i] = t;
 
-                    if (t != null) {
-                        board[row][col] = t;
-                    }
-                    if (word.isVertical()) {
-                        row++;
-                    }
-                    else {
-                        col++;
-                    }
-                }
+                i++;
             }
-            return score;
+            return getScore(w);
         }
-
         return 0;
-    }
-
-    public String parseBoardToString(Tile[][] board) {
-        StringBuilder sb = new StringBuilder();
-
-        int rows = board.length;
-        int cols = board[0].length;
-
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                Tile tile = board[i][j];
-                sb.append(tile != null ? tile.letter : '.');
-            }
-            sb.append('\n');
-        }
-
-        return sb.toString();
-    }
-
-
-    public Character[][] parseBoardToCharacterArray(Tile[][] board) {
-        int rows = board.length;
-        int cols = board[0].length;
-
-        Character[][] characterBoard = new Character[rows][cols];
-
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                Tile tile = board[i][j];
-                characterBoard[i][j] = (tile != null) ? tile.letter : null;
-            }
-        }
-
-        return characterBoard;
-    }
-
-    public String parseCharacterArrayToString(Character[][] board) {
-        StringBuilder sb = new StringBuilder();
-
-        int rows = board.length;
-        int cols = board[0].length;
-
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                Character tile = board[i][j];
-                sb.append((tile != null) ? tile : '.');
-            }
-            sb.append('\n');
-        }
-
-        return sb.toString();
-    }
-
-
-    // function for GUI
-    public void placeTile(Tile selectedTile, int row, int column) {
-
-        board[row][column] = selectedTile;
-    }
-    public void removeTile(int row, int column) {
-
-        board[row][column] = null;
     }
 }
