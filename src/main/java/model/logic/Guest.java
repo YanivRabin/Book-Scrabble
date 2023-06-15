@@ -21,7 +21,7 @@ public class Guest {
     private PrintWriter writer;
     private String ipAddress;
     Host HostServer; // The Host this Guest connected to
-    static ExecutorService executorService = Executors.newFixedThreadPool(6); // only for one host
+    static ExecutorService executorService = Executors.newFixedThreadPool(8); // only for one host
     BlockingQueue<String> inputQueue = new LinkedBlockingQueue<>();
 
 
