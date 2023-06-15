@@ -48,9 +48,9 @@ public class ClientsTest {
             System.out.println("Start Game !!");
             Thread.sleep(3000);
             System.out.println();
-            System.out.println(host.player.getNickName());
-            System.out.println(host.player.getCurrentScore());
-            host.player.printCurrentTiles();
+            System.out.println(host.hostPlayer.player.getNickName());
+            System.out.println(host.hostPlayer.player.getCurrentScore());
+            host.hostPlayer.player.printCurrentTiles();
             System.out.println();
             System.out.println(guest1.player.getNickName());
             System.out.println(guest1.player.getCurrentScore());
@@ -61,7 +61,7 @@ public class ClientsTest {
             guest2.player.printCurrentTiles();
 
 
-            Thread.sleep(50000);
+            Thread.sleep(5000);
 
             guest1.player.setCurrentTiles("WINAGGED");
             guest1.SendTryPlaceWordMessage(guest1.NickName, host.NickName, "WIN", 7,7,true);
@@ -72,6 +72,11 @@ public class ClientsTest {
             guest2.SendTryPlaceWordMessage(guest2.NickName, host.NickName, "_OW", 7,7,false);
             Thread.sleep(5000);
             System.out.println(guest2.player.getCurrentScore());
+
+            host.hostPlayer.player.setCurrentTiles("JOYIPSXR");
+            host.hostPlayer.SendTryPlaceWordMessage(host.hostPlayer.NickName, host.NickName, "_O", 9,7,false);
+            Thread.sleep(5000);
+            System.out.println(host.hostPlayer.player.getCurrentScore());
 //            Thread.sleep(5000);
 //            scanner.close();
             // Close the Scanner object
