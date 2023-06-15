@@ -10,6 +10,18 @@ public class BloomFilter {
     private final ArrayList<MessageDigest> messageDigests = new ArrayList<>();
     private final BitSet bitSet;
 
+    /**
+     * The BloomFilter function takes in a string and hashes it using the hash functions
+     * that were passed into the constructor. It then sets those bits to 1.
+
+     *
+     * @param int size Set the size of the bitset
+     * @param String... args Pass in a variable number of arguments
+     *
+     * @return A new bloomfilter object
+     *
+     * @docauthor Trelent
+     */
     public BloomFilter(int size, String... args) {
 
         bitSize = size;
@@ -23,6 +35,18 @@ public class BloomFilter {
         }
     }
 
+    /**
+     * The add function takes a string and hashes it using the hash functions
+     * in messageDigests. The resulting hash values are then used to set bits
+     * in bitSet.
+
+     *
+     * @param String s Get the bytes array from the hash function
+     *
+     * @return The bitset
+     *
+     * @docauthor Trelent
+     */
     public void add(String s)  {
 
         for (MessageDigest md : messageDigests) {
@@ -36,6 +60,15 @@ public class BloomFilter {
         }
     }
 
+    /**
+     * The toString function returns a string representation of the BitSet.
+     *
+     *
+     *
+     * @return A string of bits
+     *
+     * @docauthor Trelent
+     */
     @Override
     public String toString() {
 
@@ -46,6 +79,18 @@ public class BloomFilter {
         return str.toString();
     }
 
+    /**
+     * The contains function takes a string as input and returns true if the BloomFilter contains that string.
+     * It does this by hashing the input with each of the hash functions in messageDigests, then checking to see if
+     * bitSet has been set at those indices. If any of these bits are not set, it returns false; otherwise it returns true.
+
+     *
+     * @param String s Get the byte array of the string
+     *
+     * @return True if the bloom filter contains the given string
+     *
+     * @docauthor Trelent
+     */
     public boolean contains(String s) {
 
         for (MessageDigest md : messageDigests) {
