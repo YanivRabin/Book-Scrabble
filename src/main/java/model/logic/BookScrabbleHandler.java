@@ -8,6 +8,19 @@ import java.util.Scanner;
 
 public class BookScrabbleHandler implements ClientHandler {
 
+    /**
+     * The handleClient function is responsible for handling the client's request.
+     * It reads a line from the client, splits it into words by comma and sends them to Query or Challenge function.
+     * Then it writes true or false to the client according to what was returned from Query or Challenge function.
+
+     *
+     * @param InputStream inFromClient Read the input from the client
+     * @param OutputStream outToClient Send data back to the client
+     *
+     * @return Void, since it is a void function
+     *
+     * @docauthor Trelent
+     */
     @Override
     public void handleClient(InputStream inFromClient, OutputStream outToClient) {
 
