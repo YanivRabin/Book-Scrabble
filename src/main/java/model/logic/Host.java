@@ -35,6 +35,7 @@ public class Host implements ClientHandler{
     //Data-Game Members
     public String NickName;
     public Tile.Bag bag;
+    public Guest hostPlayer;
     public Player player;
     Board board ; // singleton and get instance model
     private BufferedReader reader;
@@ -57,9 +58,9 @@ public class Host implements ClientHandler{
         this.bag = Tile.Bag.getBagModel();
         this.Port = GeneratePort();
         this.Stop = false;
-        GuestList =new ArrayList<>();
+        this.GuestList =new ArrayList<>();
         this.NickName="Host "+ getPort();
-//        executorService.submit(this::GetMessageFromLocalServer);
+        this.hostPlayer = new Guest(NickName);
     }
 
     private static class HostModelHelper {
@@ -160,25 +161,20 @@ public class Host implements ClientHandler{
      * @docauthor Trelent
      */
     public void CreateSocketToLocalServer(String HostIp, int Port) throws IOException {
+        this.hostPlayer.CreateSocketToHost(HostIp,Port);
+
+        /*
         this.HostSocketToLocalServer = new Socket(HostIp, Port);
         this.reader = new BufferedReader(new InputStreamReader(HostSocketToLocalServer.getInputStream()));
         this.writer = new PrintWriter(HostSocketToLocalServer.getOutputStream(), true);
-//        this.player = new Player(HostIp ,this.NickName, 0, this.GenerateTiles(8));
-        /*Thread clientThread = new Thread(() -> {
-            try {
-                this.GetMessageFromLocalServer();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        clientThread.start();*/
+
         executorService.execute(()->{
             try {
                 this.GetMessageFromLocalServer();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        });
+        });*/
         System.out.println("Host Connected to local Host Server");
     }
 
@@ -210,16 +206,6 @@ public class Host implements ClientHandler{
      */
     public void start() {
 
-        //run server in the background
-        /*new Thread(() -> {
-
-            try {
-                runServer();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }).start();*/
-
         executorService.execute(()->{
             try {
                 runServer();
@@ -247,17 +233,18 @@ public class Host implements ClientHandler{
         System.out.println("Host Server started on port :" + this.Port);
         this.IP = this.LocalServer.getInetAddress().getHostAddress();
         this.CreateSocketToLocalServer(this.IP, this.Port);
-        /*Thread clientThread = new Thread(() -> {
+
+        /*executorService.execute(()->{
             try {
                 handleClient(this.HostSocketToLocalServer.getInputStream(), this.HostSocketToLocalServer.getOutputStream());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        });
-        clientThread.start();*/
+        });*/
+
         executorService.execute(()->{
             try {
-                handleClient(this.HostSocketToLocalServer.getInputStream(), this.HostSocketToLocalServer.getOutputStream());
+                handleClient(hostPlayer.getSocketToHost().getInputStream(), hostPlayer.getSocketToHost().getOutputStream());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -269,28 +256,20 @@ public class Host implements ClientHandler{
                 if(this.GuestList.size() < this.MaxGuests) {
                     Socket guest = this.LocalServer.accept();
                     this.GuestList.add(guest);
-                    if (guest.getPort() == this.HostSocketToLocalServer.getLocalPort()){
+
+                    if (guest.getPort() == hostPlayer.getSocketToHost().getLocalPort()){
                         System.out.println("Host Connected, Number of players: " + GuestList.size());
                     }
-                    else{
-                        System.out.println("Guest Connected, Number of players: " + GuestList.size());
-                        /*clientThread = new Thread(() -> {
-                            try {
-                                handleClient(guest.getInputStream(), guest.getOutputStream());
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        });
-                        clientThread.start();*/
-                        executorService.execute(()->{
-                            try {
-                                handleClient(guest.getInputStream(), guest.getOutputStream());
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        });
+                    System.out.println("Guest Connected, Number of players: " + GuestList.size());
+                    executorService.execute(()->{
+                        try {
+                            handleClient(guest.getInputStream(), guest.getOutputStream());
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
 
-                    }
+
 
 
 
@@ -438,9 +417,9 @@ public class Host implements ClientHandler{
         }
         else{
             StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append(this.HostSocketToLocalServer.getInetAddress());
+            stringBuilder.append(hostPlayer.getSocketToHost().getInetAddress());
             stringBuilder.append(":");
-            stringBuilder.append(this.HostSocketToLocalServer.getLocalPort());
+            stringBuilder.append(hostPlayer.getSocketToHost().getLocalPort());
             String socketSource = stringBuilder.toString();
             MessageHandler messageHandler = new MessageHandler();
             messageHandler.CreateTryPlaceWordMessage(source, destination, word, row, column,
@@ -467,9 +446,9 @@ public class Host implements ClientHandler{
                                      int row, int column, boolean vertical){
         // as a player
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(this.HostSocketToLocalServer.getInetAddress());
+        stringBuilder.append(hostPlayer.getSocketToHost().getInetAddress());
         stringBuilder.append(":");
-        stringBuilder.append(this.HostSocketToLocalServer.getLocalPort());
+        stringBuilder.append(hostPlayer.getSocketToHost().getLocalPort());
         String socketSource = stringBuilder.toString();
         MessageHandler messageHandler = new MessageHandler();
         messageHandler.CreateChallengeMessage(source, destination, word, row, column,
@@ -640,7 +619,7 @@ public class Host implements ClientHandler{
      *
      * @docauthor Trelent
      */
-    public void GetMessageFromLocalServer() throws IOException {
+/*    public void GetMessageFromLocalServer() throws IOException {
         String jsonString = this.reader.readLine();
         JsonObject json = JsonHandler.convertStringToJsonObject(jsonString);
         switch (json.get("MessageType").getAsString()){
@@ -685,7 +664,7 @@ public class Host implements ClientHandler{
                 this.player.setCurrentBoard(json.get("Board").getAsString());
                 break;
         }
-    }
+    }*/
 
     public Socket getSocket(String source){
         String[] socketSplited = source.split(":");
