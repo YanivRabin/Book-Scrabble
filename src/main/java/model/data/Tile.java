@@ -47,15 +47,6 @@ public class Tile {
                 tiles[i] = new Tile(letters[i], letterScore[i]);
         }
 
-        /**
-         * The getRand function returns a random tile from the bag.
-         *
-         *
-         *
-         * @return A tile from the bag
-         *
-         * @docauthor Trelent
-         */
         public Tile getRand() {
 
             int rnd;
@@ -68,16 +59,6 @@ public class Tile {
             return tiles[rnd];
         }
 
-        /**
-         * The getBag function is a static function that returns the singleton instance of the Bag class.
-         * If no instance exists, it creates one and then returns it.
-         *
-         *
-         *
-         * @return The singlebag object
-         *
-         * @docauthor Trelent
-         */
         public static Bag getBag() {
 
             // // create new bag, if already created then return the current
@@ -92,29 +73,11 @@ public class Tile {
             public static final Bag model_instance = new Bag();
         }
 
-        /**
-         * The getBagModel function returns the Bag model.
-         *
-         *
-         *
-         * @return A bag object
-         *
-         * @docauthor Trelent
-         */
         public static Bag getBagModel() {
             return Bag.BagModelHelper.model_instance;
         }
 
 
-        /**
-         * The bagSize function returns the number of letters in the bag.
-         *
-         *
-         *
-         * @return The total number of letters in the bag
-         *
-         * @docauthor Trelent
-         */
         public int bagSize() {
 
             int size = 0;
@@ -126,18 +89,6 @@ public class Tile {
 
         public int[] getQuantities() { return letterQuantity.clone(); }
 
-        /**
-         * The getTile function takes in a character and returns the tile associated with that letter.
-         * If there is no tile associated with that letter, or if there are no more tiles of that type left,
-         * then it returns null. It also decrements the number of tiles available for each call to getTile().
-
-         *
-         * @param char c Determine what tile to return
-         *
-         * @return A tile object that has the letter and point value of the character passed in
-         *
-         * @docauthor Trelent
-         */
         public Tile getTile(char c) {
 
             // check if the letter is valid and that there's no 0 amount of that letter
@@ -147,16 +98,6 @@ public class Tile {
             letterQuantity[c - 'A']--;
             return tiles[c - 'A'];
         }
-        /**
-         * The getTileForTileArray function takes in a character and returns the tile that corresponds to it.
-         *
-         *
-         * @param char c Determine which tile to return
-         *
-         * @return The tile for the letter c
-         *
-         * @docauthor Trelent
-         */
         public Tile getTileForTileArray(char c) {
 
             // check if the letter is valid and that there's no 0 amount of that letter
@@ -168,16 +109,6 @@ public class Tile {
 
 
 
-        /**
-         * The put function is used to add a tile to the rack.
-         *
-         *
-         * @param Tile t Add a tile to the rack
-         *
-         * @return The quantity of the tile that was added to the bag
-         *
-         * @docauthor Trelent
-         */
         public void put(Tile t) {
 
             if (checkQuantity[t.letter - 'A'] > letterQuantity[t.letter - 'A'])
