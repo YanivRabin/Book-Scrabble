@@ -47,6 +47,7 @@ public class Board {
         return singleBoard;
     }
 
+
     private static class BoardModelHelper {
         public static final Host model_instance = new Host();
     }
@@ -110,12 +111,14 @@ public class Board {
             int i = w.row;
             for (Tile t : w.tiles) {
 
-                if (t == null)
+                if (t == null){
                     if (board[i][w.col] == null)
                         return false;
-//                else
-//                    if (board[i][w.col] != null)
-//                        return false;
+                }
+                else{
+                    if (board[i][w.col] != null)
+                        return false;
+                }
                 i++;
             }
         }
@@ -127,7 +130,9 @@ public class Board {
                 if (t == null)
                     if (board[w.row][i] == null)
                         return false;
-
+                    else
+                    if (board[i][w.row] != null)
+                        return false;
                 i++;
             }
         }
@@ -365,5 +370,17 @@ public class Board {
         }
 
         return 0;
+    }
+
+
+
+    // function for GUI
+    public void placeTile(Tile selectedTile, int row, int column) {
+
+        board[row][column] = selectedTile;
+    }
+    public void removeTile(int row, int column) {
+
+        board[row][column] = null;
     }
 }

@@ -1,9 +1,7 @@
 package model.data;
-import model.logic.Host;
-import model.logic.MyServer;
 
-import java.io.IOException;
-import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 
@@ -100,6 +98,16 @@ public class Tile {
             letterQuantity[c - 'A']--;
             return tiles[c - 'A'];
         }
+        public Tile getTileForTileArray(char c) {
+
+            // check if the letter is valid and that there's no 0 amount of that letter
+            if (c < 'A' || c > 'Z' || letterQuantity[c - 'A'] < 1)
+                return null;
+
+            return tiles[c - 'A'];
+        }
+
+
 
         public void put(Tile t) {
 
