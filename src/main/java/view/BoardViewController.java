@@ -27,13 +27,17 @@ import java.util.ResourceBundle;
 public class BoardViewController implements Initializable {
 
     Board gameBoard;
-    ArrayList<Tile> currentTiles;
-    boolean blockingTiles;
-    Tile selectedTile;
-    ArrayList<Button> usedButtons;
-    Button clickedButton;
-    Pair<Integer, Integer>[] positions;
-    int positionsIndex;
+
+    ArrayList<Tile> currentTiles;       // the tiles in the hand
+    ArrayList<Button> usedButtons;      // the tiles button that used during turn
+
+    Pair<Integer, Integer>[] positions; // the used tiles positions
+    int positionsIndex;                 // an index to put in the position array, also for checking
+
+    Tile selectedTile;    // the tile that selected
+    Button clickedButton; // the tile button that selected
+
+    boolean blockingTiles; // if selected tile then block other buttons
 
     @FXML
     private GridPane boardGrid;
@@ -56,7 +60,12 @@ public class BoardViewController implements Initializable {
         positions = new Pair[8];
         positionsIndex = 0;
 
-        for (int i = 0; i < 8; i++)
+        generateHand(8);
+    }
+
+    public void generateHand(int num) {
+
+        for (int i = 0; i < num; i++)
             currentTiles.add(Tile.Bag.getBagModel().getRand());
 
         ObservableList<Node> children = tilesContainer.getChildren();
@@ -76,6 +85,8 @@ public class BoardViewController implements Initializable {
             }
         }
     }
+
+
 
     // Define additional methods and event handlers as needed
     @FXML
@@ -161,7 +172,7 @@ public class BoardViewController implements Initializable {
         }
     }
 
-    public void resetTilesButtonClick(ActionEvent actionEvent) {
+    public void resetTilesButtonClick() {
 
         // remove the tiles from original board
         for (Pair<Integer, Integer> pair: positions) {
@@ -194,6 +205,7 @@ public class BoardViewController implements Initializable {
             boardGrid.getChildren().remove(tile);
         }
 
+        // reset other things
         resetPositionsArray();
         usedButtons.clear();
         clickedButton = null;
@@ -211,38 +223,9 @@ public class BoardViewController implements Initializable {
         return false;
     }
 
-    public void EndTurnButtonClick(ActionEvent actionEvent) {
 
-        // check if the player didn't put tiles and then pressed end turn
-        resetPositionsArray();
-        usedButtons.clear();
-        clickedButton = null;
-        selectedTile = null;
-        enableButtons();
 
-        currentTiles.clear();
-        for (int i = 0; i < 8; i++)
-            currentTiles.add(Tile.Bag.getBagModel().getRand());
-
-        ObservableList<Node> children = tilesContainer.getChildren();
-
-        int tileIndex = 0;
-        for (Node child : children) {
-            if (child instanceof Button) {
-                Button button = (Button) child;
-                Tile tile = currentTiles.get(tileIndex);
-
-                button.setText(String.valueOf(tile.letter));
-
-                tileIndex++;
-                if (tileIndex >= currentTiles.size()) {
-                    break;
-                }
-            }
-        }
-    }
-
-    public void TryPlaceWordButtonClick(ActionEvent actionEvent) {
+    public void TryPlaceWordButtonClick() {
 
         ArrayList<Tile> tilesForWord = new ArrayList<>();
         Tile[][] gameBoardTiles = gameBoard.getTiles();
@@ -275,7 +258,7 @@ public class BoardViewController implements Initializable {
             if (!oneTileCheck) {
 
                 System.out.println("not legal");
-                resetTilesButtonClick(new ActionEvent());
+                resetTilesButtonClick();
                 return;
             }
         }
@@ -298,7 +281,7 @@ public class BoardViewController implements Initializable {
                         if (positions[i].getKey().intValue() != positions[i + 1].getKey().intValue()) {
                             System.out.println("Word placed incorrect");
                             // not really need action event ( maybe later in the code )
-                            resetTilesButtonClick(new ActionEvent());
+                            resetTilesButtonClick();
                             return;
                         }
                         else {
@@ -321,7 +304,7 @@ public class BoardViewController implements Initializable {
                         if (positions[i].getValue().intValue() != positions[i + 1].getValue().intValue()) {
                             System.out.println("Word placed incorrect");
                             // not really need action event ( maybe later in the code )
-                            resetTilesButtonClick(new ActionEvent());
+                            resetTilesButtonClick();
                             return;
                         }
                         else {
@@ -397,6 +380,7 @@ public class BoardViewController implements Initializable {
         else {
 
             System.out.println("Word must contain 2 tiles or more");
+            return;
         }
 
 
@@ -409,16 +393,17 @@ public class BoardViewController implements Initializable {
         Word word = new Word(tilesArray, startRow, startCol, vertical);
         System.out.println("Word: " + word + ", At: [" + word.getRow() + "," + word.getCol() + "], Vertical: " + word.isVertical());
         // if word legal pass turn else call reset button
-        int score = gameBoard.tryPlaceWord(word);
-        if (score > 0) {
-            System.out.println("Score: " + score);
-            // maybe delete action event in func
-            EndTurnButtonClick(new ActionEvent());
+        int wordScore = gameBoard.tryPlaceWord(word);
+        if (wordScore > 0) {
+            System.out.println("Score: " + wordScore);
+            successPlaceWord(word);
+            // update the score in the gui
+            score.setText(String.valueOf(Integer.parseInt(score.getText()) + wordScore));
         }
         else {
 
             System.out.println("Word not legal");
-            resetTilesButtonClick(new ActionEvent());
+            resetTilesButtonClick();
         }
     }
 
@@ -452,10 +437,35 @@ public class BoardViewController implements Initializable {
         }
     }
 
-    public void EndGameButtonClick(ActionEvent actionEvent) {
+    public void successPlaceWord(Word word) {
+
+        // remove the used tiles
+        for (Tile tile : word.getTiles()) {
+
+            currentTiles.remove(tile);
+        }
+        generateHand(8 - currentTiles.size());
+        resetPositionsArray();
+        usedButtons.clear();
+        clickedButton = null;
+        enableButtons();
+    }
+
+    public void EndTurnButtonClick() {
+
+        // check if the player didn't put tiles and then pressed end turn
+        resetTilesButtonClick();
+
+        selectedTile = null;
+
+        // replace all the tiles
+        currentTiles.clear();
+        generateHand(8);
+    }
+
+    public void EndGameButtonClick() {
 
         //call resetPositionsArray();
         System.out.println("End Game Clicked");
-
     }
 }

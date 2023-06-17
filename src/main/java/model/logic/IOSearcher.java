@@ -1,5 +1,6 @@
 package model.logic;
 import java.io.*;
+import java.util.Locale;
 import java.util.Scanner;
 
 
@@ -18,9 +19,13 @@ public class IOSearcher {
                 while (scanner.hasNext()) {
 
                     arrWords = scanner.next().split(" ");
-                    for (String word : arrWords)
-                        if (word.equals(str))
+                    for (String word : arrWords) {
+
+                        String word2 = word.toUpperCase();
+                        if (word2.equals(str))
                             return true;
+                    }
+
                 }
                 scanner.close();
             }

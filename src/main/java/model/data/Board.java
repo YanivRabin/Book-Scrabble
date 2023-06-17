@@ -13,9 +13,16 @@ public class Board {
     char[][] bonusBoard;
 
     boolean firstTurn;
+    Dictionary dictionary;
 
     public Board() {
 
+        dictionary = new Dictionary(
+                "/Users/yaniv/Documents/IntelliJ/Book-Scrabble/src/main/java/test/mobydick.txt",
+                "/Users/yaniv/Documents/IntelliJ/Book-Scrabble/src/main/java/test/shakespeare.txt",
+                "/Users/yaniv/Documents/IntelliJ/Book-Scrabble/src/main/java/test/Harry_Potter.txt",
+                "/Users/yaniv/Documents/IntelliJ/Book-Scrabble/src/main/java/test/pg10.txt"
+        );
         firstTurn = true;
 
         board = new Tile[15][15];
@@ -185,12 +192,10 @@ public class Board {
     public boolean dictionaryLegal(Word w) {
 
         // for GUI check
-        Dictionary d = new Dictionary("text1.txt","text2.txt", "/Users/yaniv/Documents/IntelliJ/Book-Scrabble/src/main/java/test/Harry_Potter.txt");
-
-        if (!d.query(w.toString()))
+        if (!dictionary.query(w.toString()))
             return false;
 
-        if (!d.challenge(w.toString()))
+        if (!dictionary.challenge(w.toString()))
             return false;
 
         return true;
@@ -209,6 +214,7 @@ public class Board {
     public ArrayList<Word> getWords(Word w) {
 
         ArrayList<Word> words = new ArrayList<>();
+        words.add(w);
 
         if (w.vertical) {
 
@@ -268,34 +274,10 @@ public class Board {
             }
         }
 
-        //make the new word full word if there is nulls
-
-        int i = 0;
-        for (Tile t : w.tiles) {
-
-            if (w.vertical) {
-
-                if (t == null)
-                    w.tiles[i] = board[w.row + i][w.col];
-
-                i++;
-            }
-            if (!w.vertical) {
-
-                if (t == null)
-                    w.tiles[i] = board[w.row][w.col + i];
-
-                i++;
-            }
-        }
-        words.add(0, w);
-
         return words;
     }
 
     public int getScore(Word w) {
-
-        System.out.println(board[7][7]);
 
         int sum = 0;
 
@@ -337,7 +319,6 @@ public class Board {
                             wordScore += t.score;
                             break;
                     }
-                    //bonusBoard[word.row + i][word.col] = ' ';
                 }
                 if (!word.vertical) {
 
@@ -367,7 +348,6 @@ public class Board {
                             wordScore += t.score;
                             break;
                     }
-                    //bonusBoard[word.row][word.col + i] = ' ';
                 }
                 i++;
             }
@@ -376,26 +356,10 @@ public class Board {
         return sum;
     }
 
-    public int tryPlaceWord(Word w) {
+    public int tryPlaceWord(Word word) {
 
-
-
-        if (boardLegal(w)) {
-
-            int i = 0;
-//            for (Tile t : w.tiles) {
-//
-//                if (w.vertical)
-//                    if (t != null)
-//                        board[w.row + i][w.col] = t;
-//
-//                if (!w.vertical)
-//                    if (t != null)
-//                        board[w.row][w.col + i] = t;
-//
-//                i++;
-//            }
-            return getScore(w);
+        if (boardLegal(word) && dictionaryLegal(word)) {
+            return getScore(word);
         }
 
         return 0;
