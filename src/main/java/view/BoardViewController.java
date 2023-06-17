@@ -16,6 +16,9 @@ import javafx.scene.text.Text;
 import javafx.util.Pair;
 import model.data.Board;
 import model.data.Tile;
+import model.data.Word;
+import org.junit.Test;
+
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -186,6 +189,7 @@ public class BoardViewController implements Initializable {
                 }
             }
         }
+
         for (Node tile : tilesToRemove) {
             boardGrid.getChildren().remove(tile);
         }
@@ -197,6 +201,7 @@ public class BoardViewController implements Initializable {
     }
 
     public boolean isTilePlacedDuringTurn(int row, int column) {
+
         // Check if the tile position matches any of the positions stored in the positions array
         for (Pair<Integer, Integer> position : positions) {
             if (position != null && position.getKey() == row && position.getValue() == column) {
@@ -237,18 +242,186 @@ public class BoardViewController implements Initializable {
         }
     }
 
-    public void EndGameButtonClick(ActionEvent actionEvent) {
-
-        //call resetPositionsArray();
-        System.out.println("End Game Clicked");
-
-    }
-
     public void TryPlaceWordButtonClick(ActionEvent actionEvent) {
 
-        //call resetPositionsArray();
-        System.out.println("Try Place Word Clicked");
+        ArrayList<Tile> tilesForWord = new ArrayList<>();
+        Tile[][] gameBoardTiles = gameBoard.getTiles();
+
+        int startRow = 0;
+        int startCol = 0;
+        boolean vertical = false;
+        boolean oneTileCheck = false;
+
+        // if only placed one tile to continue word from other tiles
+        if (positionsIndex == 1) {
+
+            startRow = positions[0].getKey();
+            startCol = positions[0].getValue();
+
+            // check vertical
+            if (gameBoardTiles[startRow - 1][startCol] != null || gameBoardTiles[startRow + 1][startCol] != null) {
+
+                vertical = true;
+                oneTileCheck = true;
+            }
+
+            // check not vertical
+            if (gameBoardTiles[startRow][startCol - 1] != null || gameBoardTiles[startRow][startCol + 1] != null) {
+
+                vertical = false;
+                oneTileCheck = true;
+            }
+
+            if (!oneTileCheck) {
+
+                System.out.println("not legal");
+                resetTilesButtonClick(new ActionEvent());
+                return;
+            }
+        }
+
+        if (positionsIndex > 1 || oneTileCheck) {
+
+            if (!oneTileCheck) {
+
+                // checking to see if all is on the same row/col and find the first tile location the player put
+                // not vertical ( from left to right )
+                if (positions[0].getKey().intValue() == positions[1].getKey().intValue()) {
+
+                    System.out.println("not vertical");
+                    vertical = false;
+                    startRow = positions[0].getKey();
+                    startCol = positions[0].getValue();
+
+                    for (int i = 0; i < positionsIndex - 1; i++) {
+
+                        if (positions[i].getKey().intValue() != positions[i + 1].getKey().intValue()) {
+                            System.out.println("Word placed incorrect");
+                            // not really need action event ( maybe later in the code )
+                            resetTilesButtonClick(new ActionEvent());
+                            return;
+                        }
+                        else {
+                            if (startCol > positions[i + 1].getValue()) {
+                                startCol = positions[i + 1].getValue();
+                            }
+                        }
+                    }
+                }
+                // else vertical
+                else {
+
+                    System.out.println("vertical");
+                    vertical = true;
+                    startRow = positions[0].getKey();
+                    startCol = positions[0].getValue();
+
+                    for (int i = 0; i < positionsIndex - 1; i++) {
+
+                        if (positions[i].getValue().intValue() != positions[i + 1].getValue().intValue()) {
+                            System.out.println("Word placed incorrect");
+                            // not really need action event ( maybe later in the code )
+                            resetTilesButtonClick(new ActionEvent());
+                            return;
+                        }
+                        else {
+                            if (startRow > positions[i + 1].getKey()) {
+                                startRow = positions[i + 1].getKey();
+                            }
+                        }
+                    }
+                }
+            }
+
+            // check if there is null tiles that are still part of the word
+            // and place tiles in word by order
+            int i;
+            if (vertical) {
+
+                // checking if there are tiles before
+                i = 1;
+                while ((startRow - i) >= 0) {
+
+                    if (gameBoardTiles[startRow - i][startCol] != null) {
+
+                        // set the new start row
+                        startRow--;
+                    }
+                    else { break; }
+                }
+
+                // add the first tile to the array
+                tilesForWord.add(gameBoardTiles[startRow][startCol]);
+
+                // checking if there are tiles after start to add to array
+                while ((startRow + i) <= 14) {
+
+                    if (gameBoardTiles[startRow + i][startCol] != null) {
+
+                        tilesForWord.add(gameBoardTiles[startRow + i][startCol]);
+                        i++;
+                    }
+                    else { break; }
+                }
+            }
+            //not vertical
+            else {
+
+                // checking if there are tiles before
+                i = 1;
+                while ((startCol - i) >= 0) {
+
+                    if (gameBoardTiles[startRow][startCol - i] != null) {
+
+                        // set the new start row
+                        startCol--;
+                    }
+                    else { break; }
+                }
+
+                // add the first tile to the array
+                tilesForWord.add(gameBoardTiles[startRow][startCol]);
+
+                // checking if there are tiles after start to add to array
+                while ((startCol + i) <= 14) {
+
+                    if (gameBoardTiles[startRow][startCol + i] != null) {
+
+                        tilesForWord.add(gameBoardTiles[startRow][startCol + i]);
+                        i++;
+                    }
+                    else { break; }
+                }
+            }
+        }
+        else {
+
+            System.out.println("Word must contain 2 tiles or more");
+        }
+
+
+        Tile[] tilesArray = new Tile[tilesForWord.size()];
+        for (int i = 0; i < tilesArray.length; i++) {
+            tilesArray[i] = tilesForWord.get(i);
+        }
+
+        // build word from tiles
+        Word word = new Word(tilesArray, startRow, startCol, vertical);
+        System.out.println("Word: " + word + ", At: [" + word.getRow() + "," + word.getCol() + "], Vertical: " + word.isVertical());
+        // if word legal pass turn else call reset button
+        int score = gameBoard.tryPlaceWord(word);
+        if (score > 0) {
+            System.out.println("Score: " + score);
+            // maybe delete action event in func
+            EndTurnButtonClick(new ActionEvent());
+        }
+        else {
+
+            System.out.println("Word not legal");
+            resetTilesButtonClick(new ActionEvent());
+        }
     }
+
 
     public void resetPositionsArray() {
 
@@ -277,5 +450,12 @@ public class BoardViewController implements Initializable {
                 button.setDisable(true);
             }
         }
+    }
+
+    public void EndGameButtonClick(ActionEvent actionEvent) {
+
+        //call resetPositionsArray();
+        System.out.println("End Game Clicked");
+
     }
 }
