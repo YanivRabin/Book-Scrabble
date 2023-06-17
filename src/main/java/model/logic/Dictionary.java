@@ -19,7 +19,6 @@ public class Dictionary {
         lfu = new CacheManager(100, new LFU());
         bloomFilter = new BloomFilter(256,"MD5","SHA1");
         files = args;
-
         for (String file : files) {
 
             try {
@@ -30,7 +29,7 @@ public class Dictionary {
 
                     arrWords = scanner.next().split(" ");
                     for (String word : arrWords)
-                        bloomFilter.add(word);
+                        bloomFilter.add(word.toUpperCase());
                 }
                 scanner.close();
             }
