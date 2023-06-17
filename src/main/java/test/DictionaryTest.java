@@ -8,10 +8,10 @@ public class DictionaryTest {
 
         Dictionary d = new Dictionary("text1.txt","text2.txt");
 
-        if(!d.query("is"))
-            System.out.println("problem with dictionarry in query");
+        if(!d.query("IS"))
+            System.out.println("problem with dictionary in query 1");
 
-        if(!d.challenge("lazy"))
-            System.out.println("problem with dictionarry in query");
+        if(!d.challenge("LAZY"))
+            System.out.println("problem with dictionary in query 2");
     }
 }

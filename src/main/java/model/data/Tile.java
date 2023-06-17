@@ -1,9 +1,6 @@
 package model.data;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 
 public class Tile {
 
@@ -98,6 +95,7 @@ public class Tile {
             letterQuantity[c - 'A']--;
             return tiles[c - 'A'];
         }
+
         public Tile getTileForTileArray(char c) {
 
             // check if the letter is valid and that there's no 0 amount of that letter
