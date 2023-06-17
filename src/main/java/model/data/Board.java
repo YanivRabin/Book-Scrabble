@@ -1,5 +1,6 @@
 package model.data;
 
+import model.logic.Dictionary;
 import model.logic.Host;
 
 import java.io.IOException;
@@ -11,7 +12,11 @@ public class Board {
     Tile[][] board;
     char[][] bonusBoard;
 
+    boolean firstTurn;
+
     public Board() {
+
+        firstTurn = true;
 
         board = new Tile[15][15];
         bonusBoard = new char[][]{
@@ -87,16 +92,16 @@ public class Board {
                 if (board[i][w.col - 1] != null || board[i][w.col + 1] != null)
                     return true;
             //last letter
-            if (i < 14 && board[w.row + 1][w.col] != null)
+            if (i < 14 && board[i][w.col] != null)
                 return true;
         }
         if (!w.vertical) {
-            if (w.col > 0 && board[w.col - 1][w.row] != null)
+            if (w.col > 0 && board[w.row][w.col - 1] != null)
                 return true;
             for (i = w.col; i < w.tiles.length + w.col; i++)
                 if (board[w.row - 1][i] != null || board[w.row + 1][i] != null)
                     return true;
-            if (i < 14 && board[w.col + 1][w.row] != null)
+            if (i < 14 && board[w.row][i] != null)
                 return true;
         }
         return false;
@@ -153,34 +158,54 @@ public class Board {
             return false;
 
         //check if the first word placed on the center star
-        if (board[7][7] == null) {
-            if ((w.vertical && (w.col != 7 || (w.row + w.tiles.length <= 7) || w.row >= 8)) ||
-                    (!w.vertical && (w.row != 7 || (w.col + w.tiles.length <= 7) || w.col >= 8)))
-                return false;
 
-            return true;
+        if (board[7][7] != null && firstTurn) {
+
+            if ((w.vertical && (w.col != 7 || (w.row + w.tiles.length <= 7) || w.row >= 8)) ||
+                    (!w.vertical && (w.row != 7 || (w.col + w.tiles.length <= 7) || w.col >= 8))) {
+
+                return false;
+            }
+            else {
+
+                firstTurn = false;
+                return true;
+            }
         }
 
         if (!checkNeighbors(w))
             return false;
 
-        if (!checkEmptyTile(w))
-            return false;
+//        if (!checkEmptyTile(w))
+//            return false;
 
         return true;
     }
 
     public boolean dictionaryLegal(Word w) {
-        StringBuilder text = new StringBuilder("Q," + w.toString());
-        Host.getModel().OutToServer(text.toString());
-        boolean res;
-        try {
-            res = Host.getModel().InFromServer().equals("true");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return res;
+
+        // for GUI check
+        Dictionary d = new Dictionary("text1.txt","text2.txt", "/Users/yaniv/Documents/IntelliJ/Book-Scrabble/src/main/java/test/Harry_Potter.txt");
+
+        if (!d.query(w.toString()))
+            return false;
+
+        if (!d.challenge(w.toString()))
+            return false;
+
+        return true;
     }
+
+//        StringBuilder text = new StringBuilder("Q," + w.toString());
+//        Host.getModel().OutToServer(text.toString());
+//        boolean res;
+//        try {
+//            res = Host.getModel().InFromServer().equals("true");
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//        return res;
+//    }
     public ArrayList<Word> getWords(Word w) {
 
         ArrayList<Word> words = new ArrayList<>();
@@ -270,6 +295,8 @@ public class Board {
 
     public int getScore(Word w) {
 
+        System.out.println(board[7][7]);
+
         int sum = 0;
 
         ArrayList<Word> words = getWords(w);
@@ -351,21 +378,23 @@ public class Board {
 
     public int tryPlaceWord(Word w) {
 
+
+
         if (boardLegal(w)) {
 
             int i = 0;
-            for (Tile t : w.tiles) {
-
-                if (w.vertical)
-                    if (t != null)
-                        board[w.row + i][w.col] = t;
-
-                if (!w.vertical)
-                    if (t != null)
-                        board[w.row][w.col + i] = t;
-
-                i++;
-            }
+//            for (Tile t : w.tiles) {
+//
+//                if (w.vertical)
+//                    if (t != null)
+//                        board[w.row + i][w.col] = t;
+//
+//                if (!w.vertical)
+//                    if (t != null)
+//                        board[w.row][w.col + i] = t;
+//
+//                i++;
+//            }
             return getScore(w);
         }
 

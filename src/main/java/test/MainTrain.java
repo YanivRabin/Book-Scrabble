@@ -18,17 +18,17 @@ public class MainTrain {
 
     public static void main(String[] args) throws IOException {
 
-        bagTest();
-        boardTest();
-        lruTest();
-        lfuTest();
-        cacheManagerTest();
-        bloomFilterTest();
-        try {
-            iOSearchTest();
-        } catch(Exception e) {
-            System.out.println("you got some exception");
-        }
+//        bagTest();
+//        boardTest();
+//        lruTest();
+//        lfuTest();
+//        cacheManagerTest();
+//        bloomFilterTest();
+//        try {
+//            iOSearchTest();
+//        } catch(Exception e) {
+//            System.out.println("you got some exception");
+//        }
         dictionaryTest();
 
 //        serverTest();

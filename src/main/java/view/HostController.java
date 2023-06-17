@@ -43,6 +43,10 @@ public class HostController {
             Node source = (Node) actionEvent.getSource();
             Stage stage = (Stage) source.getScene().getWindow();
 
+            stage.setX(250);
+            stage.setY(50);
+            stage.setResizable(false);
+
             stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
