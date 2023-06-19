@@ -1,9 +1,9 @@
 module view.bookscrabble {
     requires javafx.controls;
     requires javafx.fxml;
+    requires com.google.gson;
     requires junit;
-//    requires com.jfoenix;
-
+//    requires junit;
 
 
     opens view to javafx.fxml;
