@@ -10,9 +10,11 @@ public class Board {
     private static Board singleBoard = null;
     Tile[][] board;
     char[][] bonusBoard;
+    boolean firstTurn;
 
     public Board() {
 
+        firstTurn = true;
         board = new Tile[15][15];
         bonusBoard = new char[][]{
                 //R = RED    = TRIPLE WORD SCORE
@@ -92,14 +94,16 @@ public class Board {
      */
     public boolean checkBoundaries(Word w) {
 
-        if (w.vertical)
-            if (w.tiles.length + w.row > 14)
+        if (w.vertical){
+            if (w.tiles.length + w.row > 14){
                 return false;
-
-        if (!w.vertical)
-            if (w.tiles.length + w.col > 14)
+            }
+        }
+        if (!w.vertical){
+            if (w.tiles.length + w.col > 14){
                 return false;
-
+            }
+        }
         return true;
     }
 
@@ -126,74 +130,73 @@ public class Board {
                 if (board[i][w.col - 1] != null || board[i][w.col + 1] != null)
                     return true;
             //last letter
-            if (i < 14 && board[w.row + 1][w.col] != null)
+            if (i < 14 && board[i][w.col] != null)
                 return true;
-
 
 
         }
         if (!w.vertical) {
-            if (w.col > 0 && board[w.col - 1][w.row] != null)
+            if (w.col > 0 && board[w.row][w.col - 1] != null)
                 return true;
             for (i = w.col; i < w.tiles.length + w.col; i++)
                 if (board[w.row - 1][i] != null || board[w.row + 1][i] != null)
                     return true;
-            if (i < 14 && board[w.col + 1][w.row] != null)
+            if (i < 14 && board[w.row][i] != null)
                 return true;
         }
         return false;
     }
-
-    /**
-     * The checkEmptyTile function checks if there are any old tiles in the right place.
-     *
-     *
-     * @param Word w Get the row and column of the word to be placed on the board
-     *
-     * @return True if the tiles of a word are placed in empty tiles on the board
-     *
-     * @docauthor Trelent
-     */
-    public boolean checkEmptyTile(Word w) {
-
-        //return true if there is old tiles in the right place
-
-        if (w.vertical) {
-
-            int i = w.row;
-            for (Tile t : w.tiles) {
-
-                if (t == null){
-                    if (board[i][w.col] == null)
-                        return false;
-                }
-                else{
-                    if (board[i][w.col] != null)
-                        return false;
-                }
-                i++;
-            }
-        }
-        if (!w.vertical) {
-
-            int i = w.col;
-            for (Tile t : w.tiles) {
-
-                if (t == null){
-                    if (board[w.row][i] == null){
-                        return false;
-                    }
-                }
-                else{
-                    if (board[w.row][i] != null){
-                        return false;
-                    }
-                }
-                i++;
-            }
-        }
-        return true;
-    }
+//
+//    /**
+//     * The checkEmptyTile function checks if there are any old tiles in the right place.
+//     *
+//     *
+//     * @param Word w Get the row and column of the word to be placed on the board
+//     *
+//     * @return True if the tiles of a word are placed in empty tiles on the board
+//     *
+//     * @docauthor Trelent
+//     */
+//    public boolean checkEmptyTile(Word w) {
+//
+//        //return true if there is old tiles in the right place
+//
+//        if (w.vertical) {
+//
+//            int i = w.row;
+//            for (Tile t : w.tiles) {
+//
+//                if (t == null){
+//                    if (board[i][w.col] == null)
+//                        return false;
+//                }
+//                else{
+//                    if (board[i][w.col] != null)
+//                        return false;
+//                }
+//                i++;
+//            }
+//        }
+//        if (!w.vertical) {
+//
+//            int i = w.col;
+//            for (Tile t : w.tiles) {
+//
+//                if (t == null){
+//                    if (board[w.row][i] == null){
+//                        return false;
+//                    }
+//                }
+//                else{
+//                    if (board[w.row][i] != null){
+//                        return false;
+//                    }
+//                }
+//                i++;
+//            }
+//        }
+//        return true;
+//    }
 
     /**
      * The boardLegal function checks if the word is legal to be placed on the board.
@@ -225,19 +228,22 @@ public class Board {
             return false;
 
         //check if the first word placed on the center star
-        if (board[7][7] == null) {
+        if (board[7][7] == null && firstTurn) {
             if ((w.vertical && (w.col != 7 || (w.row + w.tiles.length <= 7) || w.row >= 8)) ||
-                    (!w.vertical && (w.row != 7 || (w.col + w.tiles.length <= 7) || w.col >= 8)))
+                    (!w.vertical && (w.row != 7 || (w.col + w.tiles.length <= 7) || w.col >= 8))){
                 return false;
-
-            return true;
+            }
+            else{
+                firstTurn = false;
+                return true;
+            }
         }
 
         if (!checkNeighbors(w))
             return false;
 
-        if (!checkEmptyTile(w))
-            return false;
+/*        if (!checkEmptyTile(w))
+            return false;*/
 
         return true;
     }
@@ -296,6 +302,7 @@ public class Board {
     public ArrayList<Word> getWords(Word w) {
 
         ArrayList<Word> words = new ArrayList<>();
+        words.add(w);
 
         if (w.vertical) {
 
@@ -376,7 +383,6 @@ public class Board {
                 i++;
             }
         }
-        words.add(0, w);
 
         return words;
     }
@@ -486,28 +492,20 @@ public class Board {
      *
      * @docauthor Trelent
      */
-    public int tryPlaceWord(Word w) {
+    public int tryPlaceWord(Word word) {
 
-//        if (!dictionaryLegal(w)) return 0;
-//        if (!boardLegal(w)) return 0;
-//        return getScore(w);
-        if (boardLegal(w))
-         {
-            int i = 0;
-            for (Tile t : w.tiles) {
-
-                if (w.vertical)
-                    if (t != null)
-                        board[w.row + i][w.col] = t;
-
-                if (!w.vertical)
-                    if (t != null)
-                        board[w.row][w.col + i] = t;
-
-                i++;
-            }
-            return getScore(w);
+        if (boardLegal(word) && dictionaryLegal(word)) {
+            return getScore(word);
         }
+
         return 0;
+    }
+
+    public void placeTile(Tile selectesTile, int row, int col) {
+        board[row][col] = selectesTile;
+    }
+
+    public void removeTile(int row, int col) {
+        board[row][col] = null;
     }
 }

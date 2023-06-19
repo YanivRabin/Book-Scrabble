@@ -162,19 +162,6 @@ public class Host implements ClientHandler{
      */
     public void CreateSocketToLocalServer(String HostIp, int Port) throws IOException {
         this.hostPlayer.CreateSocketToHost(HostIp,Port);
-
-        /*
-        this.HostSocketToLocalServer = new Socket(HostIp, Port);
-        this.reader = new BufferedReader(new InputStreamReader(HostSocketToLocalServer.getInputStream()));
-        this.writer = new PrintWriter(HostSocketToLocalServer.getOutputStream(), true);
-
-        executorService.execute(()->{
-            try {
-                this.GetMessageFromLocalServer();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });*/
         System.out.println("Host Connected to local Host Server");
     }
 
@@ -820,6 +807,8 @@ public class Host implements ClientHandler{
         }
         return sb.toString();
     }
+
+
 
     /**
      * The close function is used to close the Host's ServerSocket and all of its Guest Sockets.
