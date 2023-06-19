@@ -58,26 +58,24 @@ public class Guest {
     }
 
     public void CreateSocketToHost(String HostIp, int Port) throws IOException {
-        this.SocketToHost = new Socket(HostIp, Port);
-        this.reader = new BufferedReader(new InputStreamReader(SocketToHost.getInputStream()));
-        this.writer = new PrintWriter(SocketToHost.getOutputStream(), true);
-        this.ipAddress = SocketToHost.getInetAddress().getHostAddress();
-        executorService.submit(this::handleRequests);
-        /*Thread clientThread = new Thread(() -> {
-            try {
-                GetFromHost();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        clientThread.start();*/
-        executorService.execute(()->{
-            try {
-                handleHost(this.SocketToHost.getInputStream(), this.SocketToHost.getOutputStream());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        if (this.validateIP(HostIp)){
+            this.SocketToHost = new Socket(HostIp, Port);
+            this.reader = new BufferedReader(new InputStreamReader(SocketToHost.getInputStream()));
+            this.writer = new PrintWriter(SocketToHost.getOutputStream(), true);
+            this.ipAddress = SocketToHost.getInetAddress().getHostAddress();
+            executorService.submit(this::handleRequests);
+
+            executorService.execute(()->{
+                try {
+                    handleHost(this.SocketToHost.getInputStream(), this.SocketToHost.getOutputStream());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }
+        else {
+            System.out.println(this.NickName + " can't connect to host");
+        }
     }
 
     // create all options Messages
@@ -191,53 +189,27 @@ public class Guest {
             }
         }
     }
-/*    public void GetFromHost(InputStream inputStream, OutputStream outputStream) throws IOException {
-        BufferedReader readerFromHost = new BufferedReader(new InputStreamReader(inputStream));
-        String jsonString = readerFromHost.readLine();
-        System.out.println(jsonString);
-        JsonObject json = JsonHandler.convertStringToJsonObject(jsonString);
-        switch (json.get("MessageType").getAsString()){
-            case "start game":
-                this.player = new Player(this.ipAddress, this.NickName, 0);
-                this.player.addTiles(json.get("StartTiles").getAsString());
-                break;
-            case "success":
-                switch (json.get("Action").getAsString()) {
-                    case "try place word":
-                        System.out.println(this.NickName + "Try Place Word: " + "Success");
-                        this.player.addScore(Integer.parseInt(json.get("NewScore").getAsString()));
-                        this.player.prevScore = this.player.currentScore;
-                        this.player.setCurrentTiles(json.get("NewCurrentTiles").getAsString());
-                        // board change in Host.notifyall
-                        break;
-                    case "challenge":
-                        System.out.println(this.NickName + "Challenge: " + "Success");
-                        // score don't change
-                        // board change in Host.notifyall
-                        break;
-                }
-            case "try again":
-                switch (json.get("Action").getAsString()){
-                    case "try place word":
-                        System.out.println(this.NickName + "Try Place Word: "+ "Didn't success, try again");
-                        break;
-                    case "challenge":
-                        System.out.println(this.NickName + "Challenge: "+ "Didn't success, try again");
-                        break;
-                }
-                break;
-            case "succeeded in challenging you":
-                System.out.println(this.NickName + ": i have been complicated");
-                this.player.currentScore = this.player.prevScore;
-                this.player.currentBoard = this.player.prevBoard;
-                this.player.currentTiles = this.player.prevTiles;
-                break;
-            case "update board":
-                System.out.println(this.NickName + " updated Board");
-                this.player.setCurrentBoard(json.get("Board").getAsString());
-                break;
+
+    public boolean validateIP(String ipAddress) {
+        String[] parts = ipAddress.split("\\.");
+
+        if (parts.length != 4) {
+            return false;
         }
-    }*/
+
+        for (String part : parts) {
+            try {
+                int value = Integer.parseInt(part);
+                if (value < 0 || value > 255) {
+                    return false;
+                }
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
 
     /**
