@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="332.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="view.HostController">
+   <children>
+      <Label layoutX="166.0" layoutY="37.0" text="Host create server">
+         <font>
+            <Font size="35.0" />
+         </font>
+      </Label>
+      <Label fx:id="ipLabel" layoutX="59.0" layoutY="88.0" text="IP: ">
+         <font>
+            <Font size="25.0" />
+         </font>
+      </Label>
+      <Label id="hostPortLabel" fx:id="portLabel" layoutX="50.0" layoutY="141.0" text="Port:">
+         <font>
+            <Font size="25.0" />
+         </font>
+      </Label>
+      <Button layoutX="531.0" layoutY="293.0" mnemonicParsing="false" onAction="#backToMenuButton" text="Back" />
+      <Button layoutX="50.0" layoutY="293.0" mnemonicParsing="false" onAction="#StartGameButton" text="Start Game" />
+      <Label id="hostPortLabel" fx:id="portLabel1" layoutX="306.0" layoutY="220.0" text="Players Connected:">
+         <font>
+            <Font size="25.0" />
+         </font>
+      </Label>
+   </children>
+</AnchorPane>
