@@ -76,13 +76,17 @@ public class Board {
 
     public boolean checkBoundaries(Word w) {
 
-        if (w.vertical)
-            if (w.tiles.length + w.row > 14)
+        if (w.vertical) {
+            if (w.tiles.length + w.row > 14) {
                 return false;
+            }
+        }
 
-        if (!w.vertical)
-            if (w.tiles.length + w.col > 14)
+        if (!w.vertical) {
+            if (w.tiles.length + w.col > 14) {
                 return false;
+            }
+        }
 
         return true;
     }
@@ -114,42 +118,42 @@ public class Board {
         return false;
     }
 
-    public boolean checkEmptyTile(Word w) {
-
-        //return true if there is old tiles in the right place
-
-        if (w.vertical) {
-
-            int i = w.row;
-            for (Tile t : w.tiles) {
-
-                if (t == null){
-                    if (board[i][w.col] == null)
-                        return false;
-                }
-                else{
-                    if (board[i][w.col] != null)
-                        return false;
-                }
-                i++;
-            }
-        }
-        if (!w.vertical) {
-
-            int i = w.col;
-            for (Tile t : w.tiles) {
-
-                if (t == null)
-                    if (board[w.row][i] == null)
-                        return false;
-                    else
-                    if (board[i][w.row] != null)
-                        return false;
-                i++;
-            }
-        }
-        return true;
-    }
+//    public boolean checkEmptyTile(Word w) {
+//
+//        //return true if there is old tiles in the right place
+//
+//        if (w.vertical) {
+//
+//            int i = w.row;
+//            for (Tile t : w.tiles) {
+//
+//                if (t == null){
+//                    if (board[i][w.col] == null)
+//                        return false;
+//                }
+//                else{
+//                    if (board[i][w.col] != null)
+//                        return false;
+//                }
+//                i++;
+//            }
+//        }
+//        if (!w.vertical) {
+//
+//            int i = w.col;
+//            for (Tile t : w.tiles) {
+//
+//                if (t == null)
+//                    if (board[w.row][i] == null)
+//                        return false;
+//                    else
+//                    if (board[i][w.row] != null)
+//                        return false;
+//                i++;
+//            }
+//        }
+//        return true;
+//    }
 
     public boolean boardLegal(Word w) {
 

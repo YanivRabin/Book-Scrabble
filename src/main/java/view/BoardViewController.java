@@ -209,6 +209,7 @@ public class BoardViewController implements Initializable {
         resetPositionsArray();
         usedButtons.clear();
         clickedButton = null;
+        selectedTile = null;
         enableButtons();
     }
 
@@ -456,9 +457,12 @@ public class BoardViewController implements Initializable {
         // check if the player didn't put tiles and then pressed end turn
         resetTilesButtonClick();
 
-        selectedTile = null;
+        // implement function to pass turn to the next player
+        // if your turn then enable tiles
+        // if not your turn then disable tiles
 
-        // replace all the tiles
+
+        // replace all the tiles ( only for testing with one player )
         currentTiles.clear();
         generateHand(8);
     }
