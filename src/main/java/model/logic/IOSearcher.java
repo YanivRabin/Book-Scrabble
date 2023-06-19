@@ -31,9 +31,12 @@ public class IOSearcher {
                 while (scanner.hasNext()) {
 
                     arrWords = scanner.next().split(" ");
-                    for (String word : arrWords)
-                        if (word.equals(str))
+                    for (String word : arrWords){
+                        String w = word.toUpperCase();
+                        if(w.equals(str)){
                             return true;
+                        }
+                    }
                 }
                 scanner.close();
             }

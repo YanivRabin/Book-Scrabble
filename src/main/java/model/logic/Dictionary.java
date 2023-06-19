@@ -30,7 +30,7 @@ public class Dictionary {
 
                     arrWords = scanner.next().split(" ");
                     for (String word : arrWords)
-                        bloomFilter.add(word);
+                        bloomFilter.add(word.toUpperCase());
                 }
                 scanner.close();
             }
