@@ -15,7 +15,6 @@ public class JsonHandlerTest {
         String socketDestination = "192.168.0.2:9090";
 
         JsonHandler json = new JsonHandler();
-        json.addBoard(board);
         json.addSource(source);
         json.addDestination(destination);
         json.addMessage(message);
