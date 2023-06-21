@@ -1,12 +1,18 @@
 package model.logic;
 
-import java.io.IOException;
+import com.google.gson.JsonObject;
+import model.data.Word;
+
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class MyServer {
 
@@ -17,46 +23,40 @@ public class MyServer {
     String IP;
     boolean stop;
     public List<Socket> HostsList;
-    static ExecutorService executorService = Executors.newFixedThreadPool(2); // only for one host
+    static ExecutorService executorService = Executors.newFixedThreadPool(10); // only for one host
+
+    BlockingQueue<String> inputQueue = new LinkedBlockingQueue<>();
 
 
-    //ctr
-    /**
-     * The MyServer function is a constructor that initializes the server with a port number and client handler.
-     *
-     *
-     * @param int port Set the port number of the server
-     * @param ClientHandler ch Pass the client handler to the server
-     *
-     * @return A boolean value
-     *
-     * @docauthor Trelent
-     */
-    public MyServer(int port, ClientHandler ch) {
 
-        this.clientHandler = ch;
-        this.port = port;
+    public MyServer() {
         this.stop = false;
         this.HostsList = new ArrayList<>();
     }
 
-    /**
-     * The getServer function is a static function that returns the singleton server.
-     *
-     *
-     * @param int port Set the port number that the server will listen to
-     * @param ClientHandler ch Set the client handler of the server
-     *
-     * @return The singleserver object
-     *
-     * @docauthor Trelent
-     */
     public static MyServer getServer(int port, ClientHandler ch) {
 
         if (singleServer == null)
-            singleServer = new MyServer(port, ch);
+            singleServer = new MyServer();
 
         return singleServer;
+    }
+
+    private static class MyServerModelHelper {
+        public static final MyServer model_instance = new MyServer();
+    }
+
+    /**
+     * The getModel function is a static function that returns the model instance of the Host class.
+     *
+     *
+     *
+     * @return The model_instance variable
+     *
+     * @docauthor Trelent
+     */
+    public static MyServer getModel() {
+        return MyServer.MyServerModelHelper.model_instance;
     }
     /**
      * The getPort function returns the port number of the server.
@@ -96,29 +96,14 @@ public class MyServer {
         return HostsList;
     }
 
+    public void initMyServer(int port, ClientHandler clientHandler){
+        this.clientHandler = clientHandler;
+        this.port = port;
+    }
+
+
     //start server
-    /**
-     * The start function creates a new thread and runs the runServer function in it.
-     * This is done so that the server can be running in the background while other functions are being executed.
-
-     *
-     *
-     * @return Void, so it is not possible to return anything from the start function
-     *
-     * @docauthor Trelent
-     */
     public void start() {
-
-        //run server in the background
-        /*new Thread(() -> {
-
-            try {
-                runServer();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }).start();*/
-
         executorService.execute(()->{
             try {
                 runServer();
@@ -142,21 +127,13 @@ public class MyServer {
 
         //open server with the port that given
         this.server = new ServerSocket(port);
+        executorService.submit(this::handleRequests);
         System.out.println("Main Server started on port :" + this.port);
-//        this.server.setSoTimeout(1000);
         this.IP = this.server.getInetAddress().getHostAddress();
         while (!stop) {
 
             Socket host = this.server.accept();
             this.HostsList.add(host);
-            /*Thread hostThread = new Thread(() -> {
-                try {
-                    this.clientHandler.handleClient(host.getInputStream(), host.getOutputStream());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-            hostThread.start();*/
 
             executorService.execute(() -> {
                 try {
@@ -165,12 +142,68 @@ public class MyServer {
                     throw new RuntimeException(e);
                 }
             });
+
+            /*executorService.execute(() -> {
+                try {
+                    this.handleClient(host.getInputStream(), host.getOutputStream());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });*/
             System.out.println("Host Connected, Number of Hosts Connected: "+ HostsList.size());
 
-           // clientHandler.handleClient(host.getInputStream(), host.getOutputStream());
-            // Implement with thread pool
             }
     }
+
+    public void handleClient(InputStream inputStream, OutputStream outputStream) {
+        while (!this.server.isClosed()) {
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+            try {
+                String jsonString = bufferedReader.readLine();
+                if (jsonString != null)// Read an object from the server
+                {
+                    try {
+                        inputQueue.put(jsonString); // Put the received object in the queue
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }  catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+
+    public void handleRequests() {
+        while (!this.server.isClosed()) {
+            boolean res;
+            try {
+                String jsonString = inputQueue.take();//blocking call
+                JsonObject json = JsonHandler.convertStringToJsonObject(jsonString);
+                Socket currentHost = getSocket(json.get("SocketSource").getAsString());
+                this.clientHandler.handleClient(currentHost.getInputStream(),currentHost.getOutputStream());
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+    }
+
+    public Socket getSocket(String source){
+        String[] socketSplited = source.split(":");
+        String ipSource = socketSplited[0].split("/")[1];
+        String portSource = socketSplited[1];
+        for(Socket s : this.HostsList){
+            if (Objects.equals(s.getInetAddress().toString().substring(1), ipSource) && s.getPort() == Integer.parseInt(portSource)){
+                return s;
+            }
+        }
+        return null;
+    }
+
 
     /**
      * The close function is used to close the server and all of its connections.

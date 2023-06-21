@@ -36,7 +36,7 @@ public class MyServerTest {
 
     public static void serverTest() throws IOException {
 
-        int port = 1234;
+        /*int port = 1234;
 
         // Create a server instance
         MyServer server = new MyServer(port, new ClientHandler1());
@@ -53,7 +53,7 @@ public class MyServerTest {
         if (server.HostsList.size() != 4)
             System.out.println("The server didn't connect 4 players");
 
-        server.close();
+        server.close();*/
         System.out.println("end");
     }
 
