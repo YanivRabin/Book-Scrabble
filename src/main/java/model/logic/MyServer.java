@@ -1,6 +1,7 @@
 package model.logic;
 
 import com.google.gson.JsonObject;
+import model.data.Word;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -134,21 +135,21 @@ public class MyServer {
             Socket host = this.server.accept();
             this.HostsList.add(host);
 
-            /*executorService.execute(() -> {
+            executorService.execute(() -> {
                 try {
                     this.clientHandler.handleClient(host.getInputStream(), host.getOutputStream());
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-            });*/
+            });
 
-            executorService.execute(() -> {
+            /*executorService.execute(() -> {
                 try {
                     this.handleClient(host.getInputStream(), host.getOutputStream());
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-            });
+            });*/
             System.out.println("Host Connected, Number of Hosts Connected: "+ HostsList.size());
 
             }
@@ -176,14 +177,12 @@ public class MyServer {
 
     public void handleRequests() {
         while (!this.server.isClosed()) {
+            boolean res;
             try {
                 String jsonString = inputQueue.take();//blocking call
-                System.out.println(jsonString);
                 JsonObject json = JsonHandler.convertStringToJsonObject(jsonString);
                 Socket currentHost = getSocket(json.get("SocketSource").getAsString());
-//                this.clientHandler.handleClient(currentHost.getInputStream(),currentHost.getOutputStream());
-                this.clientHandler.handleClient(new ByteArrayInputStream(jsonString.getBytes()),currentHost.getOutputStream());
-
+                this.clientHandler.handleClient(currentHost.getInputStream(),currentHost.getOutputStream());
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             } catch (IOException e) {
