@@ -3,6 +3,7 @@ package model.logic;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import model.data.Tile;
 
 public class JsonHandler {
     // keys with capital
@@ -27,7 +28,7 @@ public class JsonHandler {
      * The addBoard function adds a board to the JSON object.
      *
      *
-     * @param Character[][] board Add the board to the json object
+     * @param  board Add the board to the json object
      *
      * @return A json object with the board added to it
      *
@@ -103,6 +104,7 @@ public class JsonHandler {
      * @docauthor Trelent
      */
     public void addNewScore(int score) {json.addProperty("NewScore", score);}
+    public void addPrevScore(int score) {json.addProperty("PrevScore", score);}
     /**
      * The addWord function adds a word to the JSON object.
      *

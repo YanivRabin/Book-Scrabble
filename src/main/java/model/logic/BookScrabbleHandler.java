@@ -32,6 +32,7 @@ public class BookScrabbleHandler implements ClientHandler {
         if (scanner.hasNextLine())
             str = scanner.nextLine();
 
+        System.out.println(str);
         arrWords = str.split(",");
 
         //first word is Query or Challenge

@@ -1,6 +1,7 @@
 package model.logic;
 
 import com.google.gson.JsonObject;
+import model.data.Tile;
 
 public class MessageHandler {
 
@@ -98,18 +99,18 @@ public class MessageHandler {
      *
      * @docauthor Trelent
      */
-    public void CreateSucceededChallengeYouMessage(Character[][] board, String hostNickName){
+    public void CreateSucceededChallengeYouMessage(String hostNickName, String prevScore){
         // only serverHost
         this.jsonHandler.addMessageType("succeeded in challenging you");
         this.jsonHandler.addSource(hostNickName);
-        this.jsonHandler.addBoard(board);
+        this.jsonHandler.addPrevScore(Integer.parseInt(prevScore));
     }
     /**
      * The CreateUpdateBoardMessage function creates a message that updates the board.
      *
      *
-     * @param Character[][] board Send the board to the client
-     * @param String hostNickName Identify the source of the message
+     * @param  board Send the board to the client
+     * @param  hostNickName Identify the source of the message
      *
      * @return A jsonobject
      *
@@ -122,7 +123,7 @@ public class MessageHandler {
         this.jsonHandler.addBoard(board);
     }
 
-    public void CreateTryPlaceWordMessage(String source, String destination, String word,
+    public void CreateTryPlaceWordMessage(String source, String destination, String word, int prevScore,
                                           int row, int column, boolean vertical, String currentTiles, String socketSource){
         this.jsonHandler.addMessageType("try place word");
         this.jsonHandler.addSource(source);
@@ -133,6 +134,7 @@ public class MessageHandler {
         this.jsonHandler.addVertical(vertical);
         this.jsonHandler.addCurrentTiles(currentTiles);
         this.jsonHandler.addSocketSource(socketSource);
+        this.jsonHandler.addPrevScore(prevScore);
 //        this.jsonHandler.addBoard(board);
         // addPrevBoard
     }
@@ -168,8 +170,11 @@ public class MessageHandler {
         this.jsonHandler.addVertical(vertical);
         this.jsonHandler.addCurrentTiles(currentTiles);
         this.jsonHandler.addSocketSource(socketSource);
-        // this.jsonHandler.addBoard(board);
-        // addPrevBoard
+    }
+
+    public void CreateUpdateScore(String source){
+        this.jsonHandler.addMessageType("update score");
+        this.jsonHandler.addSource(source);
     }
 
 }

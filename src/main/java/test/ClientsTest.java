@@ -17,7 +17,8 @@ public class ClientsTest {
     // connect multiple hosts
     public static void main(String[] args) throws IOException, InterruptedException {
         // Create the GameServer
-        MyServer gameServer = new MyServer(1234, new BookScrabbleHandler());
+        MyServer gameServer = MyServer.getModel();
+        gameServer.initMyServer(1234, new BookScrabbleHandler());
         // Start the GameServer
         gameServer.start();
 
@@ -65,11 +66,11 @@ public class ClientsTest {
 
             guest1.player.setCurrentTiles("WINAGGED");
             guest1.SendTryPlaceWordMessage(guest1.NickName, host.NickName, "WIN", 7,7,true);
-            Thread.sleep(5000);
+            Thread.sleep(10000);
 //            guest1.SendTryPlaceWordMessage(guest1.NickName, host.NickName, "WIN", 7,7,true);
             System.out.println(guest1.player.getCurrentScore());
             guest2.player.setCurrentTiles("ZOWAGGED");
-            guest2.SendTryPlaceWordMessage(guest2.NickName, host.NickName, "OW", 7,6,false);
+            guest2.SendTryPlaceWordMessage(guest2.NickName, host.NickName, "_OW", 7,7,false);
             Thread.sleep(5000);
             System.out.println(guest2.player.getCurrentScore());
 

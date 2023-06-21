@@ -92,7 +92,7 @@ public class Guest {
             stringBuilder.append(this.SocketToHost.getLocalPort());
             String socketSource = stringBuilder.toString();
             MessageHandler messageHandler = new MessageHandler();
-            messageHandler.CreateTryPlaceWordMessage(source, destination, word, row, column,
+            messageHandler.CreateTryPlaceWordMessage(source, destination, word, this.player.prevScore,row, column,
                     vertical, this.player.getCurrentTiles(), socketSource);
             this.SendToHost(messageHandler.jsonHandler);
         }
@@ -151,7 +151,6 @@ public class Guest {
                             case "try place word":
                                 System.out.println(this.NickName + "Try Place Word: " + "Success");
                                 this.player.addScore(Integer.parseInt(json.get("NewScore").getAsString()));
-                                this.player.prevScore = this.player.currentScore;
                                 this.player.setCurrentTiles(json.get("NewCurrentTiles").getAsString());
                                 // board change in Host.notifyall
                                 break;
@@ -174,7 +173,8 @@ public class Guest {
                         break;
                     case "succeeded in challenging you":
                         System.out.println(this.NickName + ": i have been complicated");
-                        this.player.currentScore = this.player.prevScore;
+                        this.player.currentScore = json.get("PrevScore").getAsInt();
+                        this.player.prevScore = json.get("PrevScore").getAsInt();
                         this.player.currentBoard = this.player.prevBoard;
                         this.player.currentTiles = this.player.prevTiles;
                         break;
