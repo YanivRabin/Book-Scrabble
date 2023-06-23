@@ -71,7 +71,7 @@ public class ClientsTest {
             System.out.println(guest1.player.getCurrentScore());
             guest2.player.setCurrentTiles("ZOWAGGED");
             guest2.SendTryPlaceWordMessage(guest2.NickName, host.NickName, "_OW", 7,7,false);
-            Thread.sleep(5000);
+            Thread.sleep(10000);
             System.out.println(guest2.player.getCurrentScore());
 
             host.hostPlayer.player.setCurrentTiles("JOYIPSXR");
