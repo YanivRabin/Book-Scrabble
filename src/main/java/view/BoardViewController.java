@@ -14,10 +14,9 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.util.Pair;
-import model.data.Board;
 import model.data.Tile;
 import model.data.Word;
-import org.junit.Test;
+import model.data.Board;
 
 import java.net.URL;
 import java.util.ArrayList;

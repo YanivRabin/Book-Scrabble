@@ -8,6 +8,10 @@ import java.util.List;
 public class Player {
     String socketIP;
     String nickName;
+
+
+
+    public String hostNickName;
     int currentScore;
     int prevScore;
     List<Character> currentTiles;
@@ -85,6 +89,10 @@ public class Player {
      */
     public String getNickName() {
         return nickName;
+    }
+
+    public String getHostNickName() {
+        return hostNickName;
     }
 
     /**
