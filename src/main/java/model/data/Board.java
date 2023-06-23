@@ -365,6 +365,8 @@ import model.logic.Host;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 public class Board {
 
@@ -507,11 +509,24 @@ public class Board {
     public boolean dictionaryLegal(Word w) {
 
         StringBuilder text = new StringBuilder("Q," + w.toString());
-        Host.getModel().SendMessageToGameServer(text.toString());
-        boolean res;
+
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(Host.getModel().getSocketToMyServer().getInetAddress());
+        stringBuilder.append(":");
+        stringBuilder.append(Host.getModel().getSocketToMyServer().getLocalPort());
+        String socketSource = stringBuilder.toString();
+
+        String jsonString = Host.getModel().CreateMessageToGameServer(text.toString(),socketSource);
+        Host.getModel().SendMessageToGameServer(jsonString);
+        boolean res = false;
+//        Future<String> future = Host.getModel().stringFuture;
+//        future = Host.getModel().getStringFuture();
+        //            res = Host.getModel().GetMessageFromGameServer().equals("true");
+
+
         try {
-            res = Host.getModel().GetMessageFromGameServer().equals("true");
-        } catch (IOException e) {
+            res = Boolean.parseBoolean(Host.getModel().inputQueueFromGameServer.take());
+        } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
         return res;
@@ -544,12 +559,14 @@ public class Board {
 
                     Tile[] tempT = temp.toArray(new Tile[0]);
                     Word tempWord = new Word(tempT, i, tempCol, false);
-                    if (dictionaryLegal(tempWord) && boardLegal(tempWord)) {
-                        words.add(tempWord);
-                    }
-                    else if (tempWord.getTiles().length > 1) {
-                        System.out.println("Error: " + tempWord + " not legal");
-                        return null;
+                    if (!tempWord.toString().equals("")) {
+                        if (dictionaryLegal(tempWord) && boardLegal(tempWord)) {
+                            words.add(tempWord);
+                        }
+                        else if (tempWord.getTiles().length > 1) {
+                            System.out.println("Error: " + tempWord + " not legal");
+                            return null;
+                        }
                     }
                 }
                 i++;
@@ -577,12 +594,14 @@ public class Board {
 
                     Tile[] tempT = temp.toArray(new Tile[0]);
                     Word tempWord = new Word(tempT, tempRow, i, true);
-                    if (dictionaryLegal(tempWord) && boardLegal(tempWord)) {
-                        words.add(tempWord);
-                    }
-                    else if (tempWord.getTiles().length > 1) {
-                        System.out.println("Error: " + tempWord + " not legal");
-                        return null;
+                    if (!tempWord.toString().equals("")) {
+                        if (dictionaryLegal(tempWord) && boardLegal(tempWord)) {
+                            words.add(tempWord);
+                        }
+                        else if (tempWord.getTiles().length > 1) {
+                            System.out.println("Error: " + tempWord + " not legal");
+                            return null;
+                        }
                     }
                 }
                 i++;

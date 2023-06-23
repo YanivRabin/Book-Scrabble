@@ -1,18 +1,16 @@
 package model.logic;
 
 import com.google.gson.JsonObject;
-import model.data.Board;
 import model.data.Tile;
 import model.data.Word;
+import model.data.Board;
+
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 
 public class Host implements ClientHandler{
     //Logic Members
@@ -27,9 +25,20 @@ public class Host implements ClientHandler{
     final int MaxGuests = 4;
     public List<Socket> GuestList;
     Socket SocketToMyServer;
+
+    public Future<String> getStringFuture() {
+        return stringFuture;
+    }
+
+    public void setStringFuture(Future<String> stringFuture) {
+        this.stringFuture = stringFuture;
+    }
+
+    public Future<String> stringFuture ;
     MyServer GameServer; // The MyServer this host connected to
     static ExecutorService executorService = Executors.newFixedThreadPool(10); // only for one host
     BlockingQueue<String> inputQueue = new LinkedBlockingQueue<>();
+    public BlockingQueue<String> inputQueueFromGameServer = new LinkedBlockingQueue<>();
 
 
     //Data-Game Members
@@ -131,6 +140,10 @@ public class Host implements ClientHandler{
         return LocalServer;
     }
 
+    public Socket getSocketToMyServer() {
+        return SocketToMyServer;
+    }
+
     //Connects Host to Main Server
     /**
      * The CreateSocketToServer function creates a socket to the server.
@@ -145,6 +158,16 @@ public class Host implements ClientHandler{
     public void CreateSocketToServer(MyServer server) throws IOException {
         GameServer=server;
         this.SocketToMyServer = new Socket(server.getIP(), server.getPort());
+//        executorService.submit(this::HandleMessageFromGameServer);
+
+        executorService.execute(()->{
+            try {
+                handleGameServer(this.SocketToMyServer.getInputStream(), this.SocketToMyServer.getOutputStream());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
         System.out.println("Host Connected to Main Server");
     }
     /**
@@ -282,6 +305,14 @@ public class Host implements ClientHandler{
             }
         }
     }
+
+    public String CreateMessageToGameServer(String message, String socketSource){
+        // only serverHost
+        MessageHandler messageHandler = new MessageHandler();
+        messageHandler.CreateMessageToGameServer(message, socketSource);
+        return messageHandler.jsonHandler.toJsonString();
+    }
+
     /**
      * The SendTryAgainMessage function is used to send a message to the client that they have lost and can try again.
      *
@@ -321,17 +352,8 @@ public class Host implements ClientHandler{
         messageHandler.CreateSuccessMessage(destination, newScore, action, newCurrentTiles, hostNickName);
         return messageHandler.jsonHandler.toJsonString();
     }
-    /**
-     * The SendSucceededChallengeYouMessage function is used to send a message to the client that the challenge has been accepted.
-     *
-     *
-     * @param  Send the current state of the board to the client
-     * @param  hostNickName Identify the player who sent the challenge
-     *
-     * @return A string
-     *
-     * @docauthor Trelent
-     */
+
+
     public String SendSucceededChallengeYouMessage(String hostNickName, String prevScore){
         // only serverHost
         MessageHandler messageHandler = new MessageHandler();
@@ -435,8 +457,8 @@ public class Host implements ClientHandler{
                             stringBuilder.append("C,");
                             stringBuilder.append(c_word);
                             this.SendMessageToGameServer(stringBuilder.toString());
-                            boolean res = this.GetMessageFromGameServer().equals("true");
-                            this.HandleChallenge(res, this.currentSuccessMessagePrevScore);
+//                            boolean res = this.GetMessageFromGameServer().equals("true");
+//                            this.HandleChallenge(res, this.currentSuccessMessagePrevScore);
                             // do the Challenge
                             break;
                     }
@@ -445,6 +467,11 @@ public class Host implements ClientHandler{
                     Socket currentGuest = getSocket(socketSource);
                     PrintWriter out = new PrintWriter(currentGuest.getOutputStream());
                     if (score == 0){
+                        if(Objects.equals(json.get("Source").getAsString(), this.NickName)){
+                            this.hostPlayer.inputQueue.put(this.SendTryAgainMessage(json.get("Source").getAsString(), 0,
+                                    "try place word" , this.NickName));
+                            continue;
+                        }
                         // ignore to guest Create try again message
                         out.println(this.SendTryAgainMessage(json.get("Source").getAsString(), 0,
                                 "try place word" , this.NickName));
@@ -453,6 +480,7 @@ public class Host implements ClientHandler{
                     else {
                         // ack , score to guest Create success message
 //                        this.board.placeTile();
+
                         this.currentSuccessMessageSocket = currentGuest;
                         this.currentSuccessMessagePrevScore = json.get("PrevScore").getAsString();
                         String guestCurrentTiles = json.get("CurrentTiles").getAsString();
@@ -461,6 +489,10 @@ public class Host implements ClientHandler{
                         System.out.println("New Score to add: "+score);
                         String jsonSuccess = this.SendSuccessMessage(json.get("Source").getAsString(), score,
                                 "try place word", this.CharavterslistToString(NewCurrentTiles), this.NickName);
+                        if(Objects.equals(json.get("Source").getAsString(), this.NickName)){
+                            this.hostPlayer.inputQueue.put(jsonSuccess);
+                            continue;
+                        }
                         out.println(jsonSuccess);
                         out.flush();
                         // notify all
@@ -515,6 +547,40 @@ public class Host implements ClientHandler{
             e.printStackTrace();
         }
     }
+
+    public void handleGameServer(InputStream inputStream, OutputStream outputStream) {
+        while (!this.SocketToMyServer.isClosed()) {
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+            try {
+                String jsonString = bufferedReader.readLine();
+                if (jsonString != null)// Read an object from the server
+                {
+                    try {
+                        inputQueueFromGameServer.put(jsonString); // Put the received object in the queue
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }  catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+/*
+    public void HandleMessageFromGameServer(){
+        while (!this.SocketToMyServer.isClosed()) {
+            try {
+                String jsonString = inputQueueFromGameServer.take();
+                this.GetMessageFromGameServer(jsonString);
+
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+    }*/
+
+
     /**
      * The GetMessageFromGameServer function is used to get a message from the game server.
      *
@@ -524,15 +590,13 @@ public class Host implements ClientHandler{
      *
      * @docauthor Trelent
      */
-    public String GetMessageFromGameServer() throws IOException {
-        Scanner in = new Scanner(new InputStreamReader(this.SocketToMyServer.getInputStream()));
-        StringBuilder stringBuilder = new StringBuilder();
-        while(in.hasNext()){
-            stringBuilder.append(in.nextLine());
-        }
-        String resultText = stringBuilder.toString();
+    public void GetMessageFromGameServer(String jsonString){
+        System.out.println(jsonString);
+        Future<String> stringFuture = executorService.submit(()->{
+           return jsonString;
+        });
+        this.setStringFuture(stringFuture);
 
-        return resultText;
     }
 
     /**
