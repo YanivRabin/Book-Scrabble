@@ -3,6 +3,8 @@ package model.logic;
 import com.google.gson.JsonObject;
 import model.data.Tile;
 
+import java.net.Socket;
+
 public class MessageHandler {
 
     public JsonHandler jsonHandler;
@@ -171,6 +173,13 @@ public class MessageHandler {
         this.jsonHandler.addCurrentTiles(currentTiles);
         this.jsonHandler.addSocketSource(socketSource);
     }
+
+    public void CreateMessageToGameServer(String message, String socketSource){
+        this.jsonHandler.addMessageType("to game server");
+        this.jsonHandler.addMessage(message);
+        this.jsonHandler.addSocketSource(socketSource);
+    }
+
 
     public void CreateUpdateScore(String source){
         this.jsonHandler.addMessageType("update score");

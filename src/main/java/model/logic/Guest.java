@@ -29,6 +29,7 @@ public class Guest {
     public Player player;
     public String NickName;
 
+
     public Guest(String NickName){
         this.NickName = NickName;
     }
@@ -145,6 +146,7 @@ public class Guest {
                     case "start game":
                         this.player = new Player(this.ipAddress, this.NickName, 0);
                         this.player.addTiles(json.get("StartTiles").getAsString());
+                        this.player.hostNickName = json.get("Source").getAsString();
                         break;
                     case "success":
                         switch (json.get("Action").getAsString()) {
