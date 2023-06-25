@@ -19,7 +19,7 @@ public class VM_Host extends Observable implements ViewModel, Observer {
 
     Host host;
 
-    Tile[][] gameBoard;
+    Board gameBoard;
     Tile.Bag gameBag;
 
     String ip, name;
@@ -81,13 +81,17 @@ public class VM_Host extends Observable implements ViewModel, Observer {
 
         // set the amount of players
         players = playersProperty().getValue();
+
+        // get board and tiles bag
+        gameBoard = Board.getBoardModel();
+        gameBag = Tile.Bag.getBagModel();
+
         // send start message to each guest, each one get 8 tiles
         host.SendStartGameMessage(host.getNickName());
+
         try { Thread.sleep(1000); }
         catch (InterruptedException e) { e.printStackTrace(); }
-        // get board and tiles bag
-        gameBoard = host.hostPlayer.player.getCurrentBoardAsTiles();
-        gameBag = Tile.Bag.getBagModel();
+
         updateTiles();
     }
     @Override
@@ -120,12 +124,12 @@ public class VM_Host extends Observable implements ViewModel, Observer {
     @Override
     public void placeTile(Tile selectedTile, int row, int col) {
 
-//        gameBoard.placeTile(selectedTile, row, col);
+        gameBoard.placeTile(selectedTile, row, col);
     }
     @Override
     public void removeTile(int row, int column) {
 
-//        gameBoard.removeTile(row,column);
+        gameBoard.removeTile(row,column);
     }
     @Override
     public void passTurn() {
@@ -135,7 +139,6 @@ public class VM_Host extends Observable implements ViewModel, Observer {
     @Override
     public void updateTiles() {
 
-        currentTiles.clear();
         // get the player tiles and convert them from char to tile object
         char[] tiles = host.hostPlayer.player.getCurrentTiles().toCharArray();
         for (char tile: tiles) {
@@ -161,8 +164,7 @@ public class VM_Host extends Observable implements ViewModel, Observer {
     public String getIp() { return ip; }
     public int getPort() { return port; }
     @Override
-    public Tile[][] getBoard() { return gameBoard; }
-//    public Tile[][] getBoard() { return gameBoard.getTiles(); }
+    public Tile[][] getBoard() { return gameBoard.getTiles(); }
     @Override
     public ArrayList<Tile> getCurrentTiles() { return currentTiles; }
     @Override
@@ -195,9 +197,8 @@ public class VM_Host extends Observable implements ViewModel, Observer {
 
         if (arg.equals("update board")) {
             System.out.println("host viewModel observer update: update board");
-            gameBoard = host.hostPlayer.player.getCurrentBoardAsTiles();
-            setChanged();
-            notifyObservers("update board");
+            gameBoard = Board.getBoard();
+//            updateBoard();
         }
 
         if (arg.equals("pass turn")) {

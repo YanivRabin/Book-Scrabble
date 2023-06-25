@@ -180,6 +180,11 @@ public class MessageHandler {
         this.jsonHandler.addSocketSource(socketSource);
     }
 
+    public void createPassTurnMessage() {
+
+        this.jsonHandler.addMessageType("pass turn");
+    }
+
 
     public void CreateUpdateScore(String source){
         this.jsonHandler.addMessageType("update score");
