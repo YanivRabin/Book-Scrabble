@@ -316,7 +316,8 @@ public class Host extends Observable implements ClientHandler{
             try {
                 MessageHandler messageHandler = new MessageHandler();
                 List<Character> StartGameTiles = this.GenerateTiles(8);
-                messageHandler.CreateStartGameMessage(this.CharavterslistToString(StartGameTiles), hostNickName, c);
+                messageHandler.CreateStartGameMessage(this.CharavterslistToString(StartGameTiles),
+                        hostNickName, c, this.GuestList.size());
                 OutputStream outToClient = socket.getOutputStream();
                 PrintWriter out = new PrintWriter(outToClient);
                 out.println(messageHandler.jsonHandler.toJsonString());

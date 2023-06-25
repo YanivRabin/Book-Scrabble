@@ -35,12 +35,13 @@ public class MessageHandler {
      *
      * @docauthor Trelent
      */
-    public void CreateStartGameMessage(String tilesInCapital, String hostNickName, int playerIndex){
+    public void CreateStartGameMessage(String tilesInCapital, String hostNickName, int playerIndex, int numOfPlayers){
         // only serverHost
         this.jsonHandler.addMessageType("start game");
         this.jsonHandler.addSource(hostNickName);
         this.jsonHandler.addStartTiles(tilesInCapital);
         this.jsonHandler.addPlayerIndex(playerIndex);
+        this.jsonHandler.addNumOfPlayers(numOfPlayers);
     }
     /**
      * The CreateTryAgainMessage function creates a message that is sent to the client when they have lost.

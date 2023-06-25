@@ -212,6 +212,10 @@ public class JsonHandler {
     public void addPlayerIndex(int index) {
         json.addProperty("PlayerIndex", index);
     }
+    public void addNumOfPlayers(int num) {
+        json.addProperty("NumOfPlayers", num);
+    }
+
 
 
     /**
