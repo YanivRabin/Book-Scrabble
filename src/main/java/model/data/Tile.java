@@ -99,7 +99,6 @@ public class Tile {
         public Tile getTileForTileArray(char c) {
 
             // check if the letter is valid and that there's no 0 amount of that letter
-//            if (c < 'A' || c > 'Z' || letterQuantity[c - 'A'] < 1)
             if (c < 'A' || c > 'Z')
                 return null;
 

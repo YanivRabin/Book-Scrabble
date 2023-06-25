@@ -7,12 +7,11 @@ import model.data.Board;
 
 
 import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-public class Host implements ClientHandler{
+public class Host extends Observable implements ClientHandler{
     //Logic Members
     int Port;
     String IP;
@@ -225,6 +224,23 @@ public class Host implements ClientHandler{
         });
     }
 
+    private String getLocalNetworkAddress() throws SocketException {
+        Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+        while (interfaces.hasMoreElements()) {
+            NetworkInterface iface = interfaces.nextElement();
+            // filters out 127.0.0.1 and inactive interfaces
+            if (iface.isLoopback() || !iface.isUp())
+                continue;
+
+            Enumeration<InetAddress> addresses = iface.getInetAddresses();
+            while(addresses.hasMoreElements()) {
+                InetAddress addr = addresses.nextElement();
+                if (addr instanceof Inet4Address) return addr.getHostAddress();
+            }
+        }
+        return null;  // or throw an exception
+    }
+
     /**
      * The runServer function is the main function of the server.
      * It opens a socket with a given port and waits for clients to connect.
@@ -237,11 +253,14 @@ public class Host implements ClientHandler{
      * @docauthor Trelent
      */
     public void runServer() throws IOException {
+
+
         //open server with the port that given
-        this.LocalServer = new ServerSocket(this.Port);
+//        this.LocalServer = new ServerSocket(this.Port,4, InetAddress.getLocalHost());
+        this.LocalServer = new ServerSocket(this.Port, 0, InetAddress.getByName("0.0.0.0"));
         executorService.submit(this::handleRequests);
-        System.out.println("Host Server started on port :" + this.Port);
-        this.IP = this.LocalServer.getInetAddress().getHostAddress();
+//        this.IP = this.LocalServer.getInetAddress().getHostAddress();
+        this.IP = this.getLocalNetworkAddress();  // The method to get your local network address
         this.CreateSocketToLocalServer(this.IP, this.Port);
 
         executorService.execute(()->{
@@ -258,7 +277,9 @@ public class Host implements ClientHandler{
                 if(this.GuestList.size() < this.MaxGuests) {
                     Socket guest = this.LocalServer.accept();
                     this.GuestList.add(guest);
-
+                    // notify VM_Host
+                    setChanged();
+                    notifyObservers("guest connect");
                     if (guest.getPort() == hostPlayer.getSocketToHost().getLocalPort()){
                         System.out.println("Host Connected, Number of players: " + GuestList.size());
                     }
@@ -304,6 +325,33 @@ public class Host implements ClientHandler{
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+        }
+    }
+
+    public void sendPassTurnMessage() {
+
+        for(Socket socket : this.GuestList) {
+
+            try {
+                MessageHandler messageHandler = new MessageHandler();
+                messageHandler.createPassTurnMessage();
+
+//                if (socket == this.HostSocketToLocalServer) {
+//                    try {
+//                        this.hostPlayer.inputQueue.put(messageHandler.jsonHandler.toJsonString());
+//                    }
+//                    catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//                else {
+                OutputStream outToClient = socket.getOutputStream();
+                PrintWriter out = new PrintWriter(outToClient);
+                out.println(messageHandler.jsonHandler.toJsonString());
+                out.flush();
+//                }
+            }
+            catch (IOException e) {throw new RuntimeException(e);}
         }
     }
 
@@ -464,6 +512,9 @@ public class Host implements ClientHandler{
                             break;
                         case "update board":
                             this.hostPlayer.inputQueue.put(jsonString);
+                            continue;
+                        case "pass turn":
+                            sendPassTurnMessage();
                             continue;
                     }
 
@@ -710,8 +761,9 @@ public class Host implements ClientHandler{
      */
     public List<Character> GenerateTiles(int number){
         List<Character> currentTiles = new ArrayList<>();
-        for(int i = 0 ; i < number-1 ; i++){
+        for(int i = 0 ; i < number ; i++){
             currentTiles.add(this.bag.getRand().letter);
+            // add End game if bag is empty
         }
         return currentTiles;
     }

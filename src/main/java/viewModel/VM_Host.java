@@ -2,13 +2,11 @@ package viewModel;
 
 import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import model.data.Board;
 import model.data.Tile;
 import model.data.Word;
 import model.logic.BookScrabbleHandler;
-import model.logic.Guest;
 import model.logic.Host;
 import model.logic.MyServer;
 
@@ -41,7 +39,8 @@ public class VM_Host extends Observable implements ViewModel, Observer {
         playersProperty = new SimpleIntegerProperty();
 
         // create main server
-        MyServer gameServer = new MyServer(1234, new BookScrabbleHandler());
+        MyServer gameServer = new MyServer();
+        gameServer.initMyServer(1234, new BookScrabbleHandler());
         gameServer.start();
 
         // create Host and connect him to the main server
