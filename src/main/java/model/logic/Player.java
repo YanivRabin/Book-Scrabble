@@ -1,6 +1,8 @@
 package model.logic;
 
 import com.google.gson.Gson;
+import model.data.Tile;
+import test.BagTest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,29 +26,26 @@ public class Player {
     Character[][] prevBoard;
 
 
-    /**
-     * The Player function is a constructor for the Player class.
-     * It takes in four parameters: socketIP, nickName, score and currentTiles.
-     * The function sets the values of these parameters to their respective variables in the Player class.
+    public Tile[][] getCurrentBoardAsTiles() {
 
-     *
-     * @param String socketIP Store the ip address of the player
-     * @param String nickName Set the nickname of the player
-    public void setnickname(string nickname) {
-            this
-     * @param int score Set the score of the player
-     * @param List&lt;Character&gt; currentTiles Store the tiles that a player has
-     *
-     * @return A player object
-     *
-     * @docauthor Trelent
-     */
-    public Player(String socketIP, String nickName, int score, List<Character> currentTiles) {
-        this.socketIP = socketIP;
-        this.nickName = nickName;
-        this.currentScore = score;
-        this.currentTiles = currentTiles;
+        Tile[][] temp = new Tile[15][15];
+        for (int row = 0; row < 15; row++) {
+            for (int col = 0; col < 15; col++) {
+                if (currentBoard[row][col] != null) {
+                    temp[row][col] = Tile.Bag.getBagModel().getTileForTileArray(currentBoard[row][col]);
+                }
+            }
+        }
+        return temp;
     }
+
+//    public Player(String socketIP, String nickName, int score, List<Character> currentTiles) {
+//        this.socketIP = socketIP;
+//        this.nickName = nickName;
+//        this.currentScore = score;
+//        this.currentTiles = currentTiles;
+//        this.currentBoard = new Character[15][15];
+//    }
 
     /**
      * The Player function is a constructor for the Player class.
@@ -67,6 +66,7 @@ public class Player {
         this.nickName = nickName;
         this.currentScore = score;
         this.currentTiles = new ArrayList<>();
+        this.currentBoard = new Character[15][15];
     }
 
     /**
