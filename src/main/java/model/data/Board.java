@@ -771,7 +771,7 @@ public class Board {
         return 0;
     }
 
-    public Character[][] parseBoard(Tile[][] board) {
+    /*public Character[][] parseBoard(Tile[][] board) {
         Character[][] charBoard = new Character[board.length][board[0].length];
 
         for (int i = 0; i < board.length; i++) {
@@ -782,7 +782,59 @@ public class Board {
         }
 
         return charBoard;
+    }*/
+
+    public String parseBoardToString(Tile[][] board) {
+        StringBuilder sb = new StringBuilder();
+
+        int rows = board.length;
+        int cols = board[0].length;
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                Tile tile = board[i][j];
+                sb.append(tile != null ? tile.letter : '.');
+            }
+            sb.append('\n');
+        }
+
+        return sb.toString();
     }
+
+
+    public Character[][] parseBoardToCharacterArray(Tile[][] board) {
+        int rows = board.length;
+        int cols = board[0].length;
+
+        Character[][] characterBoard = new Character[rows][cols];
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                Tile tile = board[i][j];
+                characterBoard[i][j] = (tile != null) ? tile.letter : null;
+            }
+        }
+
+        return characterBoard;
+    }
+
+    public static String parseCharacterArrayToString(Character[][] board) {
+        StringBuilder sb = new StringBuilder();
+
+        int rows = board.length;
+        int cols = board[0].length;
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                Character tile = board[i][j];
+                sb.append((tile != null) ? tile : '.');
+            }
+            sb.append('\n');
+        }
+
+        return sb.toString();
+    }
+
 
     // function for GUI
     public void placeTile(Tile selectedTile, int row, int column) {

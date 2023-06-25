@@ -50,14 +50,17 @@ public class ClientsTest {
             Thread.sleep(3000);
             System.out.println();
             System.out.println(host.hostPlayer.player.getNickName());
+            System.out.println("Player index: "+ host.hostPlayer.player.getPlayerIndex());
             System.out.println(host.hostPlayer.player.getCurrentScore());
             host.hostPlayer.player.printCurrentTiles();
             System.out.println();
             System.out.println(guest1.player.getNickName());
+            System.out.println("Player index: "+ guest1.player.getPlayerIndex());
             System.out.println(guest1.player.getCurrentScore());
             guest1.player.printCurrentTiles();
             System.out.println();
             System.out.println(guest2.player.getNickName());
+            System.out.println("Player index: "+ guest2.player.getPlayerIndex());
             System.out.println(guest2.player.getCurrentScore());
             guest2.player.printCurrentTiles();
 
