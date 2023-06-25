@@ -16,7 +16,7 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
 
     Guest guest;
 
-    Tile[][] gameBoard;
+    Board gameBoard;
     Tile.Bag gameBag;
 
     String name, hostNickName;
@@ -42,6 +42,12 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
 
         try { Thread.sleep(500); }
         catch (InterruptedException e) { e.printStackTrace(); }
+
+        // make turn for later to pass between players
+        playerTurn = 0;
+//        myTurn = guest.getGuestIndex();
+        myTurn = 1;
+        players = 2;
 
         // set score to 0
         scoreProperty.set(0);
@@ -89,12 +95,8 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
     @Override
     public void startGame() {
 
-//        gameBoard = Board.getBoard();
-        gameBoard = guest.player.getCurrentBoardAsTiles();
+        gameBoard = Board.getBoard();
         gameBag = Tile.Bag.getBag();
-        // make turn for later to pass between players
-        myTurn = guest.player.getPlayerIndex();
-        players = guest.player.getNumOfPlayersInGame();
         updateTiles();
     }
     @Override
@@ -127,12 +129,12 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
     @Override
     public void placeTile(Tile selectedTile, int row, int col) {
 
-//        gameBoard.placeTile(selectedTile, row, col);
+        gameBoard.placeTile(selectedTile, row, col);
     }
     @Override
     public void removeTile(int row, int column) {
 
-//        gameBoard.removeTile(row,column);
+        gameBoard.removeTile(row,column);
     }
     @Override
     public void passTurn() {
@@ -142,7 +144,6 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
     @Override
     public void updateTiles() {
 
-        currentTiles.clear();
         // get the player tiles and convert them from char to tile object
         char[] tiles = guest.player.getCurrentTiles().toCharArray();
         for (char tile: tiles) {
@@ -168,7 +169,7 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
     @Override
     public Tile[][] getBoard() {
 
-        return gameBoard;
+        return gameBoard.getTiles();
     }
     @Override
     public ArrayList<Tile> getCurrentTiles() {
@@ -207,9 +208,8 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
 
         if (message[0].equals("update board")) {
             System.out.println("guest viewModel observer update: update board");
-            gameBoard = guest.player.getCurrentBoardAsTiles();
-            setChanged();
-            notifyObservers("update board");
+            gameBoard = Board.getBoard();
+//            updateBoard();
         }
 
         if (message[0].equals("pass turn")) {
