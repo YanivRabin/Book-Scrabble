@@ -1,6 +1,7 @@
 package model.logic;
 
 import com.google.gson.Gson;
+import model.data.Tile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +21,9 @@ public class Player {
     int prevScore;
     List<Character> currentTiles;
     List<Character> prevTiles;
+
+
+
     Character[][] currentBoard;
     Character[][] prevBoard;
 
@@ -41,12 +45,6 @@ public class Player {
      *
      * @docauthor Trelent
      */
-    public Player(String socketIP, String nickName, int score, List<Character> currentTiles) {
-        this.socketIP = socketIP;
-        this.nickName = nickName;
-        this.currentScore = score;
-        this.currentTiles = currentTiles;
-    }
 
     /**
      * The Player function is a constructor for the Player class.
@@ -67,6 +65,7 @@ public class Player {
         this.nickName = nickName;
         this.currentScore = score;
         this.currentTiles = new ArrayList<>();
+        this.currentBoard = new Character[15][15];
     }
 
     /**
@@ -110,6 +109,10 @@ public class Player {
      */
     public int getCurrentScore() {
         return currentScore;
+    }
+
+    public Character[][] getCurrentBoard() {
+        return currentBoard;
     }
 
     public int getPlayerIndex() {
@@ -324,6 +327,19 @@ public class Player {
         }
 
         return characterBoard;
+    }
+
+    public Tile[][] getCurrentBoardAsTiles() {
+
+        Tile[][] temp = new Tile[15][15];
+        for (int row = 0; row < 15; row++) {
+            for (int col = 0; col < 15; col++) {
+                if (currentBoard[row][col] != null) {
+                    temp[row][col] = Tile.Bag.getBagModel().getTileForTileArray(currentBoard[row][col]);
+                }
+            }
+        }
+        return temp;
     }
 
 }

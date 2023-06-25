@@ -153,10 +153,6 @@ public class Guest extends Observable{
                 System.out.println(jsonString);
                 JsonObject json = JsonHandler.convertStringToJsonObject(jsonString);
                 switch (json.get("MessageType").getAsString()){
-                    case "pass turn":
-                        setChanged();
-                        notifyObservers("pass turn");
-                        break;
                     case "start game":
                         this.player = new Player(this.ipAddress, this.NickName, 0);
                         this.player.addTiles(json.get("StartTiles").getAsString());
@@ -205,6 +201,15 @@ public class Guest extends Observable{
                         setChanged();
                         notifyObservers("update board");
                         System.out.println(this.NickName + " updated Board");
+                        break;
+                    case "pass turn":
+                        setChanged();
+                        notifyObservers("pass turn");
+                        break;
+                    case "end game":
+                        System.out.println("End Game");
+                        Thread.sleep(5000);
+                        System.exit(0);
                         break;
                 }
 
