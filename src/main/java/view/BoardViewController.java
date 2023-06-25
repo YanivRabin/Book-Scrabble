@@ -104,15 +104,13 @@ public class BoardViewController implements Initializable, Observer {
 
         executor.submit(() -> {
             try {
-                for (int i = 0; i < 10; i++) {
+                for (int i = 0; i < 20; i++) {
                     Thread.sleep(1000);  // Sleep for one second at a time
                 }
                 challenge.setDisable(true);
+                viewModel.updatePrev();
             }
-            catch (InterruptedException e) {
-                // If the thread was interrupted, stop the execution
-                return;
-            }
+            catch (InterruptedException e) { System.out.println("Thread pool problem"); }
         });
     }
 
@@ -609,26 +607,16 @@ public class BoardViewController implements Initializable, Observer {
                 }
                 // allow challenge button for 10 seconds
                 challenge.setDisable(false);
-
                 executor.submit(() -> {
                     try {
-                        for (int i = 0; i < 10; i++) {
+                        for (int i = 0; i < 20; i++) {
                             Thread.sleep(1000);  // Sleep for one second at a time
                         }
                         challenge.setDisable(true);
+                        viewModel.updatePrev();
                     }
-                    catch (InterruptedException e) {
-                        // If the thread was interrupted, stop the execution
-                        return;
-                    }
+                    catch (InterruptedException e) { System.out.println("Thread pool problem"); }
                 });
-//                challengeSleep = new Thread(() -> {
-//                    try { Thread.sleep(10000); }
-//                    catch (InterruptedException e) { e.printStackTrace(); }
-//                    challenge.setDisable(true);
-//
-//                });
-//                challengeSleep.start();
             }
 
             if (arg.equals("challenge alive")) {
@@ -659,6 +647,7 @@ public class BoardViewController implements Initializable, Observer {
             if (arg.equals("update board")) {
                 System.out.println("board observer update: update board");
                 gameBoard = viewModel.getBoard();
+                viewModel.updateScore();
                 for (int row = 0; row < 15; row++) {
                     for (int col = 0; col < 15; col++) {
                         if (gameBoard[row][col] != null) {

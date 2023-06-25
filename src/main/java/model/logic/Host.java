@@ -23,6 +23,7 @@ public class Host extends Observable implements ClientHandler{
     Word currentSuccessMessageWord;
 
 
+
     final int MaxGuests = 4;
     public List<Socket> GuestList;
     Socket SocketToMyServer;
@@ -582,7 +583,7 @@ public class Host extends Observable implements ClientHandler{
                                 flagChallenge = false;
                             }
                             else{
-                                this.HandleChallenge(true, this.currentSuccessMessagePrevScore, json.get("PrevBoard").getAsString(), this.currentSuccessMessageWord);
+                                this.HandleChallenge(true, this.currentSuccessMessagePrevScore, this.currentSuccessMessageWord);
                             }
                             // do the Challenge
                             break;
@@ -649,14 +650,16 @@ public class Host extends Observable implements ClientHandler{
         }
     }
 
-    public void HandleChallenge(boolean res , String prevScore, String prevBoard, Word w){
+    public void HandleChallenge(boolean res , String prevScore, Word w){
         if(res){
+            System.out.println("challenge success");
 //            Character[][] toUpdateBoard = this.player.parseStringToCharacterArray(prevBoard);
+            Character[][] toUpdateBoard = this.hostPlayer.player.prevBoard;
             for(Tile t : w.getTiles()){
                 Tile.Bag.getBagModel().put(t);
             }
-            this.SendUpdateBoardMessage(prevBoard, this.NickName);
-            String jsonChallengingYou = this.SendSucceededChallengeYouMessage(this.NickName, prevScore);
+            this.SendUpdateBoardMessage(board.parseCharacterArrayToString(toUpdateBoard), this.NickName);
+            String jsonChallengingYou = this.SendSucceededChallengeYouMessage(this.NickName, board.parseCharacterArrayToString(toUpdateBoard));
             try {
                 PrintWriter printWriter = new PrintWriter(this.currentSuccessMessageSocket.getOutputStream());
                 printWriter.println(jsonChallengingYou);

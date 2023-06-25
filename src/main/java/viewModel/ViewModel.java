@@ -18,6 +18,8 @@ public interface ViewModel {
     void updateTiles();
     void updatePlayerTurn();
     void challenge();
+    void updatePrev();
+    void updateScore();
 
     // getters
     ArrayList<Tile> getCurrentTiles();
@@ -27,4 +29,3 @@ public interface ViewModel {
     int getMyTurn();
     Observable getObservable();
 }
-

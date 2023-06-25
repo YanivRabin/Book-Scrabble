@@ -161,12 +161,20 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
 
         guest.SendChallengeMessage(sb.toString());
     }
+    @Override
+    public void updatePrev() {}
 
     // getters
     @Override
     public Tile[][] getBoard() {
 
         return gameBoard;
+    }
+
+    @Override
+    public void updateScore() {
+
+        scoreProperty.set(guest.player.getCurrentScore());
     }
     @Override
     public ArrayList<Tile> getCurrentTiles() {
