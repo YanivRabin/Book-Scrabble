@@ -37,8 +37,15 @@ public class Word {
 
         StringBuilder sb = new StringBuilder();
 
-        for (Tile tile : this.tiles)
-            sb.append(tile.letter);
+        for (Tile tile : this.tiles) {
+
+            if (tile == null) {
+                sb.append("_");
+            }
+            else {
+                sb.append(tile.letter);
+            }
+        }
 
         return sb.toString();
     }
