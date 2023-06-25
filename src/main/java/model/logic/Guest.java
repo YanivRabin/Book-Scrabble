@@ -97,16 +97,14 @@ public class Guest extends Observable{
             this.SendToHost(messageHandler.jsonHandler);
 //        }
     }
-    public void SendChallengeMessage(String source, String destination, String word,
-                                       int row, int column, boolean vertical){
+    public void SendChallengeMessage(String prevBoard){
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(this.SocketToHost.getInetAddress());
         stringBuilder.append(":");
         stringBuilder.append(this.SocketToHost.getLocalPort());
         String socketSource = stringBuilder.toString();
         MessageHandler messageHandler = new MessageHandler();
-        messageHandler.CreateChallengeMessage(source, destination, word, row, column,
-                vertical, this.player.getCurrentTiles(), socketSource);
+        messageHandler.CreateChallengeMessage(socketSource, prevBoard);
         this.SendToHost(messageHandler.jsonHandler);
     }
 
@@ -210,6 +208,17 @@ public class Guest extends Observable{
                         Thread.sleep(5000);
                         System.exit(0);
                         break;
+                    case "challenge alive":
+                        setChanged();
+                        notifyObservers("challenge alive");
+                        break;
+                    case "update prev to current":
+                        this.player.prevScore = this.player.currentScore;
+                        this.player.prevBoard = this.player.currentBoard;
+                        this.player.prevTiles = this.player.currentTiles;
+                        break;
+
+
                 }
 
             } catch (InterruptedException e) {

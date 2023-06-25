@@ -124,16 +124,6 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
         }
     }
     @Override
-    public void placeTile(Tile selectedTile, int row, int col) {
-
-//        gameBoard.placeTile(selectedTile, row, col);
-    }
-    @Override
-    public void removeTile(int row, int column) {
-
-//        gameBoard.removeTile(row,column);
-    }
-    @Override
     public void passTurn() {
 
         guest.sendPassTurnMessage();
@@ -149,18 +139,27 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
         }
     }
     @Override
-    public void updateBoard() {
-
-//        guest.sendUpdateBoardMessage();
-
-//        gameBoard = Board.getBoard();
-//        setChanged();
-//        notifyObservers("update board");
-    }
-    @Override
     public void updatePlayerTurn() {
         playerTurn = (playerTurn + 1) % players;
         System.out.println("Turn: " + playerTurn);
+    }
+    @Override
+    public void challenge() {
+
+        StringBuilder sb = new StringBuilder();
+
+        int rows = gameBoard.length;
+        int cols = gameBoard[0].length;
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                Tile tile = gameBoard[i][j];
+                sb.append(tile != null ? tile.letter : '.');
+            }
+            sb.append('\n');
+        }
+
+        guest.SendChallengeMessage(sb.toString());
     }
 
     // getters
@@ -217,5 +216,16 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
             notifyObservers("pass turn");
         }
 
+        if (message[0].equals("challenge fail")) {
+            System.out.println("guest viewModel observer update: challenge fail");
+            setChanged();
+            notifyObservers("challenge fail");
+        }
+
+        if (message[0].equals("challenge alive")) {
+            System.out.println("guest viewModel observer update: challenge alive");
+            setChanged();
+            notifyObservers("challenge alive");
+        }
     }
 }
