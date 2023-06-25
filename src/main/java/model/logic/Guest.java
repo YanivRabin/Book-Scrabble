@@ -147,6 +147,7 @@ public class Guest {
                         this.player = new Player(this.ipAddress, this.NickName, 0);
                         this.player.addTiles(json.get("StartTiles").getAsString());
                         this.player.hostNickName = json.get("Source").getAsString();
+                        this.player.playerIndex = json.get("PlayerIndex").getAsInt();
                         break;
                     case "success":
                         switch (json.get("Action").getAsString()) {
@@ -181,8 +182,8 @@ public class Guest {
                         this.player.currentTiles = this.player.prevTiles;
                         break;
                     case "update board":
-                        System.out.println(this.NickName + " updated Board");
                         this.player.setCurrentBoard(json.get("Board").getAsString());
+                        System.out.println(this.NickName + " updated Board");
                         break;
                 }
 

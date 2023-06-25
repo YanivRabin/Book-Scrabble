@@ -14,29 +14,14 @@ public class JsonHandler {
         json = new JsonObject();
     }
 
-    /**
-     * The addBoard function adds a board to the JSON object.
-     *
-     *
-     * @param Character[][] board Add the board to the json object
-     *
-     * @return A jsonobject
-     *
-     * @docauthor Trelent
-     */
-    /**
-     * The addBoard function adds a board to the JSON object.
-     *
-     *
-     * @param  board Add the board to the json object
-     *
-     * @return A json object with the board added to it
-     *
-     * @docauthor Trelent
-     */
-    public void addBoard(Character[][] board) {
+    /*public void addBoard(Character[][] board) {
         json.add("Board", new Gson().toJsonTree(board));
+    }*/
+
+    public void addBoard(String board) {
+        json.addProperty("Board", board);
     }
+
 
     /**
      * The addSource function adds a source to the JSONObject.
@@ -224,6 +209,10 @@ public class JsonHandler {
     public void addColumn(int column) {
         json.addProperty("Column", column);
     }
+    public void addPlayerIndex(int index) {
+        json.addProperty("PlayerIndex", index);
+    }
+
 
     /**
      * The addSocketDestination function adds a socket destination to the JSON object.

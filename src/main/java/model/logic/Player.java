@@ -7,6 +7,8 @@ import java.util.List;
 
 public class Player {
     String socketIP;
+
+    int playerIndex;
     String nickName;
 
 
@@ -106,6 +108,10 @@ public class Player {
      */
     public int getCurrentScore() {
         return currentScore;
+    }
+
+    public int getPlayerIndex() {
+        return playerIndex;
     }
 
     /**
@@ -224,11 +230,11 @@ public class Player {
      *
      * @docauthor Trelent
      */
-    public void setCurrentBoard(String currentBoard) {
+    /*public void setCurrentBoard(String currentBoard) {
         Gson gson = new Gson();
         Character[][] board = gson.fromJson(currentBoard, Character[][].class);
         this.currentBoard = board;
-    }
+    }*/
 
     /**
      * The getBoard function takes in a JSON string and returns the board as a 2D array of characters.
@@ -240,10 +246,8 @@ public class Player {
      *
      * @docauthor Trelent
      */
-    public Character[][] getBoard(String jsonValue) {
-        Gson gson = new Gson();
-        Character[][] board = gson.fromJson(jsonValue, Character[][].class);
-        return board;
+    public void setCurrentBoard(String jsonValue) {
+        this.currentBoard =  this.parseStringToCharacterArray(jsonValue);
     }
 
 
@@ -293,6 +297,23 @@ public class Player {
             }
         }
         return c == word.length() - counterNull;
+    }
+
+    public Character[][] parseStringToCharacterArray(String boardString) {
+        String[] rows = boardString.trim().split("\n");
+        int rowCount = rows.length;
+        int colCount = rows[0].length();
+
+        Character[][] characterBoard = new Character[rowCount][colCount];
+
+        for (int i = 0; i < rowCount; i++) {
+            for (int j = 0; j < colCount; j++) {
+                char tileChar = rows[i].charAt(j);
+                characterBoard[i][j] = (tileChar != '.') ? tileChar : null;
+            }
+        }
+
+        return characterBoard;
     }
 
 }
