@@ -9,16 +9,16 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane fx:id="anchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="790.0" prefWidth="952.0" style="-fx-background-color: #EDEADE;" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="view.BoardViewController">
+<AnchorPane fx:id="anchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="650.0" prefWidth="878.0" style="-fx-background-color: #EDEADE;" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="view.BoardViewController">
    <children>
-      <Button fx:id="EndTurn" layoutX="728.0" layoutY="717.0" mnemonicParsing="false" onAction="#EndTurnButtonClick" prefHeight="50.0" prefWidth="68.0" stylesheets="@../css/button.css" text="End Turn" />
-      <Button fx:id="EndGame" layoutX="862.0" layoutY="717.0" mnemonicParsing="false" onAction="#EndGameButtonClick" prefHeight="50.0" prefWidth="77.0" text="End Game" />
-      <Text layoutX="779.0" layoutY="60.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Score:" textAlignment="CENTER" wrappingWidth="91.00000000000011">
+      <Button fx:id="EndTurn" layoutX="703.0" layoutY="591.0" mnemonicParsing="false" onAction="#EndTurnButtonClick" prefHeight="50.0" prefWidth="68.0" stylesheets="@../css/button.css" text="End Turn" />
+      <Button fx:id="EndGame" layoutX="8.0" layoutY="161.0" mnemonicParsing="false" onAction="#EndGameButtonClick" prefHeight="50.0" prefWidth="77.0" text="End Game" />
+      <Text layoutX="713.0" layoutY="59.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Score:" textAlignment="CENTER" wrappingWidth="91.00000000000011">
          <font>
             <Font size="32.0" />
          </font>
       </Text>
-      <Text layoutX="10.0" layoutY="750.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Tiles:" textAlignment="CENTER" wrappingWidth="84.16746520996094">
+      <Text layoutX="10.0" layoutY="624.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Tiles:" textAlignment="CENTER" wrappingWidth="84.16746520996094">
          <font>
             <Font size="32.0" />
          </font>
@@ -47,7 +47,7 @@
             <Font size="14.0" />
          </font>
       </Text>
-      <AnchorPane id="tiles-container" fx:id="tilesContainer" layoutX="100.0" layoutY="710.0" prefHeight="63.0" prefWidth="391.0">
+      <AnchorPane id="tiles-container" fx:id="tilesContainer" layoutX="100.0" layoutY="584.0" prefHeight="63.0" prefWidth="391.0">
          <children>
             <Button layoutX="100.0" layoutY="7.0" mnemonicParsing="false" onAction="#handleTileButtonClick" prefHeight="50.0" prefWidth="40.0" />
             <Button layoutX="200.0" layoutY="7.0" mnemonicParsing="false" onAction="#handleTileButtonClick" prefHeight="50.0" prefWidth="40.0" />
@@ -59,19 +59,19 @@
             <Button layoutX="300.0" layoutY="7.0" mnemonicParsing="false" onAction="#handleTileButtonClick" prefHeight="50.0" prefWidth="40.0" />
          </children>
       </AnchorPane>
-      <Text fx:id="score" layoutX="870.0" layoutY="60.0" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" wrappingWidth="68.0">
+      <Text fx:id="score" layoutX="804.0" layoutY="59.0" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" wrappingWidth="68.0">
          <font>
             <Font size="32.0" />
          </font>
       </Text>
-      <Button fx:id="TryPlaceWord" layoutX="527.0" layoutY="717.0" mnemonicParsing="false" onAction="#TryPlaceWordButtonClick" prefHeight="50.0" prefWidth="99.0" text="Try place word" />
-      <Button fx:id="resetWord" layoutX="637.0" layoutY="717.0" mnemonicParsing="false" onAction="#resetTilesButtonClick" prefHeight="50.0" prefWidth="80.0" text="Reset word" />
-      <Text fx:id="message" fill="#720000" layoutX="138.0" layoutY="685.0" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" wrappingWidth="591.8666076660156">
+      <Button fx:id="TryPlaceWord" layoutX="502.0" layoutY="591.0" mnemonicParsing="false" onAction="#TryPlaceWordButtonClick" prefHeight="50.0" prefWidth="99.0" text="Try place word" />
+      <Button fx:id="resetWord" layoutX="612.0" layoutY="591.0" mnemonicParsing="false" onAction="#resetTilesButtonClick" prefHeight="50.0" prefWidth="80.0" text="Reset word" />
+      <Text fx:id="message" fill="#720000" layoutX="100.0" layoutY="566.0" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" wrappingWidth="600.733154296875">
          <font>
             <Font size="21.0" />
          </font>
       </Text>
-      <GridPane fx:id="boardGrid" alignment="CENTER" gridLinesVisible="true" layoutX="100.0" layoutY="30.0" prefHeight="606.0" prefWidth="668.0" style="-fx-background-color: #228B22;">
+      <GridPane fx:id="boardGrid" alignment="CENTER" gridLinesVisible="true" layoutX="100.0" layoutY="30.0" prefHeight="500.0" prefWidth="600.0" style="-fx-background-color: #228B22;">
          <columnConstraints>
             <ColumnConstraints percentWidth="6.66667" />
             <ColumnConstraints percentWidth="6.66667" />
@@ -311,6 +311,7 @@
             <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="12" GridPane.rowIndex="4" />
             <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="12" GridPane.rowIndex="3" />
             <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="12" GridPane.rowIndex="1" />
+            <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="13" GridPane.rowIndex="0" />
             <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="13" GridPane.rowIndex="2" />
             <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="13" GridPane.rowIndex="3" />
             <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="13" GridPane.rowIndex="4" />
@@ -334,5 +335,6 @@
 
                </children>
       </GridPane>
+      <Button fx:id="challenge" layoutX="781.0" layoutY="591.0" mnemonicParsing="false" onAction="#challengeButtonClick" prefHeight="50.0" prefWidth="84.0" stylesheets="@../css/button.css" text="Challenge" />
    </children>
 </AnchorPane>

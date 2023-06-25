@@ -64,8 +64,10 @@ public class Player {
         this.socketIP = socketIP;
         this.nickName = nickName;
         this.currentScore = score;
+        this.prevScore = score;
         this.currentTiles = new ArrayList<>();
         this.currentBoard = new Character[15][15];
+        this.prevBoard = new Character[15][15];
     }
 
     /**

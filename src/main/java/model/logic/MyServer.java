@@ -173,7 +173,6 @@ public class MyServer {
                 System.out.println(jsonString);
                 JsonObject json = JsonHandler.convertStringToJsonObject(jsonString);
                 Socket currentHost = getSocket(json.get("SocketSource").getAsString());
-//                this.clientHandler.handleClient(currentHost.getInputStream(),currentHost.getOutputStream());
                 this.clientHandler.handleClient(new ByteArrayInputStream(jsonString.getBytes()),currentHost.getOutputStream());
 
             } catch (InterruptedException e) {
@@ -190,7 +189,7 @@ public class MyServer {
         String ipSource = socketSplited[0].split("/")[1];
         String portSource = socketSplited[1];
         for(Socket s : this.HostsList){
-            if (Objects.equals(s.getInetAddress().toString().substring(1), ipSource) && s.getPort() == Integer.parseInt(portSource)){
+            if (s.getPort() == Integer.parseInt(portSource)){
                 return s;
             }
         }
