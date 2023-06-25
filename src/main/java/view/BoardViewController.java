@@ -1,5 +1,6 @@
 package view;
 
+import javafx.beans.binding.Bindings;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -12,23 +13,25 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.util.Pair;
 import model.data.Tile;
 import model.data.Word;
-import model.data.Board;
-
+import viewModel.VM_Guest;
+import viewModel.VM_Host;
+import viewModel.ViewModel;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.ResourceBundle;
+import java.util.*;
 
-public class BoardViewController implements Initializable {
+public class BoardViewController implements Initializable, Observer {
 
-    Board gameBoard;
+    ViewModel viewModel;
 
-    ArrayList<Tile> currentTiles;       // the tiles in the hand
-    ArrayList<Button> usedButtons;      // the tiles button that used during turn
+    Tile[][] gameBoard;
+
+    ArrayList<Tile> currentTiles;  // the tiles in the hand
+    ArrayList<Button> usedButtons; // the tiles button that used during turn
 
     Pair<Integer, Integer>[] positions; // the used tiles positions
     int positionsIndex;                 // an index to put in the position array, also for checking
@@ -42,37 +45,67 @@ public class BoardViewController implements Initializable {
     private GridPane boardGrid;
 
     @FXML
-    private Text score;
+    private Text score, message;
 
     @FXML
-    private AnchorPane tilesContainer;
+    private AnchorPane tilesContainer, anchorPane;
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
+    @FXML
+    private Button EndTurn, resetWord, TryPlaceWord;
 
-        gameBoard = new Board();
+    public void setViewModel(ViewModel vm) {
 
+        viewModel = vm;
+        viewModel.getObservable().addObserver(this); // board controller observe viewModel
+
+        System.out.println("Player: " + vm.getName());
+        viewModel.startGame();
+
+        // bind the score text to the score property
+        score.textProperty().bind(viewModel.scoreProperty().asString());
+
+        // get the game board
+        gameBoard = viewModel.getBoard();
+
+        // init tile for hand
         currentTiles = new ArrayList<>();
+        currentTiles = viewModel.getCurrentTiles();
+        updateHand();
+
+        // enable all buttons
         blockingTiles = false;
-        score.setText("0");
         usedButtons = new ArrayList<>();
+
+        // create positions array for later
         positions = new Pair[8];
         positionsIndex = 0;
 
-        generateHand(8);
+        if (viewModel instanceof VM_Guest) {
+
+            message.setText("");
+
+            // disable all
+            disableButtons();
+            TryPlaceWord.setDisable(true);
+            resetWord.setDisable(true);
+            EndTurn.setDisable(true);
+        }
+        else {
+            message.setText("First word must be placed on the purple square");
+        }
     }
 
-    public void generateHand(int num) {
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+    }
 
-        for (int i = 0; i < num; i++)
-            currentTiles.add(Tile.Bag.getBagModel().getRand());
+    public void updateHand() {
 
         ObservableList<Node> children = tilesContainer.getChildren();
 
         int tileIndex = 0;
         for (Node child : children) {
-            if (child instanceof Button) {
-                Button button = (Button) child;
+            if (child instanceof Button button) {
                 Tile tile = currentTiles.get(tileIndex);
 
                 button.setText(String.valueOf(tile.letter));
@@ -85,9 +118,6 @@ public class BoardViewController implements Initializable {
         }
     }
 
-
-
-    // Define additional methods and event handlers as needed
     @FXML
     public void handleTileButtonClick(ActionEvent event) {
 
@@ -117,7 +147,6 @@ public class BoardViewController implements Initializable {
         }
     }
 
-    // Example method to handle pane click
     @FXML
     public void handlePaneClick(MouseEvent event) {
 
@@ -127,18 +156,20 @@ public class BoardViewController implements Initializable {
         Integer columnIndex = GridPane.getColumnIndex(clickedPane);
 
         // Perform actions based on the row and column
-        int row = rowIndex.intValue();
-        int column = columnIndex.intValue();
+        int row = rowIndex;
+        int column = columnIndex;
         System.out.println("Clicked pane at row: " + row + ", column: " + column);
 
         // check to see if a tile was selected
         if (blockingTiles && selectedTile != null) {
 
             // check if there is no tile
-            if (gameBoard.getTiles()[row][column] == null) {
+            if (gameBoard[row][column] == null) {
 
-                gameBoard.placeTile(selectedTile, row, column);
+                // place a tile on board
+                viewModel.placeTile(selectedTile, row, column);
 
+                // place only letter
                 Label letter = new Label(String.valueOf(selectedTile.letter));
                 letter.setAlignment(Pos.CENTER);
                 // Set font size, weight and color of the letter
@@ -154,8 +185,7 @@ public class BoardViewController implements Initializable {
                 // Enable all other tile buttons
                 enableButtons();
                 for (Node child : tilesContainer.getChildren()) {
-                    if (child instanceof Button && child.equals(clickedButton)) {
-                        Button button = (Button) child;
+                    if (child instanceof Button button && child.equals(clickedButton)) {
                         button.setDisable(true);
                     }
                 }
@@ -175,10 +205,12 @@ public class BoardViewController implements Initializable {
 
         // remove the tiles from original board
         for (Pair<Integer, Integer> pair: positions) {
+
             if (pair != null) {
+
                 int row = pair.getKey();
                 int column = pair.getValue();
-                gameBoard.removeTile(row, column);
+                viewModel.removeTile(row,column);
             }
             else {
                 break;
@@ -223,12 +255,10 @@ public class BoardViewController implements Initializable {
         return false;
     }
 
-
-
     public void TryPlaceWordButtonClick() {
 
         ArrayList<Tile> tilesForWord = new ArrayList<>();
-        Tile[][] gameBoardTiles = gameBoard.getTiles();
+        Tile[][] gameBoardTiles = gameBoard;
 
         int startRow = 0;
         int startCol = 0;
@@ -241,28 +271,68 @@ public class BoardViewController implements Initializable {
             startRow = positions[0].getKey();
             startCol = positions[0].getValue();
 
-            // check vertical
-            if (gameBoardTiles[startRow - 1][startCol] != null || gameBoardTiles[startRow + 1][startCol] != null) {
 
-                vertical = true;
-                oneTileCheck = true;
+            if (startRow == 14) {
+
+                // check vertical
+                if (gameBoardTiles[startRow - 1][startCol] != null) {
+
+                    vertical = true;
+                    oneTileCheck = true;
+                }
+            }
+            else if (startRow == 0) {
+
+                if (gameBoardTiles[startRow + 1][startCol] != null) {
+
+                    vertical = true;
+                    oneTileCheck = true;
+                }
+            }
+            else {
+
+                if (gameBoardTiles[startRow - 1][startCol] != null || gameBoardTiles[startRow + 1][startCol] != null) {
+
+                    vertical = true;
+                    oneTileCheck = true;
+                }
             }
 
-            // check not vertical
-            if (gameBoardTiles[startRow][startCol - 1] != null || gameBoardTiles[startRow][startCol + 1] != null) {
+            if (startCol == 14) {
 
-                vertical = false;
-                oneTileCheck = true;
+                if (gameBoardTiles[startRow][startCol - 1] != null) {
+
+                    vertical = false;
+                    oneTileCheck = true;
+                }
             }
+            else if (startCol == 0) {
+
+                if (gameBoardTiles[startRow][startCol + 1] != null) {
+
+                    vertical = false;
+                    oneTileCheck = true;
+                }
+            }
+            else {
+
+                // check not vertical
+                if (gameBoardTiles[startRow][startCol - 1] != null || gameBoardTiles[startRow][startCol + 1] != null) {
+
+                    vertical = false;
+                    oneTileCheck = true;
+                }
+            }
+
 
             if (!oneTileCheck) {
 
-                System.out.println("not legal");
+                System.out.println("Word must contain 2 tiles or more");
+                message.setText("Word must contain 2 tiles or more");
                 resetTilesButtonClick();
                 return;
             }
         }
-
         if (positionsIndex > 1 || oneTileCheck) {
 
             if (!oneTileCheck) {
@@ -272,7 +342,6 @@ public class BoardViewController implements Initializable {
                 if (positions[0].getKey().intValue() == positions[1].getKey().intValue()) {
 
                     System.out.println("not vertical");
-                    vertical = false;
                     startRow = positions[0].getKey();
                     startCol = positions[0].getValue();
 
@@ -280,7 +349,7 @@ public class BoardViewController implements Initializable {
 
                         if (positions[i].getKey().intValue() != positions[i + 1].getKey().intValue()) {
                             System.out.println("Word placed incorrect");
-                            // not really need action event ( maybe later in the code )
+                            message.setText("Word placed incorrect");
                             resetTilesButtonClick();
                             return;
                         }
@@ -303,7 +372,7 @@ public class BoardViewController implements Initializable {
 
                         if (positions[i].getValue().intValue() != positions[i + 1].getValue().intValue()) {
                             System.out.println("Word placed incorrect");
-                            // not really need action event ( maybe later in the code )
+                            message.setText("Word placed incorrect");
                             resetTilesButtonClick();
                             return;
                         }
@@ -318,11 +387,10 @@ public class BoardViewController implements Initializable {
 
             // check if there is null tiles that are still part of the word
             // and place tiles in word by order
-            int i;
+            int i = 1;
             if (vertical) {
 
                 // checking if there are tiles before
-                i = 1;
                 while ((startRow - i) >= 0) {
 
                     if (gameBoardTiles[startRow - i][startCol] != null) {
@@ -334,14 +402,28 @@ public class BoardViewController implements Initializable {
                 }
 
                 // add the first tile to the array
-                tilesForWord.add(gameBoardTiles[startRow][startCol]);
+                if (isTilePlacedDuringTurn(startRow, startCol)) {
+
+                    tilesForWord.add(gameBoardTiles[startRow][startCol]);
+                }
+                else {
+
+                    tilesForWord.add(null);
+                }
 
                 // checking if there are tiles after start to add to array
                 while ((startRow + i) <= 14) {
 
                     if (gameBoardTiles[startRow + i][startCol] != null) {
 
-                        tilesForWord.add(gameBoardTiles[startRow + i][startCol]);
+                        if (isTilePlacedDuringTurn(startRow + i, startCol)) {
+
+                            tilesForWord.add(gameBoardTiles[startRow + i][startCol]);
+                        }
+                        else {
+
+                            tilesForWord.add(null);
+                        }
                         i++;
                     }
                     else { break; }
@@ -351,7 +433,6 @@ public class BoardViewController implements Initializable {
             else {
 
                 // checking if there are tiles before
-                i = 1;
                 while ((startCol - i) >= 0) {
 
                     if (gameBoardTiles[startRow][startCol - i] != null) {
@@ -363,14 +444,29 @@ public class BoardViewController implements Initializable {
                 }
 
                 // add the first tile to the array
-                tilesForWord.add(gameBoardTiles[startRow][startCol]);
+                if (isTilePlacedDuringTurn(startRow, startCol)) {
+
+                    tilesForWord.add(gameBoardTiles[startRow][startCol]);
+                }
+                else {
+
+                    tilesForWord.add(null);
+                }
 
                 // checking if there are tiles after start to add to array
                 while ((startCol + i) <= 14) {
 
                     if (gameBoardTiles[startRow][startCol + i] != null) {
 
-                        tilesForWord.add(gameBoardTiles[startRow][startCol + i]);
+                        // add the first tile to the array
+                        if (isTilePlacedDuringTurn(startRow, startCol + i)) {
+
+                            tilesForWord.add(gameBoardTiles[startRow][startCol + i]);
+                        }
+                        else {
+
+                            tilesForWord.add(null);
+                        }
                         i++;
                     }
                     else { break; }
@@ -380,6 +476,7 @@ public class BoardViewController implements Initializable {
         else {
 
             System.out.println("Word must contain 2 tiles or more");
+            message.setText("Word must contain 2 tiles or more");
             return;
         }
 
@@ -388,25 +485,31 @@ public class BoardViewController implements Initializable {
         for (int i = 0; i < tilesArray.length; i++) {
             tilesArray[i] = tilesForWord.get(i);
         }
+        System.out.println();
 
         // build word from tiles
         Word word = new Word(tilesArray, startRow, startCol, vertical);
         System.out.println("Word: " + word + ", At: [" + word.getRow() + "," + word.getCol() + "], Vertical: " + word.isVertical());
+
         // if word legal pass turn else call reset button
-        int wordScore = gameBoard.tryPlaceWord(word);
+        int wordScore = viewModel.tryPlaceWord(word);
         if (wordScore > 0) {
+
+            // success
             System.out.println("Score: " + wordScore);
             successPlaceWord(word);
-            // update the score in the gui
-            score.setText(String.valueOf(Integer.parseInt(score.getText()) + wordScore));
+            message.setText("");
+
+            // pass turn to next player
+            viewModel.passTurn();
         }
         else {
 
             System.out.println("Word not legal");
+            message.setText("Word not legal");
             resetTilesButtonClick();
         }
     }
-
 
     public void resetPositionsArray() {
 
@@ -419,8 +522,7 @@ public class BoardViewController implements Initializable {
 
         blockingTiles = false;
         for (Node child : tilesContainer.getChildren()) {
-            if (child instanceof Button && !child.equals(clickedButton) && !usedButtons.contains(child)) {
-                Button button = (Button) child;
+            if (child instanceof Button button && !child.equals(clickedButton) && !usedButtons.contains(child)) {
                 button.setDisable(false);
             }
         }
@@ -430,8 +532,7 @@ public class BoardViewController implements Initializable {
 
         blockingTiles = true;
         for (Node child : tilesContainer.getChildren()) {
-            if (child instanceof Button && !child.equals(clickedButton)) {
-                Button button = (Button) child;
+            if (child instanceof Button button && !child.equals(clickedButton)) {
                 button.setDisable(true);
             }
         }
@@ -439,36 +540,79 @@ public class BoardViewController implements Initializable {
 
     public void successPlaceWord(Word word) {
 
-        // remove the used tiles
-        for (Tile tile : word.getTiles()) {
+        // get the new tiles
+        viewModel.updateTiles();
+        updateHand();
 
-            currentTiles.remove(tile);
-        }
-        generateHand(8 - currentTiles.size());
+        // reset all helpers for a new turn
         resetPositionsArray();
         usedButtons.clear();
         clickedButton = null;
         enableButtons();
+
+        // send updated board to everyone
+        viewModel.updateBoard();
     }
 
     public void EndTurnButtonClick() {
 
         // check if the player didn't put tiles and then pressed end turn
         resetTilesButtonClick();
-
-        // implement function to pass turn to the next player
-        // if your turn then enable tiles
-        // if not your turn then disable tiles
-
-
-        // replace all the tiles ( only for testing with one player )
-        currentTiles.clear();
-        generateHand(8);
+        viewModel.passTurn();
     }
 
     public void EndGameButtonClick() {
 
         //call resetPositionsArray();
         System.out.println("End Game Clicked");
+    }
+
+    @Override
+    public void update(Observable o, Object arg) {
+
+        if (o instanceof ViewModel vm) {
+
+            if (arg.equals("pass turn")) {
+                System.out.println("board observer update: pass turn");
+                // update player turn for each player
+                vm.updatePlayerTurn();
+                // Check if it's this player's turn
+                if (vm.getCurrentPlayer() == viewModel.getMyTurn()) {
+                    // enable all
+                    message.setText("Your turn!");
+                    enableButtons();
+                    TryPlaceWord.setDisable(false);
+                    resetWord.setDisable(false);
+                    EndTurn.setDisable(false);
+                }
+                else {
+                    // disable all
+                    message.setText("");
+                    disableButtons();
+                    TryPlaceWord.setDisable(true);
+                    resetWord.setDisable(true);
+                    EndTurn.setDisable(true);
+                }
+            }
+
+            if (arg.equals("update board")) {
+                System.out.println("board observer update: update board");
+                for (int row = 0; row < 15; row++) {
+                    for (int col = 0; col < 15; col++) {
+                        if (!boardGrid.contains(row,col) && gameBoard[row][col] != null) {
+                            // place only letter
+                            Label letter = new Label(String.valueOf(gameBoard[row][col].letter));
+                            letter.setAlignment(Pos.CENTER);
+                            // Set font size, weight and color of the letter
+                            letter.setStyle("-fx-font-size: 30; -fx-font-weight: bold; -fx-text-fill: white;");
+                            // Set layout constraints to center the label within the pane
+                            letter.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+                            // adding the letter to the board
+                            boardGrid.add(letter, col, row);
+                        }
+                    }
+                }
+            }
+        }
     }
 }

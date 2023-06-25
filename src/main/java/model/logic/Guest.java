@@ -7,14 +7,13 @@ import model.data.Word;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Observable;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class Guest {
+public class Guest extends Observable{
     //Logic Members
     private Socket SocketToHost;
     private BufferedReader reader;
@@ -83,10 +82,10 @@ public class Guest {
     public void SendTryPlaceWordMessage(String source, String destination, String word,
                                           int row, int column, boolean vertical){
         System.out.println(this.player.getNickName()+": try place word");
-        if(!this.player.usingCurrentTiles(word)){
-            System.out.println("You are not using your tiles");
-        }
-        else{
+//        if(!this.player.usingCurrentTiles(word)){
+//            System.out.println("You are not using your tiles");
+//        }
+//        else{
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append(this.SocketToHost.getInetAddress());
             stringBuilder.append(":");
@@ -96,7 +95,7 @@ public class Guest {
             messageHandler.CreateTryPlaceWordMessage(source, destination, word, this.player.prevScore,row, column,
                     vertical, this.player.getCurrentTiles(), socketSource);
             this.SendToHost(messageHandler.jsonHandler);
-        }
+//        }
     }
     public void SendChallengeMessage(String source, String destination, String word,
                                        int row, int column, boolean vertical){
@@ -108,6 +107,17 @@ public class Guest {
         MessageHandler messageHandler = new MessageHandler();
         messageHandler.CreateChallengeMessage(source, destination, word, row, column,
                 vertical, this.player.getCurrentTiles(), socketSource);
+        this.SendToHost(messageHandler.jsonHandler);
+    }
+
+    public void sendPassTurnMessage() {
+
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(this.SocketToHost.getInetAddress());
+        stringBuilder.append(":");
+        stringBuilder.append(this.SocketToHost.getLocalPort());
+        MessageHandler messageHandler = new MessageHandler();
+        messageHandler.createPassTurnMessage();
         this.SendToHost(messageHandler.jsonHandler);
     }
 
@@ -143,11 +153,17 @@ public class Guest {
                 System.out.println(jsonString);
                 JsonObject json = JsonHandler.convertStringToJsonObject(jsonString);
                 switch (json.get("MessageType").getAsString()){
+                    case "pass turn":
+                        setChanged();
+                        notifyObservers("pass turn");
+                        break;
                     case "start game":
                         this.player = new Player(this.ipAddress, this.NickName, 0);
                         this.player.addTiles(json.get("StartTiles").getAsString());
                         this.player.hostNickName = json.get("Source").getAsString();
                         this.player.playerIndex = json.get("PlayerIndex").getAsInt();
+                        setChanged();
+                        notifyObservers("start game," + this.player.getHostNickName());
                         break;
                     case "success":
                         switch (json.get("Action").getAsString()) {
@@ -180,9 +196,13 @@ public class Guest {
                         this.player.prevScore = json.get("PrevScore").getAsInt();
                         this.player.currentBoard = this.player.prevBoard;
                         this.player.currentTiles = this.player.prevTiles;
+                        setChanged();
+                        notifyObservers("challenge success");
                         break;
                     case "update board":
                         this.player.setCurrentBoard(json.get("Board").getAsString());
+                        setChanged();
+                        notifyObservers("update board");
                         System.out.println(this.NickName + " updated Board");
                         break;
                 }

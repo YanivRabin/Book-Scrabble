@@ -1,7 +1,6 @@
 package viewModel;
 
 import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ListProperty;
 import model.data.Tile;
 import model.data.Word;
 import java.util.ArrayList;
