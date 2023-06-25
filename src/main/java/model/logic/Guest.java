@@ -9,12 +9,14 @@ import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observable;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class Guest {
+public class Guest extends Observable {
+
     //Logic Members
     private Socket SocketToHost;
     private BufferedReader reader;
@@ -23,7 +25,6 @@ public class Guest {
     Host HostServer; // The Host this Guest connected to
     static ExecutorService executorService = Executors.newFixedThreadPool(8); // only for one host
     BlockingQueue<String> inputQueue = new LinkedBlockingQueue<>();
-
 
     //Data-Game Members
     public Player player;
@@ -79,24 +80,36 @@ public class Guest {
     }
 
     // create all options Messages
-    public void SendTryPlaceWordMessage(String source, String destination, String word,
-                                          int row, int column, boolean vertical){
-        System.out.println(this.player.getNickName()+": try place word");
-        if(!this.player.usingCurrentTiles(word)){
-            System.out.println("You are not using your tiles");
-        }
-        else{
+    public void SendTryPlaceWordMessage(String source, String destination, String word, int row, int column, boolean vertical) {
+
+        System.out.println(this.player.getNickName() + ": try place word");
+
+//        if(!this.player.usingCurrentTiles(word)){
+//            System.out.println("You are not using your tiles");
+//        }
+//        else{
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append(this.SocketToHost.getInetAddress());
             stringBuilder.append(":");
             stringBuilder.append(this.SocketToHost.getLocalPort());
             String socketSource = stringBuilder.toString();
             MessageHandler messageHandler = new MessageHandler();
-            messageHandler.CreateTryPlaceWordMessage(source, destination, word, row, column,
-                    vertical, this.player.getCurrentTiles(), socketSource);
+            messageHandler.CreateTryPlaceWordMessage(source, destination, word, row, column, vertical, this.player.getCurrentTiles(), socketSource);
             this.SendToHost(messageHandler.jsonHandler);
-        }
+//        }
     }
+
+    public void sendPassTurnMessage() {
+
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(this.SocketToHost.getInetAddress());
+        stringBuilder.append(":");
+        stringBuilder.append(this.SocketToHost.getLocalPort());
+        MessageHandler messageHandler = new MessageHandler();
+        messageHandler.createPassTurnMessage();
+        this.SendToHost(messageHandler.jsonHandler);
+    }
+
     public void SendChallengeMessage(String source, String destination, String word,
                                        int row, int column, boolean vertical){
         StringBuilder stringBuilder = new StringBuilder();
@@ -117,6 +130,7 @@ public class Guest {
 
     // option d in {}
     public void handleHost(InputStream inputStream, OutputStream outputStream) {
+
         while (!this.SocketToHost.isClosed()) {
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
             try {
@@ -136,57 +150,77 @@ public class Guest {
     }
 
     public void handleRequests() {
+
         while (!this.SocketToHost.isClosed()) {
             try {
                 String jsonString = inputQueue.take(); //blocking call
                 System.out.println(jsonString);
                 JsonObject json = JsonHandler.convertStringToJsonObject(jsonString);
-                switch (json.get("MessageType").getAsString()){
+
+                switch (json.get("MessageType").getAsString()) {
+
+                    case "pass turn":
+                        setChanged();
+                        notifyObservers("pass turn");
+                        break;
+
                     case "start game":
                         this.player = new Player(this.ipAddress, this.NickName, 0);
+                        this.player.hostNickName = json.get("Source").getAsString();
                         this.player.addTiles(json.get("StartTiles").getAsString());
+                        setChanged();
+                        notifyObservers("start game," + this.player.getHostNickName());
                         break;
+
                     case "success":
+
                         switch (json.get("Action").getAsString()) {
+
                             case "try place word":
                                 System.out.println(this.NickName + "Try Place Word: " + "Success");
                                 this.player.addScore(Integer.parseInt(json.get("NewScore").getAsString()));
                                 this.player.prevScore = this.player.currentScore;
                                 this.player.setCurrentTiles(json.get("NewCurrentTiles").getAsString());
-                                // board change in Host.notifyall
                                 break;
+
                             case "challenge":
                                 System.out.println(this.NickName + "Challenge: " + "Success");
-                                // score don't change
-                                // board change in Host.notifyall
                                 break;
                         }
                         break;
+
                     case "try again":
-                        switch (json.get("Action").getAsString()){
+
+                        switch (json.get("Action").getAsString()) {
+
                             case "try place word":
                                 System.out.println(this.NickName + "Try Place Word: "+ "Didn't success, try again");
                                 break;
+
                             case "challenge":
                                 System.out.println(this.NickName + "Challenge: "+ "Didn't success, try again");
                                 break;
                         }
                         break;
+
                     case "succeeded in challenging you":
                         System.out.println(this.NickName + ": i have been complicated");
                         this.player.currentScore = this.player.prevScore;
                         this.player.currentBoard = this.player.prevBoard;
                         this.player.currentTiles = this.player.prevTiles;
+                        setChanged();
+                        notifyObservers("challenge success");
                         break;
+
                     case "update board":
                         System.out.println(this.NickName + " updated Board");
                         this.player.setCurrentBoard(json.get("Board").getAsString());
+                        setChanged();
+                        notifyObservers("update board");
                         break;
                 }
-
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
             }
+            catch (InterruptedException e) { throw new RuntimeException(e); }
         }
     }
 

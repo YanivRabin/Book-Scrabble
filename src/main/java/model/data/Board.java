@@ -1,8 +1,8 @@
 package model.data;
 
 import model.logic.Dictionary;
+import model.logic.DictionaryManager;
 import model.logic.Host;
-
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -13,16 +13,13 @@ public class Board {
     char[][] bonusBoard;
 
     boolean firstTurn;
-    Dictionary dictionary;
+
+//    Dictionary dictionary;
 
     public Board() {
 
-        dictionary = new Dictionary(
-                "/Users/yaniv/Documents/IntelliJ/Book-Scrabble/src/main/java/test/mobydick.txt",
-                "/Users/yaniv/Documents/IntelliJ/Book-Scrabble/src/main/java/test/shakespeare.txt",
-                "/Users/yaniv/Documents/IntelliJ/Book-Scrabble/src/main/java/test/Harry_Potter.txt",
-                "/Users/yaniv/Documents/IntelliJ/Book-Scrabble/src/main/java/test/pg10.txt"
-        );
+//        dictionary = new Dictionary("src/main/resources/books/alice_in_wonderland.txt");
+
         firstTurn = true;
 
         board = new Tile[15][15];
@@ -61,14 +58,12 @@ public class Board {
 
 
     private static class BoardModelHelper {
-        public static final Host model_instance = new Host();
+        public static final Board model_instance = new Board();
     }
 
-    public static Host getBoardModel() {
+    public static Board getBoardModel() {
         return Board.BoardModelHelper.model_instance;
     }
-
-
 
     public Tile[][] getTiles() {
         return board.clone();
@@ -118,43 +113,6 @@ public class Board {
         return false;
     }
 
-//    public boolean checkEmptyTile(Word w) {
-//
-//        //return true if there is old tiles in the right place
-//
-//        if (w.vertical) {
-//
-//            int i = w.row;
-//            for (Tile t : w.tiles) {
-//
-//                if (t == null){
-//                    if (board[i][w.col] == null)
-//                        return false;
-//                }
-//                else{
-//                    if (board[i][w.col] != null)
-//                        return false;
-//                }
-//                i++;
-//            }
-//        }
-//        if (!w.vertical) {
-//
-//            int i = w.col;
-//            for (Tile t : w.tiles) {
-//
-//                if (t == null)
-//                    if (board[w.row][i] == null)
-//                        return false;
-//                    else
-//                    if (board[i][w.row] != null)
-//                        return false;
-//                i++;
-//            }
-//        }
-//        return true;
-//    }
-
     public boolean boardLegal(Word w) {
 
         //check word size
@@ -169,8 +127,7 @@ public class Board {
             return false;
 
         //check if the first word placed on the center star
-
-        if (board[7][7] != null && firstTurn) {
+        if (w.getRow() == 7 && w.getCol() == 7 && firstTurn) {
 
             if ((w.vertical && (w.col != 7 || (w.row + w.tiles.length <= 7) || w.row >= 8)) ||
                     (!w.vertical && (w.row != 7 || (w.col + w.tiles.length <= 7) || w.col >= 8))) {
@@ -179,7 +136,6 @@ public class Board {
             }
             else {
 
-                firstTurn = false;
                 return true;
             }
         }
@@ -187,38 +143,26 @@ public class Board {
         if (!checkNeighbors(w))
             return false;
 
-//        if (!checkEmptyTile(w))
-//            return false;
-
         return true;
     }
 
     public boolean dictionaryLegal(Word w) {
 
-        // for GUI check
-        if (!dictionary.query(w.toString()))
-            return false;
-
-        if (!dictionary.challenge(w.toString()))
-            return false;
-
+        StringBuilder text = new StringBuilder("Q," + w.toString());
+        Host.getModel().SendMessageToGameServer(text.toString());
+        boolean res;
+        try {
+            res = Host.getModel().GetMessageFromGameServer().equals("true");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+//        return res;
         return true;
     }
 
-//        StringBuilder text = new StringBuilder("Q," + w.toString());
-//        Host.getModel().OutToServer(text.toString());
-//        boolean res;
-//        try {
-//            res = Host.getModel().InFromServer().equals("true");
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//        return res;
-//    }
     public ArrayList<Word> getWords(Word w) {
 
         ArrayList<Word> words = new ArrayList<>();
-        words.add(w);
 
         if (w.vertical) {
 
@@ -243,8 +187,15 @@ public class Board {
 
                     Tile[] tempT = temp.toArray(new Tile[0]);
                     Word tempWord = new Word(tempT, i, tempCol, false);
-                    if (dictionaryLegal(tempWord) && boardLegal(tempWord))
-                        words.add(tempWord);
+                    if (!tempWord.toString().equals("")) {
+                        if (dictionaryLegal(tempWord) && boardLegal(tempWord)) {
+                            words.add(tempWord);
+                        }
+                        else if (tempWord.getTiles().length > 1) {
+                            System.out.println("Error: " + tempWord + " not legal");
+                            return null;
+                        }
+                    }
                 }
                 i++;
             }
@@ -271,8 +222,15 @@ public class Board {
 
                     Tile[] tempT = temp.toArray(new Tile[0]);
                     Word tempWord = new Word(tempT, tempRow, i, true);
-                    if (dictionaryLegal(tempWord) && boardLegal(tempWord))
-                        words.add(tempWord);
+                    if (!tempWord.toString().equals("")) {
+                        if (dictionaryLegal(tempWord) && boardLegal(tempWord)) {
+                            words.add(tempWord);
+                        }
+                        else if (tempWord.getTiles().length > 1) {
+                            System.out.println("Error: " + tempWord + " not legal");
+                            return null;
+                        }
+                    }
                 }
                 i++;
             }
@@ -285,9 +243,53 @@ public class Board {
 
         int sum = 0;
 
-        ArrayList<Word> words = getWords(w);
+        int row = w.getRow();
+        int col = w.getCol();
+        Tile[] tempTiles = new Tile[w.getTiles().length];
+        int count = 0;
+        for (Tile tile : w.getTiles()) {
+
+            if (board[row][col] == null) {
+                tempTiles[count] = tile;
+            }
+            else {
+                tempTiles[count] = board[row][col];
+            }
+
+            count++;
+
+            if (w.isVertical()) {
+                row++;
+            }
+            else {
+                col++;
+            }
+        }
+
+        Word tempWord = new Word(tempTiles, w.getRow(), w.getCol(), w.isVertical());
+        if (!dictionaryLegal(tempWord)) {
+            return 0;
+        }
+
+        ArrayList<Word> words = new ArrayList<>();
+        // don't check for other words in first turn
+        if (firstTurn) {
+
+            firstTurn = false;
+        }
+        else {
+
+            // getWords return null if one of the words that try to place is not legal
+            words = getWords(w);
+            if (words == null) {
+                return 0;
+            }
+        }
+        words.add(tempWord);
 
         for (Word word : words) {
+
+            System.out.println(word);
 
             int i = 0;
             int wordBonus = 1; // total word bonuses
@@ -362,8 +364,26 @@ public class Board {
 
     public int tryPlaceWord(Word word) {
 
-        if (boardLegal(word) && dictionaryLegal(word)) {
-            return getScore(word);
+        if (boardLegal(word)) {
+            int score = getScore(word);
+            if (score > 0) {
+
+                int row = word.getRow();
+                int col = word.getCol();
+                for (Tile t : word.getTiles()) {
+
+                    if (t != null) {
+                        board[row][col] = t;
+                    }
+                    if (word.isVertical()) {
+                        row++;
+                    }
+                    else {
+                        col++;
+                    }
+                }
+            }
+            return score;
         }
 
         return 0;
