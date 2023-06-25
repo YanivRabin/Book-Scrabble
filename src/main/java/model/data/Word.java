@@ -32,13 +32,31 @@ public class Word {
         return vertical == word.vertical && row == word.row && col == word.col && Arrays.equals(tiles, word.tiles);
     }
 
-    @Override
+    /*@Override
     public String toString() {
 
         StringBuilder sb = new StringBuilder();
 
         for (Tile tile : this.tiles)
             sb.append(tile.letter);
+
+        return sb.toString();
+    }
+*/
+    @Override
+    public String toString() {
+
+        StringBuilder sb = new StringBuilder();
+
+        for (Tile tile : this.tiles) {
+
+            if (tile == null) {
+                sb.append("_");
+            }
+            else {
+                sb.append(tile.letter);
+            }
+        }
 
         return sb.toString();
     }

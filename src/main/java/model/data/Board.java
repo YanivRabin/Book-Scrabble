@@ -519,11 +519,6 @@ public class Board {
         String jsonString = Host.getModel().CreateMessageToGameServer(text.toString(),socketSource);
         Host.getModel().SendMessageToGameServer(jsonString);
         boolean res = false;
-//        Future<String> future = Host.getModel().stringFuture;
-//        future = Host.getModel().getStringFuture();
-        //            res = Host.getModel().GetMessageFromGameServer().equals("true");
-
-
         try {
             res = Boolean.parseBoolean(Host.getModel().inputQueueFromGameServer.take());
         } catch (InterruptedException e) {
@@ -734,15 +729,6 @@ public class Board {
         return sum;
     }
 
-    /*public int tryPlaceWord(Word word) {
-
-//        if (boardLegal(word) && dictionaryLegal(word)) {
-        if (boardLegal(word)) {
-            return getScore(word);
-        }
-
-        return 0;
-    }*/
 
     public int tryPlaceWord(Word word) {
 
@@ -770,19 +756,6 @@ public class Board {
 
         return 0;
     }
-
-    /*public Character[][] parseBoard(Tile[][] board) {
-        Character[][] charBoard = new Character[board.length][board[0].length];
-
-        for (int i = 0; i < board.length; i++) {
-            for (int j = 0; j < board[i].length; j++) {
-                Tile tile = board[i][j];
-                charBoard[i][j] = tile != null ? tile.letter : null;
-            }
-        }
-
-        return charBoard;
-    }*/
 
     public String parseBoardToString(Tile[][] board) {
         StringBuilder sb = new StringBuilder();
