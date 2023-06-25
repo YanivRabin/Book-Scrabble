@@ -14,12 +14,10 @@ public interface ViewModel {
     // game functions
     void startGame();
     int tryPlaceWord(Word word);
-    void placeTile(Tile selectedTile, int row, int col);
-    void removeTile(int row, int column);
     void passTurn();
     void updateTiles();
-    void updateBoard();
     void updatePlayerTurn();
+    void challenge();
 
     // getters
     ArrayList<Tile> getCurrentTiles();

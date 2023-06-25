@@ -24,6 +24,8 @@ import viewModel.VM_Host;
 import viewModel.ViewModel;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class BoardViewController implements Initializable, Observer {
 
@@ -42,6 +44,8 @@ public class BoardViewController implements Initializable, Observer {
 
     boolean blockingTiles; // if selected tile then block other buttons
 
+    ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
+
     @FXML
     private GridPane boardGrid;
 
@@ -52,7 +56,7 @@ public class BoardViewController implements Initializable, Observer {
     private AnchorPane tilesContainer, anchorPane;
 
     @FXML
-    private Button EndTurn, resetWord, TryPlaceWord;
+    private Button EndTurn, resetWord, TryPlaceWord, challenge;
 
     public void setViewModel(ViewModel vm) {
 
@@ -94,6 +98,22 @@ public class BoardViewController implements Initializable, Observer {
         else {
             message.setText("First word must be placed on the purple square");
         }
+
+        // allow challenge button for 10 seconds
+        challenge.setDisable(false);
+
+        executor.submit(() -> {
+            try {
+                for (int i = 0; i < 10; i++) {
+                    Thread.sleep(1000);  // Sleep for one second at a time
+                }
+                challenge.setDisable(true);
+            }
+            catch (InterruptedException e) {
+                // If the thread was interrupted, stop the execution
+                return;
+            }
+        });
     }
 
     @Override
@@ -175,7 +195,7 @@ public class BoardViewController implements Initializable, Observer {
                 Label letter = new Label(String.valueOf(selectedTile.letter));
                 letter.setAlignment(Pos.CENTER);
                 // Set font size, weight and color of the letter
-                letter.setStyle("-fx-font-size: 30; -fx-font-weight: bold; -fx-text-fill: white;");
+                letter.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: white;");
                 // Set layout constraints to center the label within the pane
                 letter.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
                 // adding the letter to the board
@@ -213,7 +233,6 @@ public class BoardViewController implements Initializable, Observer {
                 int row = pair.getKey();
                 int column = pair.getValue();
                 gameBoard[row][column] = null;
-//                viewModel.removeTile(row,column);
             }
             else {
                 break;
@@ -554,12 +573,20 @@ public class BoardViewController implements Initializable, Observer {
         System.out.println("End Game Clicked");
     }
 
+    @FXML
+    public void challengeButtonClick() {
+
+        viewModel.challenge();
+    }
+
     @Override
     public void update(Observable o, Object arg) {
 
         if (o instanceof ViewModel vm) {
 
             if (arg.equals("pass turn")) {
+                executor.shutdownNow();  // Try to stop currently running tasks
+                executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);  // Recreate the executor
                 System.out.println("board observer update: pass turn");
                 // update player turn for each player
                 vm.updatePlayerTurn();
@@ -580,6 +607,53 @@ public class BoardViewController implements Initializable, Observer {
                     resetWord.setDisable(true);
                     EndTurn.setDisable(true);
                 }
+                // allow challenge button for 10 seconds
+                challenge.setDisable(false);
+
+                executor.submit(() -> {
+                    try {
+                        for (int i = 0; i < 10; i++) {
+                            Thread.sleep(1000);  // Sleep for one second at a time
+                        }
+                        challenge.setDisable(true);
+                    }
+                    catch (InterruptedException e) {
+                        // If the thread was interrupted, stop the execution
+                        return;
+                    }
+                });
+//                challengeSleep = new Thread(() -> {
+//                    try { Thread.sleep(10000); }
+//                    catch (InterruptedException e) { e.printStackTrace(); }
+//                    challenge.setDisable(true);
+//
+//                });
+//                challengeSleep.start();
+            }
+
+            if (arg.equals("challenge alive")) {
+                System.out.println("board observer update: challenge alive");
+                message.setText("Someone clicked challenge");
+                // reset all player options and disable buttons
+                resetTilesButtonClick();
+                disableButtons();
+                TryPlaceWord.setDisable(true);
+                resetWord.setDisable(true);
+                EndTurn.setDisable(true);
+                challenge.setDisable(true);
+            }
+
+            if (arg.equals("challenge fail")) {
+                System.out.println("board observer update: challenge fail");
+                // Check if it's this player's turn
+                if (vm.getCurrentPlayer() == viewModel.getMyTurn()) {
+                    // enable all
+                    message.setText("Your turn!");
+                    enableButtons();
+                    TryPlaceWord.setDisable(false);
+                    resetWord.setDisable(false);
+                    EndTurn.setDisable(false);
+                }
             }
 
             if (arg.equals("update board")) {
@@ -592,7 +666,7 @@ public class BoardViewController implements Initializable, Observer {
                             Label letter = new Label(String.valueOf(gameBoard[row][col].letter));
                             letter.setAlignment(Pos.CENTER);
                             // Set font size, weight and color of the letter
-                            letter.setStyle("-fx-font-size: 30; -fx-font-weight: bold; -fx-text-fill: white;");
+                            letter.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: white;");
                             // Set layout constraints to center the label within the pane
                             letter.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
                             // adding the letter to the board

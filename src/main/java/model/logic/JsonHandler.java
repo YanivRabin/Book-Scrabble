@@ -90,6 +90,8 @@ public class JsonHandler {
      */
     public void addNewScore(int score) {json.addProperty("NewScore", score);}
     public void addPrevScore(int score) {json.addProperty("PrevScore", score);}
+    public void addPrevBoard(String prevBoard) {json.addProperty("PrevBoard", prevBoard);}
+
     /**
      * The addWord function adds a word to the JSON object.
      *

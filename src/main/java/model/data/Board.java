@@ -247,6 +247,74 @@ public class Board {
         return words;
     }
 
+    public ArrayList<Word> getWordsForChallenge(Word w) {
+
+        ArrayList<Word> words = new ArrayList<>();
+
+        if (w.vertical) {
+
+            int i = w.row;
+
+            for (Tile t : w.tiles) {
+
+                int j = w.col;
+                ArrayList<Tile> temp = new ArrayList<>();
+
+                // add only new words
+                if (t != null) {
+
+                    while (j > 0 && board[i][j - 1] != null)
+                        j--;
+
+                    int tempCol = j;
+                    while (j < 15 && board[i][j] != null) {
+                        temp.add(board[i][j]);
+                        j++;
+                    }
+
+                    Tile[] tempT = temp.toArray(new Tile[0]);
+                    Word tempWord = new Word(tempT, i, tempCol, false);
+                    if (!tempWord.toString().equals("") && boardLegal(tempWord)) {
+                        words.add(tempWord);
+                    }
+                }
+                i++;
+            }
+        }
+        if (!w.vertical) {
+
+            int i = w.col;
+
+            for (Tile t : w.tiles) {
+
+                int j = w.row;
+                ArrayList<Tile> temp = new ArrayList<>();
+
+                if (t != null) {
+
+                    while (j > 0 && board[j - 1][i] != null)
+                        j--;
+
+                    int tempRow = j;
+                    while (j < 15 && board[j][i] != null) {
+                        temp.add(board[j][i]);
+                        j++;
+                    }
+
+                    Tile[] tempT = temp.toArray(new Tile[0]);
+                    Word tempWord = new Word(tempT, tempRow, i, true);
+                    if (!tempWord.toString().equals("") && boardLegal(tempWord)) {
+                        words.add(tempWord);
+                    }
+                }
+                i++;
+            }
+        }
+        words.add(w);
+
+        return words;
+    }
+
     public int getScore(Word w) {
 
         int sum = 0;
@@ -432,7 +500,7 @@ public class Board {
         return characterBoard;
     }
 
-    public static String parseCharacterArrayToString(Character[][] board) {
+    public String parseCharacterArrayToString(Character[][] board) {
         StringBuilder sb = new StringBuilder();
 
         int rows = board.length;

@@ -163,17 +163,10 @@ public class MessageHandler {
      *
      * @docauthor Trelent
      */
-    public void CreateChallengeMessage(String source, String destination, String word,
-                                       int row, int column, boolean vertical, String currentTiles, String socketSource){
+    public void CreateChallengeMessage(String socketSource, String prevBoard){
         this.jsonHandler.addMessageType("challenge");
-        this.jsonHandler.addSource(source);
-        this.jsonHandler.addDestination(destination);
-        this.jsonHandler.addWord(word);
-        this.jsonHandler.addRow(row);
-        this.jsonHandler.addColumn(column);
-        this.jsonHandler.addVertical(vertical);
-        this.jsonHandler.addCurrentTiles(currentTiles);
         this.jsonHandler.addSocketSource(socketSource);
+        this.jsonHandler.addPrevBoard(prevBoard);
     }
 
     public void CreateMessageToGameServer(String message, String socketSource){
@@ -185,10 +178,16 @@ public class MessageHandler {
     public void createPassTurnMessage() {
         this.jsonHandler.addMessageType("pass turn");
     }
+    public void createStopChallengeAlive() {
+        this.jsonHandler.addMessageType("challenge alive");
+    }
 
     public void createEndGameMessage() {
         this.jsonHandler.addMessageType("end game");
     }
 
+    public void updatePrevToCurrent() {
+        this.jsonHandler.addMessageType("update prev to current");
+    }
 
 }
