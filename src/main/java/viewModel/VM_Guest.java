@@ -44,10 +44,7 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
         catch (InterruptedException e) { e.printStackTrace(); }
 
         // make turn for later to pass between players
-        playerTurn = 0;
-//        myTurn = guest.getGuestIndex();
-        myTurn = 1;
-        players = 2;
+        myTurn = guest.player.getPlayerIndex();
 
         // set score to 0
         scoreProperty.set(0);
@@ -97,6 +94,7 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
 
         gameBoard = Board.getBoard();
         gameBag = Tile.Bag.getBag();
+        players = guest.player.getNumOfPlayersInGame();
         updateTiles();
     }
     @Override
@@ -209,7 +207,8 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
         if (message[0].equals("update board")) {
             System.out.println("guest viewModel observer update: update board");
             gameBoard = Board.getBoard();
-//            updateBoard();
+            setChanged();
+            notifyObservers("update board");
         }
 
         if (message[0].equals("pass turn")) {

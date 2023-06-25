@@ -551,7 +551,7 @@ public class BoardViewController implements Initializable, Observer {
         enableButtons();
 
         // send updated board to everyone
-        viewModel.updateBoard();
+//        viewModel.updateBoard();
     }
 
     public void EndTurnButtonClick() {

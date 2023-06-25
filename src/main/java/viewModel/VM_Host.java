@@ -198,7 +198,8 @@ public class VM_Host extends Observable implements ViewModel, Observer {
         if (arg.equals("update board")) {
             System.out.println("host viewModel observer update: update board");
             gameBoard = Board.getBoard();
-//            updateBoard();
+            setChanged();
+            notifyObservers("update board");
         }
 
         if (arg.equals("pass turn")) {

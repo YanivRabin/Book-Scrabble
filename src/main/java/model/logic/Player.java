@@ -8,6 +8,8 @@ import java.util.List;
 public class Player {
     String socketIP;
 
+    int numOfPlayersInGame;
+
     int playerIndex;
     String nickName;
 
@@ -297,6 +299,14 @@ public class Player {
             }
         }
         return c == word.length() - counterNull;
+    }
+
+    public int getNumOfPlayersInGame() {
+        return numOfPlayersInGame;
+    }
+
+    public void setNumOfPlayersInGame(int numOfPlayersInGame) {
+        this.numOfPlayersInGame = numOfPlayersInGame;
     }
 
     public Character[][] parseStringToCharacterArray(String boardString) {
