@@ -35,11 +35,12 @@ public class MessageHandler {
      *
      * @docauthor Trelent
      */
-    public void CreateStartGameMessage(String tilesInCapital, String hostNickName){
+    public void CreateStartGameMessage(String tilesInCapital, String hostNickName, int playerIndex){
         // only serverHost
         this.jsonHandler.addMessageType("start game");
         this.jsonHandler.addSource(hostNickName);
         this.jsonHandler.addStartTiles(tilesInCapital);
+        this.jsonHandler.addPlayerIndex(playerIndex);
     }
     /**
      * The CreateTryAgainMessage function creates a message that is sent to the client when they have lost.
@@ -118,7 +119,7 @@ public class MessageHandler {
      *
      * @docauthor Trelent
      */
-    public void CreateUpdateBoardMessage(Character[][] board, String hostNickName){
+    public void CreateUpdateBoardMessage(String board, String hostNickName){
         // only serverHost
         this.jsonHandler.addMessageType("update board");
         this.jsonHandler.addSource(hostNickName);
@@ -180,10 +181,5 @@ public class MessageHandler {
         this.jsonHandler.addSocketSource(socketSource);
     }
 
-
-    public void CreateUpdateScore(String source){
-        this.jsonHandler.addMessageType("update score");
-        this.jsonHandler.addSource(source);
-    }
 
 }

@@ -290,16 +290,17 @@ public class Host implements ClientHandler{
      */
     public void SendStartGameMessage(String hostNickName){
         // only serverHost
-
+        int c = 0;
         for(Socket socket : this.GuestList){
             try {
                 MessageHandler messageHandler = new MessageHandler();
                 List<Character> StartGameTiles = this.GenerateTiles(8);
-                messageHandler.CreateStartGameMessage(this.CharavterslistToString(StartGameTiles), hostNickName);
+                messageHandler.CreateStartGameMessage(this.CharavterslistToString(StartGameTiles), hostNickName, c);
                 OutputStream outToClient = socket.getOutputStream();
                 PrintWriter out = new PrintWriter(outToClient);
                 out.println(messageHandler.jsonHandler.toJsonString());
                 out.flush();
+                c++;
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -371,7 +372,7 @@ public class Host implements ClientHandler{
      *
      * @docauthor Trelent
      */
-    public void SendUpdateBoardMessage(Character[][] board, String hostNickName){
+    public void SendUpdateBoardMessage(String board, String hostNickName){
         // only serverHost
         MessageHandler messageHandler = new MessageHandler();
         messageHandler.CreateUpdateBoardMessage(board, hostNickName);
@@ -457,10 +458,13 @@ public class Host implements ClientHandler{
                             stringBuilder.append("C,");
                             stringBuilder.append(c_word);
                             this.SendMessageToGameServer(stringBuilder.toString());
-//                            boolean res = this.GetMessageFromGameServer().equals("true");
-//                            this.HandleChallenge(res, this.currentSuccessMessagePrevScore);
+                            boolean res = this.inputQueueFromGameServer.take().equals("true");
+                            this.HandleChallenge(res, this.currentSuccessMessagePrevScore);
                             // do the Challenge
                             break;
+                        case "update board":
+                            this.hostPlayer.inputQueue.put(jsonString);
+                            continue;
                     }
 
                     String socketSource = json.get("SocketSource").getAsString();
@@ -491,14 +495,13 @@ public class Host implements ClientHandler{
                                 "try place word", this.CharavterslistToString(NewCurrentTiles), this.NickName);
                         if(Objects.equals(json.get("Source").getAsString(), this.NickName)){
                             this.hostPlayer.inputQueue.put(jsonSuccess);
+                            this.SendUpdateBoardMessage(this.board.parseBoardToString(this.board.getTiles()), this.NickName);
                             continue;
                         }
                         out.println(jsonSuccess);
                         out.flush();
                         // notify all
-/*
-                        this.SendUpdateBoardMessage(this.board.parseBoard(this.board.getTiles()), this.NickName);
-*/
+                        this.SendUpdateBoardMessage(this.board.parseBoardToString(this.board.getTiles()), this.NickName);
                     }
                 }
             } catch (InterruptedException e) {
@@ -512,7 +515,7 @@ public class Host implements ClientHandler{
     public void HandleChallenge(boolean res , String prevScore){
         if(res){
             Character[][] toUpdateBoard = this.hostPlayer.player.prevBoard;
-            this.SendUpdateBoardMessage(toUpdateBoard, this.NickName);
+            this.SendUpdateBoardMessage(this.board.parseCharacterArrayToString(toUpdateBoard), this.NickName);
             String jsonChallengingYou = this.SendSucceededChallengeYouMessage(this.NickName, prevScore);
             try {
                 PrintWriter printWriter = new PrintWriter(this.currentSuccessMessageSocket.getOutputStream());
