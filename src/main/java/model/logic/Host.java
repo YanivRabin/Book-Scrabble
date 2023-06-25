@@ -329,29 +329,42 @@ public class Host extends Observable implements ClientHandler{
     }
 
     public void sendPassTurnMessage() {
-
+        MessageHandler messageHandler = new MessageHandler();
+        messageHandler.createPassTurnMessage();
         for(Socket socket : this.GuestList) {
 
             try {
-                MessageHandler messageHandler = new MessageHandler();
-                messageHandler.createPassTurnMessage();
-
-//                if (socket == this.HostSocketToLocalServer) {
-//                    try {
-//                        this.hostPlayer.inputQueue.put(messageHandler.jsonHandler.toJsonString());
-//                    }
-//                    catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//                else {
-                OutputStream outToClient = socket.getOutputStream();
-                PrintWriter out = new PrintWriter(outToClient);
-                out.println(messageHandler.jsonHandler.toJsonString());
-                out.flush();
-//                }
+                if (socket.getPort() == this.hostPlayer.getSocketToHost().getLocalPort()){
+                    this.hostPlayer.inputQueue.put(messageHandler.jsonHandler.toJsonString());
+                }
+                else{
+                    OutputStream outToClient = socket.getOutputStream();
+                    PrintWriter out = new PrintWriter(outToClient);
+                    out.println(messageHandler.jsonHandler.toJsonString());
+                    out.flush();
+                }
             }
-            catch (IOException e) {throw new RuntimeException(e);}
+            catch (IOException | InterruptedException e) {throw new RuntimeException(e);}
+        }
+    }
+
+    public void sendEndGame(){
+        MessageHandler messageHandler = new MessageHandler();
+        messageHandler.createEndGameMessage();
+        for(Socket socket : this.GuestList) {
+
+            try {
+                if (socket.getPort() == this.hostPlayer.getSocketToHost().getLocalPort()){
+                    this.hostPlayer.inputQueue.put(messageHandler.jsonHandler.toJsonString());
+                }
+                else{
+                    OutputStream outToClient = socket.getOutputStream();
+                    PrintWriter out = new PrintWriter(outToClient);
+                    out.println(messageHandler.jsonHandler.toJsonString());
+                    out.flush();
+                }
+            }
+            catch (IOException | InterruptedException e) {throw new RuntimeException(e);}
         }
     }
 
@@ -514,12 +527,14 @@ public class Host extends Observable implements ClientHandler{
                             this.hostPlayer.inputQueue.put(jsonString);
                             continue;
                         case "pass turn":
-                            sendPassTurnMessage();
+                            this.sendPassTurnMessage();
                             continue;
+                        case "end game":
+                            this.sendEndGame();
                     }
 
                     String socketSource = json.get("SocketSource").getAsString();
-                    Socket currentGuest = getSocket(socketSource);
+                    Socket currentGuest = getSocket(socketSource);// here
                     PrintWriter out = new PrintWriter(currentGuest.getOutputStream());
                     if (score == 0){
                         if(Objects.equals(json.get("Source").getAsString(), this.NickName)){
@@ -670,11 +685,12 @@ public class Host extends Observable implements ClientHandler{
 
 
     public Socket getSocket(String source){
+        System.out.println(source);
         String[] socketSplited = source.split(":");
         String ipSource = socketSplited[0].split("/")[1];
         String portSource = socketSplited[1];
         for(Socket s : this.GuestList){
-            if (Objects.equals(s.getInetAddress().toString().substring(1), ipSource) && s.getPort() == Integer.parseInt(portSource)){
+            if (s.getPort() == Integer.parseInt(portSource)){
                 return s;
             }
         }

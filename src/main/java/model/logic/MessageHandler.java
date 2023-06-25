@@ -181,8 +181,11 @@ public class MessageHandler {
     }
 
     public void createPassTurnMessage() {
-
         this.jsonHandler.addMessageType("pass turn");
+    }
+
+    public void createEndGameMessage() {
+        this.jsonHandler.addMessageType("end game");
     }
 
 

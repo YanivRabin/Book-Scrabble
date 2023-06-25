@@ -1,12 +1,17 @@
 package model.logic;
 
 import com.google.gson.Gson;
+import model.data.Tile;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Player {
     String socketIP;
+
+    int numOfPlayersInGame;
+
+    int playerIndex;
     String nickName;
 
 
@@ -16,6 +21,9 @@ public class Player {
     int prevScore;
     List<Character> currentTiles;
     List<Character> prevTiles;
+
+
+
     Character[][] currentBoard;
     Character[][] prevBoard;
 
@@ -37,12 +45,6 @@ public class Player {
      *
      * @docauthor Trelent
      */
-    public Player(String socketIP, String nickName, int score, List<Character> currentTiles) {
-        this.socketIP = socketIP;
-        this.nickName = nickName;
-        this.currentScore = score;
-        this.currentTiles = currentTiles;
-    }
 
     /**
      * The Player function is a constructor for the Player class.
@@ -63,6 +65,7 @@ public class Player {
         this.nickName = nickName;
         this.currentScore = score;
         this.currentTiles = new ArrayList<>();
+        this.currentBoard = new Character[15][15];
     }
 
     /**
@@ -106,6 +109,14 @@ public class Player {
      */
     public int getCurrentScore() {
         return currentScore;
+    }
+
+    public Character[][] getCurrentBoard() {
+        return currentBoard;
+    }
+
+    public int getPlayerIndex() {
+        return playerIndex;
     }
 
     /**
@@ -224,11 +235,11 @@ public class Player {
      *
      * @docauthor Trelent
      */
-    public void setCurrentBoard(String currentBoard) {
+    /*public void setCurrentBoard(String currentBoard) {
         Gson gson = new Gson();
         Character[][] board = gson.fromJson(currentBoard, Character[][].class);
         this.currentBoard = board;
-    }
+    }*/
 
     /**
      * The getBoard function takes in a JSON string and returns the board as a 2D array of characters.
@@ -240,10 +251,8 @@ public class Player {
      *
      * @docauthor Trelent
      */
-    public Character[][] getBoard(String jsonValue) {
-        Gson gson = new Gson();
-        Character[][] board = gson.fromJson(jsonValue, Character[][].class);
-        return board;
+    public void setCurrentBoard(String jsonValue) {
+        this.currentBoard =  this.parseStringToCharacterArray(jsonValue);
     }
 
 
@@ -293,6 +302,44 @@ public class Player {
             }
         }
         return c == word.length() - counterNull;
+    }
+
+    public int getNumOfPlayersInGame() {
+        return numOfPlayersInGame;
+    }
+
+    public void setNumOfPlayersInGame(int numOfPlayersInGame) {
+        this.numOfPlayersInGame = numOfPlayersInGame;
+    }
+
+    public Character[][] parseStringToCharacterArray(String boardString) {
+        String[] rows = boardString.trim().split("\n");
+        int rowCount = rows.length;
+        int colCount = rows[0].length();
+
+        Character[][] characterBoard = new Character[rowCount][colCount];
+
+        for (int i = 0; i < rowCount; i++) {
+            for (int j = 0; j < colCount; j++) {
+                char tileChar = rows[i].charAt(j);
+                characterBoard[i][j] = (tileChar != '.') ? tileChar : null;
+            }
+        }
+
+        return characterBoard;
+    }
+
+    public Tile[][] getCurrentBoardAsTiles() {
+
+        Tile[][] temp = new Tile[15][15];
+        for (int row = 0; row < 15; row++) {
+            for (int col = 0; col < 15; col++) {
+                if (currentBoard[row][col] != null) {
+                    temp[row][col] = Tile.Bag.getBagModel().getTileForTileArray(currentBoard[row][col]);
+                }
+            }
+        }
+        return temp;
     }
 
 }
