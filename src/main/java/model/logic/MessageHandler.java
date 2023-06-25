@@ -172,4 +172,8 @@ public class MessageHandler {
         // addPrevBoard
     }
 
+    public void createPassTurnMessage() {
+
+        this.jsonHandler.addMessageType("pass turn");
+    }
 }

@@ -1,6 +1,7 @@
 package viewModel;
 
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ListProperty;
 import model.data.Tile;
 import model.data.Word;
 import java.util.ArrayList;
@@ -14,12 +15,12 @@ public interface ViewModel {
     // game functions
     void startGame();
     int tryPlaceWord(Word word);
+    void placeTile(Tile selectedTile, int row, int col);
+    void removeTile(int row, int column);
     void passTurn();
     void updateTiles();
+    void updateBoard();
     void updatePlayerTurn();
-    void challenge();
-    void updatePrev();
-    void updateScore();
 
     // getters
     ArrayList<Tile> getCurrentTiles();
@@ -29,3 +30,4 @@ public interface ViewModel {
     int getMyTurn();
     Observable getObservable();
 }
+

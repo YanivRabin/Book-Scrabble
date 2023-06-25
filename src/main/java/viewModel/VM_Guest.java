@@ -16,7 +16,7 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
 
     Guest guest;
 
-    Tile[][] gameBoard;
+    Board gameBoard;
     Tile.Bag gameBag;
 
     String name, hostNickName;
@@ -42,6 +42,12 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
 
         try { Thread.sleep(500); }
         catch (InterruptedException e) { e.printStackTrace(); }
+
+        // make turn for later to pass between players
+        playerTurn = 0;
+//        myTurn = guest.getGuestIndex();
+        myTurn = 1;
+        players = 2;
 
         // set score to 0
         scoreProperty.set(0);
@@ -89,11 +95,8 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
     @Override
     public void startGame() {
 
-        gameBoard = guest.player.getCurrentBoardAsTiles();
+        gameBoard = Board.getBoard();
         gameBag = Tile.Bag.getBag();
-        // make turn for later to pass between players
-        myTurn = guest.player.getPlayerIndex();
-        players = guest.player.getNumOfPlayersInGame();
         updateTiles();
     }
     @Override
@@ -124,6 +127,16 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
         }
     }
     @Override
+    public void placeTile(Tile selectedTile, int row, int col) {
+
+        gameBoard.placeTile(selectedTile, row, col);
+    }
+    @Override
+    public void removeTile(int row, int column) {
+
+        gameBoard.removeTile(row,column);
+    }
+    @Override
     public void passTurn() {
 
         guest.sendPassTurnMessage();
@@ -131,7 +144,6 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
     @Override
     public void updateTiles() {
 
-        currentTiles.clear();
         // get the player tiles and convert them from char to tile object
         char[] tiles = guest.player.getCurrentTiles().toCharArray();
         for (char tile: tiles) {
@@ -139,42 +151,25 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
         }
     }
     @Override
+    public void updateBoard() {
+
+//        guest.sendUpdateBoardMessage();
+
+//        gameBoard = Board.getBoard();
+//        setChanged();
+//        notifyObservers("update board");
+    }
+    @Override
     public void updatePlayerTurn() {
         playerTurn = (playerTurn + 1) % players;
         System.out.println("Turn: " + playerTurn);
     }
-    @Override
-    public void challenge() {
-
-        StringBuilder sb = new StringBuilder();
-
-        int rows = gameBoard.length;
-        int cols = gameBoard[0].length;
-
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                Tile tile = gameBoard[i][j];
-                sb.append(tile != null ? tile.letter : '.');
-            }
-            sb.append('\n');
-        }
-
-        guest.SendChallengeMessage(sb.toString());
-    }
-    @Override
-    public void updatePrev() {}
 
     // getters
     @Override
     public Tile[][] getBoard() {
 
-        return gameBoard;
-    }
-
-    @Override
-    public void updateScore() {
-
-        scoreProperty.set(guest.player.getCurrentScore());
+        return gameBoard.getTiles();
     }
     @Override
     public ArrayList<Tile> getCurrentTiles() {
@@ -213,9 +208,8 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
 
         if (message[0].equals("update board")) {
             System.out.println("guest viewModel observer update: update board");
-            gameBoard = guest.player.getCurrentBoardAsTiles();
-            setChanged();
-            notifyObservers("update board");
+            gameBoard = Board.getBoard();
+//            updateBoard();
         }
 
         if (message[0].equals("pass turn")) {
@@ -224,16 +218,5 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
             notifyObservers("pass turn");
         }
 
-        if (message[0].equals("challenge fail")) {
-            System.out.println("guest viewModel observer update: challenge fail");
-            setChanged();
-            notifyObservers("challenge fail");
-        }
-
-        if (message[0].equals("challenge alive")) {
-            System.out.println("guest viewModel observer update: challenge alive");
-            setChanged();
-            notifyObservers("challenge alive");
-        }
     }
 }

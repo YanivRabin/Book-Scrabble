@@ -6,8 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Player {
+
     String socketIP;
     String nickName;
+    String hostNickName;
     int currentScore;
     int prevScore;
     List<Character> currentTiles;
@@ -60,6 +62,8 @@ public class Player {
         this.currentScore = score;
         this.currentTiles = new ArrayList<>();
     }
+
+    public String getHostNickName() { return hostNickName; }
 
     /**
      * The getSocketIP function returns the IP address of the socket.

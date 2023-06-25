@@ -14,7 +14,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class Host implements ClientHandler{
+public class Host extends Observable implements ClientHandler {
+
     //Logic Members
     int Port;
     String IP;
@@ -28,9 +29,6 @@ public class Host implements ClientHandler{
     MyServer GameServer; // The MyServer this host connected to
     static ExecutorService executorService = Executors.newFixedThreadPool(10); // only for one host
     BlockingQueue<String> inputQueue = new LinkedBlockingQueue<>();
-
-
-
 
     //Data-Game Members
     public String NickName;
@@ -162,6 +160,7 @@ public class Host implements ClientHandler{
      */
     public void CreateSocketToLocalServer(String HostIp, int Port) throws IOException {
         this.hostPlayer.CreateSocketToHost(HostIp,Port);
+        this.HostSocketToLocalServer = this.hostPlayer.getSocketToHost();
         System.out.println("Host Connected to local Host Server");
     }
 
@@ -221,14 +220,6 @@ public class Host implements ClientHandler{
         this.IP = this.LocalServer.getInetAddress().getHostAddress();
         this.CreateSocketToLocalServer(this.IP, this.Port);
 
-        /*executorService.execute(()->{
-            try {
-                handleClient(this.HostSocketToLocalServer.getInputStream(), this.HostSocketToLocalServer.getOutputStream());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });*/
-
         executorService.execute(()->{
             try {
                 handleClient(hostPlayer.getSocketToHost().getInputStream(), hostPlayer.getSocketToHost().getOutputStream());
@@ -237,12 +228,15 @@ public class Host implements ClientHandler{
             }
         });
 
-
         while (!this.Stop ) {
             try{
                 if(this.GuestList.size() < this.MaxGuests) {
                     Socket guest = this.LocalServer.accept();
                     this.GuestList.add(guest);
+
+                    // notify VM_Host
+                    setChanged();
+                    notifyObservers("guest connect");
 
                     if (guest.getPort() == hostPlayer.getSocketToHost().getLocalPort()){
                         System.out.println("Host Connected, Number of players: " + GuestList.size());
@@ -255,16 +249,10 @@ public class Host implements ClientHandler{
                             throw new RuntimeException(e);
                         }
                     });
-
-
-
-
-
                 }
             }catch (IOException e){
                 e.printStackTrace();
             }
-            // Implement with thread pool
         }
     }
 
@@ -296,6 +284,34 @@ public class Host implements ClientHandler{
             }
         }
     }
+
+    public void sendPassTurnMessage() {
+
+        for(Socket socket : this.GuestList) {
+
+            try {
+                MessageHandler messageHandler = new MessageHandler();
+                messageHandler.createPassTurnMessage();
+
+//                if (socket == this.HostSocketToLocalServer) {
+//                    try {
+//                        this.hostPlayer.inputQueue.put(messageHandler.jsonHandler.toJsonString());
+//                    }
+//                    catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//                else {
+                    OutputStream outToClient = socket.getOutputStream();
+                    PrintWriter out = new PrintWriter(outToClient);
+                    out.println(messageHandler.jsonHandler.toJsonString());
+                    out.flush();
+//                }
+            }
+            catch (IOException e) {throw new RuntimeException(e);}
+        }
+    }
+
     /**
      * The SendTryAgainMessage function is used to send a message to the client that they have lost and can try again.
      *
@@ -488,14 +504,19 @@ public class Host implements ClientHandler{
      * @docauthor Trelent
      */
     public void handleRequests() {
+
         while (!this.LocalServer.isClosed()) {
+
             int score = 0;
             try {
                 String jsonString = inputQueue.take(); //blocking call
                 System.out.println(jsonString);
                 if (jsonString != null) {
+
                     JsonObject json = JsonHandler.convertStringToJsonObject(jsonString);
-                    switch (json.get("MessageType").getAsString()){
+
+                    switch (json.get("MessageType").getAsString()) {
+
                         case "try place word":
                             String q_word = json.get("Word").getAsString();
                             boolean q_vertical = json.get("Vertical").getAsString().equals("true");
@@ -504,6 +525,7 @@ public class Host implements ClientHandler{
                             Word Q_word = new Word(getTileArray(q_word), q_row, q_column, q_vertical);
                             score = this.board.tryPlaceWord(Q_word);
                             break;
+
                         case "challenge":
                             String c_word = json.get("Word").getAsString();
                             boolean c_vertical = json.get("Vertical").getAsString().equals("true");
@@ -512,25 +534,27 @@ public class Host implements ClientHandler{
                             Word C_word = new Word(getTileArray(c_word), c_row, c_column, c_vertical);
                             // do the Challenge
                             break;
+
+                        case "pass turn":
+                            sendPassTurnMessage();
+                            break;
                     }
 
                     String socketSource = json.get("SocketSource").getAsString();
                     Socket currentGuest = getSocket(socketSource);
                     PrintWriter out = new PrintWriter(currentGuest.getOutputStream());
-                    if (score == 0){
+
+                    if (score == 0) {
                         // ignore to guest Create try again message
-                        out.println(this.SendTryAgainMessage(json.get("Source").getAsString(), 0,
-                                "try place word" , this.NickName));
+                        out.println(this.SendTryAgainMessage(json.get("Source").getAsString(), 0, "try place word" , this.NickName));
                         out.flush();
                     }
                     else {
                         // ack , score to guest Create success message
                         String guestCurrentTiles = json.get("CurrentTiles").getAsString();
-                        List<Character> NewCurrentTiles = this.reduceTilesFromCurrentTiles(json.get("Word").getAsString(),
-                                this.ConvertCurrentTilesToList(guestCurrentTiles));
+                        List<Character> NewCurrentTiles = this.reduceTilesFromCurrentTiles(json.get("Word").getAsString(), this.ConvertCurrentTilesToList(guestCurrentTiles));
                         System.out.println("New Score to add: "+score);
-                        String jsonSuccess = this.SendSuccessMessage(json.get("Source").getAsString(), score,
-                                "try place word", this.CharavterslistToString(NewCurrentTiles), this.NickName);
+                        String jsonSuccess = this.SendSuccessMessage(json.get("Source").getAsString(), score, "try place word", this.CharavterslistToString(NewCurrentTiles), this.NickName);
                         out.println(jsonSuccess);
                         out.flush();
                         // notify all
@@ -745,7 +769,7 @@ public class Host implements ClientHandler{
      */
     public List<Character> GenerateTiles(int number){
         List<Character> currentTiles = new ArrayList<>();
-        for(int i = 0 ; i < number-1 ; i++){
+        for(int i = 0 ; i < number ; i++){
             currentTiles.add(this.bag.getRand().letter);
         }
         return currentTiles;

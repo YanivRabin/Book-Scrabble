@@ -6,45 +6,45 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
-import test.GUITest;
-
+import viewModel.VM_Guest;
+import viewModel.VM_Host;
 import java.io.IOException;
+import java.util.Random;
 
 public class MainController {
 
-    GUITest test;
-    String ip, port;
     Stage stage;
     Scene scene;
     Parent root;
 
+    static String name;
+    VM_Host vm_host;
+    VM_Guest vm_guest;
+
     @FXML
-    Label titleLabel;
+    TextField playerName;
 
-    public void hostButton() {
-
-        test = GUITest.getGuiTest();
-        ip = test.getIp();
-        port = test.getPort();
-
-        titleLabel.setText("Created new game at\nIP: " + ip + "\nPort: " + port);
-    }
+    @FXML
+    AnchorPane anchorPane;
 
     @FXML
     protected void hostButton(ActionEvent event) throws IOException {
 
-        test = GUITest.getGuiTest();
-        ip = test.getIp();
-        port = test.getPort();
+        name = playerName(playerName.getText().trim());
+        vm_host = new VM_Host(name); // create the server
+        String ip = vm_host.getIp();
+        int port = vm_host.getPort();
 
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("host-view.fxml"));
         root = fxmlLoader.load();
 
-        // Get the controller associated with the FXML file
+        // send the vm to the next window and display the ip and port
         HostController hostController = fxmlLoader.getController();
-        hostController.display(ip, port);
+        hostController.display(ip, String.valueOf(port));
+        hostController.setVM_Host(vm_host);
 
         stage = (Stage) ((Node)event.getSource()).getScene().getWindow();
         scene = new Scene(root);
@@ -55,11 +55,15 @@ public class MainController {
     @FXML
     protected void guestButton(ActionEvent event) throws IOException {
 
+        name = playerName(playerName.getText().trim());
+        vm_guest = new VM_Guest(name);
+
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("guest-view.fxml"));
         root = fxmlLoader.load();
 
+        // send the vm to the next window
         GuestController guestController = fxmlLoader.getController();
-        guestController.initIpPort(ip, port);
+        guestController.setVM_Guest(vm_guest);
 
         stage = (Stage) ((Node)event.getSource()).getScene().getWindow();
         scene = new Scene(root);
@@ -67,4 +71,19 @@ public class MainController {
         stage.show();
     }
 
+    public static String getName() { return name; }
+
+    public String playerName(String name) {
+
+        if (!name.equals("")) {
+            return name;
+        }
+        else {
+
+            // Generates a guest with random 4-digit number
+            Random random = new Random();
+            int randomNumber = random.nextInt(9000) + 1000;
+            return "Guest" + randomNumber;
+        }
+    }
 }
