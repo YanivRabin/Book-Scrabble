@@ -134,14 +134,6 @@ public class MyServer {
             Socket host = this.server.accept();
             this.HostsList.add(host);
 
-            /*executorService.execute(() -> {
-                try {
-                    this.clientHandler.handleClient(host.getInputStream(), host.getOutputStream());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            });*/
-
             executorService.execute(() -> {
                 try {
                     this.handleClient(host.getInputStream(), host.getOutputStream());

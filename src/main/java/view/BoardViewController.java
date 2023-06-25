@@ -1,5 +1,6 @@
 package view;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -167,7 +168,8 @@ public class BoardViewController implements Initializable, Observer {
             if (gameBoard[row][column] == null) {
 
                 // place a tile on board
-                viewModel.placeTile(selectedTile, row, column);
+                gameBoard[row][column] = selectedTile;
+//                viewModel.placeTile(selectedTile, row, column);
 
                 // place only letter
                 Label letter = new Label(String.valueOf(selectedTile.letter));
@@ -210,7 +212,8 @@ public class BoardViewController implements Initializable, Observer {
 
                 int row = pair.getKey();
                 int column = pair.getValue();
-                viewModel.removeTile(row,column);
+                gameBoard[row][column] = null;
+//                viewModel.removeTile(row,column);
             }
             else {
                 break;
@@ -258,8 +261,6 @@ public class BoardViewController implements Initializable, Observer {
     public void TryPlaceWordButtonClick() {
 
         ArrayList<Tile> tilesForWord = new ArrayList<>();
-        Tile[][] gameBoardTiles = gameBoard;
-
         int startRow = 0;
         int startCol = 0;
         boolean vertical = false;
@@ -271,59 +272,45 @@ public class BoardViewController implements Initializable, Observer {
             startRow = positions[0].getKey();
             startCol = positions[0].getValue();
 
-
             if (startRow == 14) {
-
                 // check vertical
-                if (gameBoardTiles[startRow - 1][startCol] != null) {
-
+                if (this.gameBoard[startRow - 1][startCol] != null) {
                     vertical = true;
                     oneTileCheck = true;
                 }
             }
             else if (startRow == 0) {
-
-                if (gameBoardTiles[startRow + 1][startCol] != null) {
-
+                if (gameBoard[startRow + 1][startCol] != null) {
                     vertical = true;
                     oneTileCheck = true;
                 }
             }
             else {
-
-                if (gameBoardTiles[startRow - 1][startCol] != null || gameBoardTiles[startRow + 1][startCol] != null) {
-
+                if (gameBoard[startRow - 1][startCol] != null || gameBoard[startRow + 1][startCol] != null) {
                     vertical = true;
                     oneTileCheck = true;
                 }
             }
 
             if (startCol == 14) {
-
-                if (gameBoardTiles[startRow][startCol - 1] != null) {
-
+                if (gameBoard[startRow][startCol - 1] != null) {
                     vertical = false;
                     oneTileCheck = true;
                 }
             }
             else if (startCol == 0) {
-
-                if (gameBoardTiles[startRow][startCol + 1] != null) {
-
+                if (gameBoard[startRow][startCol + 1] != null) {
                     vertical = false;
                     oneTileCheck = true;
                 }
             }
             else {
-
                 // check not vertical
-                if (gameBoardTiles[startRow][startCol - 1] != null || gameBoardTiles[startRow][startCol + 1] != null) {
-
+                if (gameBoard[startRow][startCol - 1] != null || gameBoard[startRow][startCol + 1] != null) {
                     vertical = false;
                     oneTileCheck = true;
                 }
             }
-
 
             if (!oneTileCheck) {
 
@@ -393,7 +380,7 @@ public class BoardViewController implements Initializable, Observer {
                 // checking if there are tiles before
                 while ((startRow - i) >= 0) {
 
-                    if (gameBoardTiles[startRow - i][startCol] != null) {
+                    if (gameBoard[startRow - i][startCol] != null) {
 
                         // set the new start row
                         startRow--;
@@ -404,7 +391,7 @@ public class BoardViewController implements Initializable, Observer {
                 // add the first tile to the array
                 if (isTilePlacedDuringTurn(startRow, startCol)) {
 
-                    tilesForWord.add(gameBoardTiles[startRow][startCol]);
+                    tilesForWord.add(gameBoard[startRow][startCol]);
                 }
                 else {
 
@@ -414,11 +401,11 @@ public class BoardViewController implements Initializable, Observer {
                 // checking if there are tiles after start to add to array
                 while ((startRow + i) <= 14) {
 
-                    if (gameBoardTiles[startRow + i][startCol] != null) {
+                    if (gameBoard[startRow + i][startCol] != null) {
 
                         if (isTilePlacedDuringTurn(startRow + i, startCol)) {
 
-                            tilesForWord.add(gameBoardTiles[startRow + i][startCol]);
+                            tilesForWord.add(gameBoard[startRow + i][startCol]);
                         }
                         else {
 
@@ -435,7 +422,7 @@ public class BoardViewController implements Initializable, Observer {
                 // checking if there are tiles before
                 while ((startCol - i) >= 0) {
 
-                    if (gameBoardTiles[startRow][startCol - i] != null) {
+                    if (gameBoard[startRow][startCol - i] != null) {
 
                         // set the new start row
                         startCol--;
@@ -446,7 +433,7 @@ public class BoardViewController implements Initializable, Observer {
                 // add the first tile to the array
                 if (isTilePlacedDuringTurn(startRow, startCol)) {
 
-                    tilesForWord.add(gameBoardTiles[startRow][startCol]);
+                    tilesForWord.add(gameBoard[startRow][startCol]);
                 }
                 else {
 
@@ -456,12 +443,12 @@ public class BoardViewController implements Initializable, Observer {
                 // checking if there are tiles after start to add to array
                 while ((startCol + i) <= 14) {
 
-                    if (gameBoardTiles[startRow][startCol + i] != null) {
+                    if (gameBoard[startRow][startCol + i] != null) {
 
                         // add the first tile to the array
                         if (isTilePlacedDuringTurn(startRow, startCol + i)) {
 
-                            tilesForWord.add(gameBoardTiles[startRow][startCol + i]);
+                            tilesForWord.add(gameBoard[startRow][startCol + i]);
                         }
                         else {
 
@@ -597,9 +584,10 @@ public class BoardViewController implements Initializable, Observer {
 
             if (arg.equals("update board")) {
                 System.out.println("board observer update: update board");
+                gameBoard = viewModel.getBoard();
                 for (int row = 0; row < 15; row++) {
                     for (int col = 0; col < 15; col++) {
-                        if (!boardGrid.contains(row,col) && gameBoard[row][col] != null) {
+                        if (gameBoard[row][col] != null) {
                             // place only letter
                             Label letter = new Label(String.valueOf(gameBoard[row][col].letter));
                             letter.setAlignment(Pos.CENTER);
@@ -608,7 +596,13 @@ public class BoardViewController implements Initializable, Observer {
                             // Set layout constraints to center the label within the pane
                             letter.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
                             // adding the letter to the board
-                            boardGrid.add(letter, col, row);
+                            final int finalRow = row;
+                            final int finalCol = col;
+                            Platform.runLater(() -> {
+                                if (!boardGrid.getChildren().contains(letter)) {
+                                    boardGrid.add(letter, finalCol, finalRow);
+                                }
+                            });
                         }
                     }
                 }
