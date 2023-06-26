@@ -16,6 +16,16 @@ import static test.MyServerTest.serverTest;
 
 public class MainTrain {
 
+    /**
+     * The main function is used to test the functionality of all the classes in this project.
+     *
+     *
+     * @param  args Pass command line arguments to the main function
+     *
+     * @return Void
+     *
+     * @docauthor Trelent
+     */
     public static void main(String[] args) throws IOException {
 
         bagTest();

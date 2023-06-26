@@ -30,6 +30,18 @@ public class MainController {
     @FXML
     AnchorPane anchorPane;
 
+    /**
+     * The hostButton function is called when the host button is pressed.
+     * It creates a new VM_Host object and passes it to the next window,
+     * along with the ip address and port number of that server.
+
+     *
+     * @param  event Get the source of the button that was pressed
+     *
+     * @return The name of the player
+     *
+     * @docauthor Trelent
+     */
     @FXML
     protected void hostButton(ActionEvent event) throws IOException {
 
@@ -52,6 +64,19 @@ public class MainController {
         stage.show();
     }
 
+    /**
+     * The guestButton function is called when the guest button is pressed.
+     * It creates a new VM_Guest object and passes it to the next window,
+     * which will be used to display information about the player's game.
+
+     *
+     * @param  event Get the source of the button
+
+     *
+     * @return The name of the player
+     *
+     * @docauthor Trelent
+     */
     @FXML
     protected void guestButton(ActionEvent event) throws IOException {
 
@@ -71,8 +96,30 @@ public class MainController {
         stage.show();
     }
 
+    /**
+     * The getName function returns the name of the class.
+     *
+     *
+     *
+     * @return The value of the name variable
+     *
+     * @docauthor Trelent
+     */
     public static String getName() { return name; }
 
+    /**
+     * The playerName function takes in a String name and returns the same string if it is not empty.
+     * If the inputted name is an empty string, then a random 4-digit number will be generated and
+     * concatenated to &quot;Guest&quot; to create a guest username. This function ensures that all players have
+     * unique usernames when they play the game.
+
+     *
+     * @param  name Set the name of the player
+     *
+     * @return The name of the player
+     *
+     * @docauthor Trelent
+     */
     public String playerName(String name) {
 
         if (!name.equals("")) {

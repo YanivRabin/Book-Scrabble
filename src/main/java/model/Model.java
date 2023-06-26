@@ -25,8 +25,27 @@ public class Model extends Observable {
     }
 
 
+    /**
+     * The getHostServer function returns the hostModel object.
+     *
+     *
+     *
+     * @return The host model
+     *
+     * @docauthor Trelent
+     */
     public Host getHostServer() {return hostModel;}
     private  static class ModelHolder{ public static final Model m = new Model();}
+    /**
+     * The getModel function is a static function that returns the Model object.
+     * This allows other classes to access the model without having to create their own instance of it.
+
+     *
+     *
+     * @return The model object
+     *
+     * @docauthor Trelent
+     */
     public static Model getModel() {return ModelHolder.m;}
 
 }

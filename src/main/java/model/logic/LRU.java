@@ -10,7 +10,7 @@ public class LRU implements CacheReplacementPolicy{
      * The add function adds a word to the list of words.
      *
      *
-     * @param String word Add a word to the list of words
+     * @param  word Add a word to the list of words
      *
      * @return Void
      *

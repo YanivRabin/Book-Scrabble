@@ -10,11 +10,19 @@ import java.net.Socket;
 import java.util.Scanner;
 
 public class ClientsTest {
-    // need to write test for Host Guest and my server connection and
-    // send strings
-    // get score
-    // connect 4 guests
-    // connect multiple hosts
+
+    /**
+     * The main function is used to test the server and client.
+     * It creates a GameServer, Hosts and Guests.
+     * The Hosts connect to the GameServer, then create 3 Guests each that also connect to the GameServer.
+
+     *
+     * @param  args Pass command line arguments to the program
+     *
+     * @return A value of type void
+     *
+     * @docauthor Trelent
+     */
     public static void main(String[] args) throws IOException, InterruptedException {
         // Create the GameServer
         MyServer gameServer = MyServer.getModel();

@@ -66,6 +66,16 @@ public class DictionaryManager {
     }
 
 
+    /**
+     * The query function checks if a word exist in the books dictionary.
+     *
+     *
+     * @param args args Pass a variable number of arguments to the query function
+     *
+     * @return True if the word exists in at least one of the books
+     *
+     * @docauthor Trelent
+     */
     public boolean query(String... args) {
 
         boolean wordExist = false;
@@ -85,6 +95,16 @@ public class DictionaryManager {
         return wordExist;
     }
 
+    /**
+     * The challenge function checks if a word exist in the books dictionary.
+     *
+     *
+     * @param args args Pass an array of strings as a parameter
+     *
+     * @return True if the word is in any of the books
+     *
+     * @docauthor Trelent
+     */
     public boolean challenge(String... args) {
 
         boolean wordExist = false;

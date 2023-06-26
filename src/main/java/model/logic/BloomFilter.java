@@ -15,8 +15,8 @@ public class BloomFilter {
      * that were passed into the constructor. It then sets those bits to 1.
 
      *
-     * @param int size Set the size of the bitset
-     * @param String... args Pass in a variable number of arguments
+     * @param args size Set the size of the bitset
+     * @param args args Pass in a variable number of arguments
      *
      * @return A new bloomfilter object
      *
@@ -41,7 +41,7 @@ public class BloomFilter {
      * in bitSet.
 
      *
-     * @param String s Get the bytes array from the hash function
+     * @param s s Get the bytes array from the hash function
      *
      * @return The bitset
      *
@@ -85,7 +85,7 @@ public class BloomFilter {
      * bitSet has been set at those indices. If any of these bits are not set, it returns false; otherwise it returns true.
 
      *
-     * @param String s Get the byte array of the string
+     * @param s s Get the byte array of the string
      *
      * @return True if the bloom filter contains the given string
      *
