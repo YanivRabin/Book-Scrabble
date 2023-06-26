@@ -4,6 +4,7 @@ module view.bookscrabble {
     requires com.google.gson;
     requires junit;
 
+
     opens view to javafx.fxml;
     exports view;
     exports viewModel;

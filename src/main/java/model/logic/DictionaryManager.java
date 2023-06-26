@@ -27,7 +27,6 @@ public class DictionaryManager {
         books.put("TheMatrix", new Dictionary("src/main/resources/books/TheMatrix.txt"));
     }
 
-
     /**
      * The get function is a singleton function that returns the DictionaryManager
      * object. If there is no DictionaryManager object, it creates one and then

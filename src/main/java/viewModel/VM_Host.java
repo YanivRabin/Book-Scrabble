@@ -158,11 +158,6 @@ public class VM_Host extends Observable implements ViewModel, Observer {
 
         host.sendUpdatePrevToCurrent();
     }
-    @Override
-    public void updateScore() {
-
-        scoreProperty.set(host.hostPlayer.player.getCurrentScore());
-    }
 
     // getters
     public String getIp() { return ip; }
@@ -180,6 +175,11 @@ public class VM_Host extends Observable implements ViewModel, Observer {
     @Override
     public Observable getObservable() {
         return this;
+    }
+    @Override
+    public void updateScore() {
+
+        scoreProperty.set(host.hostPlayer.player.getCurrentScore());
     }
 
     // update

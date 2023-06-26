@@ -29,4 +29,3 @@ public interface ViewModel {
     int getMyTurn();
     Observable getObservable();
 }
-

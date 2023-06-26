@@ -156,6 +156,7 @@ public class Guest extends Observable{
                         this.player.addTiles(json.get("StartTiles").getAsString());
                         this.player.hostNickName = json.get("Source").getAsString();
                         this.player.playerIndex = json.get("PlayerIndex").getAsInt();
+                        this.player.setNumOfPlayersInGame(json.get("NumOfPlayers").getAsInt());
                         setChanged();
                         notifyObservers("start game," + this.player.getHostNickName());
                         break;

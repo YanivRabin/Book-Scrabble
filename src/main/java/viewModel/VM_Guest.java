@@ -163,17 +163,18 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
     }
     @Override
     public void updatePrev() {}
-    @Override
-    public void updateScore() {
-
-        scoreProperty.set(guest.player.getCurrentScore());
-    }
 
     // getters
     @Override
     public Tile[][] getBoard() {
 
         return gameBoard;
+    }
+
+    @Override
+    public void updateScore() {
+
+        scoreProperty.set(guest.player.getCurrentScore());
     }
     @Override
     public ArrayList<Tile> getCurrentTiles() {

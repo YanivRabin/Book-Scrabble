@@ -555,7 +555,7 @@ public class BoardViewController implements Initializable, Observer {
         enableButtons();
 
         // send updated board to everyone
-        viewModel.updateBoard();
+//        viewModel.updateBoard();
     }
 
     public void EndTurnButtonClick() {
@@ -648,7 +648,6 @@ public class BoardViewController implements Initializable, Observer {
                 System.out.println("board observer update: update board");
                 gameBoard = viewModel.getBoard();
                 viewModel.updateScore();
-
                 for (int row = 0; row < 15; row++) {
                     for (int col = 0; col < 15; col++) {
                         if (gameBoard[row][col] != null) {
@@ -669,15 +668,6 @@ public class BoardViewController implements Initializable, Observer {
                             });
                         }
                     }
-                }
-                // Check if it's this player's turn
-                if (vm.getCurrentPlayer() == viewModel.getMyTurn()) {
-                    // enable all
-                    message.setText("Your turn!");
-                    enableButtons();
-                    TryPlaceWord.setDisable(false);
-                    resetWord.setDisable(false);
-                    EndTurn.setDisable(false);
                 }
             }
         }

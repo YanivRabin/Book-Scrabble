@@ -35,11 +35,13 @@ public class MessageHandler {
      *
      * @docauthor Trelent
      */
-    public void CreateStartGameMessage(String tilesInCapital, String hostNickName){
+    public void CreateStartGameMessage(String tilesInCapital, String hostNickName, int playerIndex, int numOfPlayers){
         // only serverHost
         this.jsonHandler.addMessageType("start game");
         this.jsonHandler.addSource(hostNickName);
         this.jsonHandler.addStartTiles(tilesInCapital);
+        this.jsonHandler.addPlayerIndex(playerIndex);
+        this.jsonHandler.addNumOfPlayers(numOfPlayers);
     }
     /**
      * The CreateTryAgainMessage function creates a message that is sent to the client when they have lost.
@@ -118,7 +120,7 @@ public class MessageHandler {
      *
      * @docauthor Trelent
      */
-    public void CreateUpdateBoardMessage(Character[][] board, String hostNickName){
+    public void CreateUpdateBoardMessage(String board, String hostNickName){
         // only serverHost
         this.jsonHandler.addMessageType("update board");
         this.jsonHandler.addSource(hostNickName);
@@ -186,11 +188,6 @@ public class MessageHandler {
 
     public void updatePrevToCurrent() {
         this.jsonHandler.addMessageType("update prev to current");
-    }
-
-    public void CreateUpdateScore(String source){
-        this.jsonHandler.addMessageType("update score");
-        this.jsonHandler.addSource(source);
     }
 
 }

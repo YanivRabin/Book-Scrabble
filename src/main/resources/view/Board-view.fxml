@@ -333,7 +333,7 @@
             <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="14" GridPane.rowIndex="12" />
             <Pane onMouseClicked="#handlePaneClick" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="14" GridPane.rowIndex="13" />
 
-               </children>
+         </children>
       </GridPane>
       <Button fx:id="challenge" layoutX="781.0" layoutY="591.0" mnemonicParsing="false" onAction="#challengeButtonClick" prefHeight="50.0" prefWidth="84.0" stylesheets="@../css/button.css" text="Challenge" />
    </children>
