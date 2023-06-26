@@ -204,14 +204,6 @@ public class Tile {
             return tiles[c - 'A'];
         }
 
-        public Tile getTileForTileArray(char c) {
-
-            // check if the letter is valid and that there's no 0 amount of that letter
-            if (c < 'A' || c > 'Z')
-                return null;
-
-            return tiles[c - 'A'];
-        }
 
 
 

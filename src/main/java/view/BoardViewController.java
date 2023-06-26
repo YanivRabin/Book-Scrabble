@@ -723,7 +723,7 @@ public class BoardViewController implements Initializable, Observer {
                 challenge.setDisable(false);
                 executor.submit(() -> {
                     try {
-                        Thread.sleep(50000);
+                        Thread.sleep(5000);
                         challenge.setDisable(true);
                         viewModel.updatePrev();
                         // Check if it's this player's turn
