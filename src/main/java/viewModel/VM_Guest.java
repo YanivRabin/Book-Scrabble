@@ -161,6 +161,13 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
 
         guest.SendChallengeMessage(sb.toString());
     }
+    @Override
+    public void updatePrev() {}
+    @Override
+    public void updateScore() {
+
+        scoreProperty.set(guest.player.getCurrentScore());
+    }
 
     // getters
     @Override

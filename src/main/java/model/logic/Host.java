@@ -651,11 +651,12 @@ public class Host extends Observable implements ClientHandler{
     public void HandleChallenge(boolean res , String prevScore, String prevBoard, Word w){
         if(res){
 //            Character[][] toUpdateBoard = this.player.parseStringToCharacterArray(prevBoard);
+            Character[][] toUpdateBoard = this.hostPlayer.player.prevBoard;
             for(Tile t : w.getTiles()){
                 Tile.Bag.getBagModel().put(t);
             }
             this.SendUpdateBoardMessage(prevBoard, this.NickName);
-            String jsonChallengingYou = this.SendSucceededChallengeYouMessage(this.NickName, prevScore);
+            String jsonChallengingYou = this.SendSucceededChallengeYouMessage(this.NickName, board.parseCharacterArrayToString(toUpdateBoard));
             try {
                 PrintWriter printWriter = new PrintWriter(this.currentSuccessMessageSocket.getOutputStream());
                 printWriter.println(jsonChallengingYou);

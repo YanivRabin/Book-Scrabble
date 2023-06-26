@@ -153,6 +153,16 @@ public class VM_Host extends Observable implements ViewModel, Observer {
 
         host.hostPlayer.SendChallengeMessage(sb.toString());
     }
+    @Override
+    public void updatePrev() {
+
+        host.sendUpdatePrevToCurrent();
+    }
+    @Override
+    public void updateScore() {
+
+        scoreProperty.set(host.hostPlayer.player.getCurrentScore());
+    }
 
     // getters
     public String getIp() { return ip; }
