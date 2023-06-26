@@ -13,7 +13,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class Guest extends Observable{
+public class Guest extends Observable {
+
     //Logic Members
     private Socket SocketToHost;
     private BufferedReader reader;
@@ -22,12 +23,9 @@ public class Guest extends Observable{
     Host HostServer; // The Host this Guest connected to
     static ExecutorService executorService = Executors.newFixedThreadPool(8); // only for one host
     BlockingQueue<String> inputQueue = new LinkedBlockingQueue<>();
-
-
     //Data-Game Members
     public Player player;
     public String NickName;
-
 
     public Guest(String NickName){
         this.NickName = NickName;
@@ -51,10 +49,8 @@ public class Guest extends Observable{
         return ipAddress;
     }
 
-    public void CreateProfile(String NickName){
+    public void setNickName(String NickName){
         this.NickName = NickName;
-
-        // add Photo or avatar
     }
 
     public void CreateSocketToHost(String HostIp, int Port) throws IOException {
@@ -63,8 +59,8 @@ public class Guest extends Observable{
             this.reader = new BufferedReader(new InputStreamReader(SocketToHost.getInputStream()));
             this.writer = new PrintWriter(SocketToHost.getOutputStream(), true);
             this.ipAddress = SocketToHost.getInetAddress().getHostAddress();
+            sendNewPlayerJoinedMessage();
             executorService.submit(this::handleRequests);
-
             executorService.execute(()->{
                 try {
                     handleHost(this.SocketToHost.getInputStream(), this.SocketToHost.getOutputStream());
@@ -78,24 +74,29 @@ public class Guest extends Observable{
         }
     }
 
+    public void sendNewPlayerJoinedMessage() {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(this.SocketToHost.getInetAddress());
+        stringBuilder.append(":");
+        stringBuilder.append(this.SocketToHost.getLocalPort());
+        MessageHandler messageHandler = new MessageHandler();
+        messageHandler.createNewPlayerJoinedMessage(this.NickName);
+        this.SendToHost(messageHandler.jsonHandler);
+    }
+
     // create all options Messages
     public void SendTryPlaceWordMessage(String source, String destination, String word,
                                           int row, int column, boolean vertical){
         System.out.println(this.player.getNickName()+": try place word");
-//        if(!this.player.usingCurrentTiles(word)){
-//            System.out.println("You are not using your tiles");
-//        }
-//        else{
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append(this.SocketToHost.getInetAddress());
-            stringBuilder.append(":");
-            stringBuilder.append(this.SocketToHost.getLocalPort());
-            String socketSource = stringBuilder.toString();
-            MessageHandler messageHandler = new MessageHandler();
-            messageHandler.CreateTryPlaceWordMessage(source, destination, word, this.player.prevScore,row, column,
-                    vertical, this.player.getCurrentTiles(), socketSource);
-            this.SendToHost(messageHandler.jsonHandler);
-//        }
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(this.SocketToHost.getInetAddress());
+        stringBuilder.append(":");
+        stringBuilder.append(this.SocketToHost.getLocalPort());
+        String socketSource = stringBuilder.toString();
+        MessageHandler messageHandler = new MessageHandler();
+        messageHandler.CreateTryPlaceWordMessage(source, destination, word, this.player.prevScore,row, column,
+                vertical, this.player.getCurrentTiles(), socketSource);
+        this.SendToHost(messageHandler.jsonHandler);
     }
     public void SendChallengeMessage(String prevBoard){
         StringBuilder stringBuilder = new StringBuilder();
@@ -124,7 +125,17 @@ public class Guest extends Observable{
         this.writer.flush();
     }
 
-    // option d in {}
+    public void sendEndGame() {
+        String winner = "";
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(this.SocketToHost.getInetAddress());
+        stringBuilder.append(":");
+        stringBuilder.append(this.SocketToHost.getLocalPort());
+        MessageHandler messageHandler = new MessageHandler();
+        messageHandler.createEndGameMessage(winner);
+        this.SendToHost(messageHandler.jsonHandler);
+    }
+
     public void handleHost(InputStream inputStream, OutputStream outputStream) {
         while (!this.SocketToHost.isClosed()) {
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
@@ -165,12 +176,10 @@ public class Guest extends Observable{
                                 System.out.println(this.NickName + "Try Place Word: " + "Success");
                                 this.player.addScore(Integer.parseInt(json.get("NewScore").getAsString()));
                                 this.player.setCurrentTiles(json.get("NewCurrentTiles").getAsString());
-                                // board change in Host.notifyall
                                 break;
                             case "challenge":
+                                // no use
                                 System.out.println(this.NickName + "Challenge: " + "Success");
-                                // score don't change
-                                // board change in Host.notifyall
                                 break;
                         }
                         break;
@@ -181,6 +190,8 @@ public class Guest extends Observable{
                                 break;
                             case "challenge":
                                 System.out.println(this.NickName + "Challenge: "+ "Didn't success, try again");
+                                setChanged();
+                                notifyObservers("challenge fail");
                                 break;
                         }
                         break;
@@ -188,25 +199,22 @@ public class Guest extends Observable{
                         System.out.println(this.NickName + ": i have been complicated");
                         this.player.currentScore = json.get("PrevScore").getAsInt();
                         this.player.prevScore = json.get("PrevScore").getAsInt();
-                        this.player.currentBoard = this.player.prevBoard;
-                        this.player.currentTiles = this.player.prevTiles;
                         setChanged();
-                        notifyObservers("challenge success");
+                        notifyObservers("update score");
                         break;
                     case "update board":
                         this.player.setCurrentBoard(json.get("Board").getAsString());
                         setChanged();
                         notifyObservers("update board");
-                        System.out.println(this.NickName + " updated Board");
                         break;
                     case "pass turn":
                         setChanged();
                         notifyObservers("pass turn");
                         break;
                     case "end game":
-                        System.out.println("End Game");
+                        setChanged();
+                        notifyObservers("end game,"+json.get("Message").getAsString());
                         Thread.sleep(5000);
-                        System.exit(0);
                         break;
                     case "challenge alive":
                         setChanged();
@@ -215,15 +223,14 @@ public class Guest extends Observable{
                     case "update prev to current":
                         this.player.prevScore = this.player.currentScore;
                         this.player.prevBoard = this.player.currentBoard;
-                        this.player.prevTiles = this.player.currentTiles;
                         break;
-
-
+                    case "challenge success":
+                        setChanged();
+                        notifyObservers("challenge success");
+                        break;
                 }
-
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
             }
+            catch (InterruptedException e) { throw new RuntimeException(e); }
         }
     }
 
@@ -247,7 +254,6 @@ public class Guest extends Observable{
 
         return true;
     }
-
 
     /**
      * The Disconnect function is used to disconnect the client from the server.
@@ -284,6 +290,4 @@ public class Guest extends Observable{
             e.printStackTrace();
         }
     }
-
-
 }

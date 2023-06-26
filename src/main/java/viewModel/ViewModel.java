@@ -20,6 +20,8 @@ public interface ViewModel {
     void challenge();
     void updatePrev();
     void updateScore();
+    void updateBoard();
+    void endGame();
 
     // getters
     ArrayList<Tile> getCurrentTiles();

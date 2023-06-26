@@ -488,14 +488,12 @@ public class Board {
 
         //check if the first word placed on the center star
         if (w.getRow() == 7 && w.getCol() == 7 && firstTurn) {
-
+//        if (w.getRow() == 7 && w.getCol() == 7 && board[7][7] == null) {
             if ((w.vertical && (w.col != 7 || (w.row + w.tiles.length <= 7) || w.row >= 8)) ||
                     (!w.vertical && (w.row != 7 || (w.col + w.tiles.length <= 7) || w.col >= 8))) {
-
                 return false;
             }
             else {
-
                 return true;
             }
         }
@@ -669,8 +667,23 @@ public class Board {
                 i++;
             }
         }
-        words.add(w);
 
+
+        ArrayList<Tile> tiles = new ArrayList<>();
+        int row = w.getRow();
+        int col = w.getCol();
+        for (Tile t: w.tiles) {
+            tiles.add(board[row][col]);
+            if (w.isVertical()) {
+                row++;
+            }
+            else {
+                col++;
+            }
+        }
+        Tile[] tempT = tiles.toArray(new Tile[0]);
+        Word tempWord = new Word(tempT, w.getRow(), w.getCol(), w.isVertical());
+        words.add(tempWord);
         return words;
     }
 
@@ -799,6 +812,10 @@ public class Board {
 
 
     public int tryPlaceWord(Word word) {
+
+        if (board[7][7] == null) {
+            firstTurn = true;
+        }
 
         if (boardLegal(word)) {
             int score = getScore(word);

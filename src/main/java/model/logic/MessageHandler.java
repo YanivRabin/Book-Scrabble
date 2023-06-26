@@ -35,11 +35,13 @@ public class MessageHandler {
      *
      * @docauthor Trelent
      */
-    public void CreateStartGameMessage(String tilesInCapital, String hostNickName){
+    public void CreateStartGameMessage(String tilesInCapital, String hostNickName, int playerIndex, int numOfPlayers){
         // only serverHost
         this.jsonHandler.addMessageType("start game");
         this.jsonHandler.addSource(hostNickName);
         this.jsonHandler.addStartTiles(tilesInCapital);
+        this.jsonHandler.addPlayerIndex(playerIndex);
+        this.jsonHandler.addNumOfPlayers(numOfPlayers);
     }
     /**
      * The CreateTryAgainMessage function creates a message that is sent to the client when they have lost.
@@ -90,17 +92,7 @@ public class MessageHandler {
         // this.jsonHandler.addBoard(board);
         // addPrevBoard
     }
-    /**
-     * The CreateSucceededChallengeYouMessage function creates a message that is sent to the client who has been challenged by another player.
-     *
-     *
-     * @param Character[][] board Send the board to the client
-     * @param String hostNickName Identify the host of the game
-     *
-     * @return A jsonobject
-     *
-     * @docauthor Trelent
-     */
+
     public void CreateSucceededChallengeYouMessage(String hostNickName, String prevScore){
         // only serverHost
         this.jsonHandler.addMessageType("succeeded in challenging you");
@@ -118,7 +110,7 @@ public class MessageHandler {
      *
      * @docauthor Trelent
      */
-    public void CreateUpdateBoardMessage(Character[][] board, String hostNickName){
+    public void CreateUpdateBoardMessage(String board, String hostNickName){
         // only serverHost
         this.jsonHandler.addMessageType("update board");
         this.jsonHandler.addSource(hostNickName);
@@ -180,17 +172,22 @@ public class MessageHandler {
         this.jsonHandler.addMessageType("challenge alive");
     }
 
-    public void createEndGameMessage() {
+    public void createEndGameMessage(String winner) {
         this.jsonHandler.addMessageType("end game");
+        this.jsonHandler.addMessage(winner);
     }
 
     public void updatePrevToCurrent() {
         this.jsonHandler.addMessageType("update prev to current");
     }
 
-    public void CreateUpdateScore(String source){
-        this.jsonHandler.addMessageType("update score");
-        this.jsonHandler.addSource(source);
+    public void createChallengeSuccessMessage() {
+        this.jsonHandler.addMessageType("challenge success");
     }
 
+    public void createNewPlayerJoinedMessage(String nickName) {
+        this.jsonHandler.addMessageType("new player joined");
+        this.jsonHandler.addMessage(nickName);
+
+    }
 }

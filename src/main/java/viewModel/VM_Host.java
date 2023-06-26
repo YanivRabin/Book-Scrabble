@@ -11,22 +11,21 @@ import model.logic.MyServer;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 
 public class VM_Host extends Observable implements ViewModel, Observer {
 
     Host host;
-
     Tile[][] gameBoard;
     Tile.Bag gameBag;
-
     String ip, name;
     ArrayList<Tile> currentTiles;
     int port, players, playerTurn, myTurn;
-
     private final IntegerProperty scoreProperty;
     private final IntegerProperty playersProperty;
+    Map<String, Integer> NameToScore;
 
     // constructor
     public VM_Host(String n) throws IOException {
@@ -44,6 +43,8 @@ public class VM_Host extends Observable implements ViewModel, Observer {
 
         // create Host and connect him to the main server
         host = Host.getModel();
+        host.setNickName(name);
+        host.hostPlayer.setNickName(name);
         host.CreateSocketToServer(gameServer);
         host.start();
 
@@ -93,23 +94,16 @@ public class VM_Host extends Observable implements ViewModel, Observer {
     public int tryPlaceWord(Word word) {
 
         // get the current score
-        int score = scoreProperty.get();
-
+        int scoreBefore = scoreProperty.get();
         // try place word func
         host.hostPlayer.SendTryPlaceWordMessage(host.hostPlayer.NickName, host.NickName, word.toString(), word.getRow(), word.getCol(), word.isVertical());
         try { Thread.sleep(2000); }
         catch (InterruptedException e) { e.printStackTrace(); }
+        updateScore();
 
-        // set the new score
-        scoreProperty.set(host.hostPlayer.player.getCurrentScore());
-
-        // print for test
-        System.out.println("prev score: " + score);
-        System.out.println("current score: " + host.hostPlayer.player.getCurrentScore());
-
-        // if the currentScore - prevScore is 0, its mean the word received 0 points
-        if (score != 0) {
-            return scoreProperty.get() - score;
+        // if the (currentScore - prevScore == 0), its mean the word received 0 points
+        if (scoreBefore != 0) {
+            return scoreProperty.get() - scoreBefore;
         }
         // if its this first turn send back the current score
         else {
@@ -163,6 +157,15 @@ public class VM_Host extends Observable implements ViewModel, Observer {
 
         scoreProperty.set(host.hostPlayer.player.getCurrentScore());
     }
+    @Override
+    public void updateBoard() {
+
+        gameBoard = host.hostPlayer.player.getCurrentBoardAsTiles();
+    }
+    @Override
+    public void endGame() {
+        host.hostPlayer.sendEndGame();
+    }
 
     // getters
     public String getIp() { return ip; }
@@ -186,7 +189,7 @@ public class VM_Host extends Observable implements ViewModel, Observer {
     @Override
     public void update(Observable o, Object arg) {
 
-//        String[] message = arg.toString().split(",");
+        String[] message = arg.toString().split(",");
 
         if (arg.equals("guest connect")) {
             Platform.runLater(() -> {
@@ -213,15 +216,38 @@ public class VM_Host extends Observable implements ViewModel, Observer {
         }
 
         if (arg.equals("challenge fail")) {
-            System.out.println("guest viewModel observer update: challenge fail");
+            System.out.println("host viewModel observer update: challenge fail");
             setChanged();
             notifyObservers("challenge fail");
         }
 
+        if (arg.equals("challenge success")) {
+            System.out.println("host viewModel observer update: challenge success");
+            setChanged();
+            notifyObservers("challenge success");
+        }
+
         if (arg.equals("challenge alive")) {
-            System.out.println("guest viewModel observer update: challenge alive");
+            System.out.println("host viewModel observer update: challenge alive");
             setChanged();
             notifyObservers("challenge alive");
+        }
+
+        if (arg.equals("update score")) {
+            System.out.println("host viewModel observer update: update score");
+            setChanged();
+            notifyObservers("update score");
+        }
+
+        if (message[0].equals("end game")) {
+            System.out.println("guest viewModel observer update: end game");
+            setChanged();
+            notifyObservers("end game," + message[1]);
+        }
+
+        if (message[0].equals("update map")) {
+            System.out.println("guest viewModel observer update: update map");
+            NameToScore = host.NameToScore;
         }
     }
 }

@@ -11,7 +11,8 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-public class Host extends Observable implements ClientHandler{
+public class Host extends Observable implements ClientHandler {
+
     //Logic Members
     int Port;
     String IP;
@@ -22,10 +23,10 @@ public class Host extends Observable implements ClientHandler{
     String currentSuccessMessagePrevScore;
     Word currentSuccessMessageWord;
 
-
     final int MaxGuests = 4;
     public List<Socket> GuestList;
     Socket SocketToMyServer;
+    public Map<String,Integer> NameToScore;
 
     public Future<String> getStringFuture() {
         return stringFuture;
@@ -41,7 +42,6 @@ public class Host extends Observable implements ClientHandler{
     BlockingQueue<String> inputQueue = new LinkedBlockingQueue<>();
     public BlockingQueue<String> inputQueueFromGameServer = new LinkedBlockingQueue<>();
 
-
     //Data-Game Members
     public String NickName;
     public Tile.Bag bag;
@@ -50,6 +50,7 @@ public class Host extends Observable implements ClientHandler{
     Board board ; // singleton and get instance model
     private BufferedReader reader;
     private PrintWriter writer;
+    String prevScore;
 
     //Default CTOR
     /**
@@ -63,7 +64,8 @@ public class Host extends Observable implements ClientHandler{
      *
      * @docauthor Trelent
      */
-    public Host(){
+    public Host() {
+
         this.board = Board.getBoardModel();
         this.bag = Tile.Bag.getBagModel();
         this.Port = GeneratePort();
@@ -71,6 +73,7 @@ public class Host extends Observable implements ClientHandler{
         this.GuestList =new ArrayList<>();
         this.NickName="Host "+ getPort();
         this.hostPlayer = new Guest(NickName);
+        this.NameToScore = new HashMap<>();
     }
 
     private static class HostModelHelper {
@@ -199,9 +202,8 @@ public class Host extends Observable implements ClientHandler{
      *
      * @docauthor Trelent
      */
-    public void CreateProfile(String NickName){
+    public void setNickName(String NickName){
         this.NickName = NickName;
-        // add Photo or avatar
     }
 
     //start Host server
@@ -273,7 +275,6 @@ public class Host extends Observable implements ClientHandler{
             }
         });
 
-
         while (!this.Stop ) {
             try{
                 if(this.GuestList.size() < this.MaxGuests) {
@@ -318,7 +319,8 @@ public class Host extends Observable implements ClientHandler{
             try {
                 MessageHandler messageHandler = new MessageHandler();
                 List<Character> StartGameTiles = this.GenerateTiles(8);
-                messageHandler.CreateStartGameMessage(this.CharavterslistToString(StartGameTiles), hostNickName, c);
+                messageHandler.CreateStartGameMessage(this.CharavterslistToString(StartGameTiles),
+                        hostNickName, c, this.GuestList.size());
                 OutputStream outToClient = socket.getOutputStream();
                 PrintWriter out = new PrintWriter(outToClient);
                 out.println(messageHandler.jsonHandler.toJsonString());
@@ -369,9 +371,9 @@ public class Host extends Observable implements ClientHandler{
         }
     }
 
-    public void sendEndGame(){
+    public void sendEndGame(String winner) {
         MessageHandler messageHandler = new MessageHandler();
-        messageHandler.createEndGameMessage();
+        messageHandler.createEndGameMessage(winner);
         for(Socket socket : this.GuestList) {
 
             try {
@@ -388,7 +390,20 @@ public class Host extends Observable implements ClientHandler{
             catch (IOException | InterruptedException e) {throw new RuntimeException(e);}
         }
     }
-    public void sendUpdatePrevToCurrent(){
+
+    public String getWinner() {
+        int maxScore = 0;
+        String winner = "";
+        for (String name : this.NameToScore.keySet()) {
+            if (this.NameToScore.get(name) > maxScore) {
+                maxScore = this.NameToScore.get(name);
+                winner = name;
+            }
+        }
+        return winner;
+    }
+
+    public void sendUpdatePrevToCurrent() {
         MessageHandler messageHandler = new MessageHandler();
         messageHandler.updatePrevToCurrent();
         for(Socket socket : this.GuestList) {
@@ -454,7 +469,6 @@ public class Host extends Observable implements ClientHandler{
         return messageHandler.jsonHandler.toJsonString();
     }
 
-
     public String SendSucceededChallengeYouMessage(String hostNickName, String prevScore){
         // only serverHost
         MessageHandler messageHandler = new MessageHandler();
@@ -478,12 +492,19 @@ public class Host extends Observable implements ClientHandler{
         messageHandler.CreateUpdateBoardMessage(board, hostNickName);
         for(Socket socket : this.GuestList){
             try {
-                OutputStream outToClient = socket.getOutputStream();
-                PrintWriter out = new PrintWriter(outToClient);
-                out.println(messageHandler.jsonHandler.toJsonString());
-                out.flush();
+                if (socket.getPort() == this.hostPlayer.getSocketToHost().getLocalPort()){
+                    this.hostPlayer.inputQueue.put(messageHandler.jsonHandler.toJsonString());
+                }
+                else {
+                    OutputStream outToClient = socket.getOutputStream();
+                    PrintWriter out = new PrintWriter(outToClient);
+                    out.println(messageHandler.jsonHandler.toJsonString());
+                    out.flush();
+                }
             } catch (IOException e) {
                 throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -549,6 +570,7 @@ public class Host extends Observable implements ClientHandler{
                             int q_column = Integer.parseInt(json.get("Column").getAsString());
                             Q_word = new Word(getTileArray(q_word), q_row, q_column, q_vertical);
                             score = this.board.tryPlaceWord(Q_word);
+                            prevScore = json.get("PrevScore").getAsString();
                             break;
                         case "challenge":
                             this.sendStopChallengeAlive();
@@ -570,7 +592,6 @@ public class Host extends Observable implements ClientHandler{
                                 String jsonStringChallenge = Host.getModel().CreateMessageToGameServer(stringBuilder.toString(),socketSource);
                                 Host.getModel().SendMessageToGameServer(jsonStringChallenge);
 
-
 //                                this.SendMessageToGameServer(stringBuilder.toString());
                                 boolean res = this.inputQueueFromGameServer.take().equals("true");
                                 if(!res){
@@ -580,10 +601,10 @@ public class Host extends Observable implements ClientHandler{
                             if(counterChallenge != challengeAllTheWords.size()){
                                 flagChallenge = false;
                             }
-                            else{
-                                this.HandleChallenge(true, this.currentSuccessMessagePrevScore, json.get("PrevBoard").getAsString(), this.currentSuccessMessageWord);
+                            else {
+                                this.HandleChallenge(true, this.currentSuccessMessagePrevScore, this.currentSuccessMessageWord);
+                                continue;
                             }
-                            // do the Challenge
                             break;
                         case "update board":
                             this.hostPlayer.inputQueue.put(jsonString);
@@ -591,8 +612,14 @@ public class Host extends Observable implements ClientHandler{
                         case "pass turn":
                             this.sendPassTurnMessage();
                             continue;
+                        case "new player joined":
+                            this.NameToScore.put(json.get("Message").getAsString(), 0);
+                            continue;
                         case "end game":
-                            this.sendEndGame();
+                            this.sendEndGame(getWinner());
+                            setChanged();
+                            notifyObservers("end game");
+                            continue;
                     }
 
                     String socketSource = json.get("SocketSource").getAsString();
@@ -601,8 +628,14 @@ public class Host extends Observable implements ClientHandler{
                     if (!flagChallenge){
                         String tryAgainString = this.SendTryAgainMessage(currentGuest.toString(), 0,
                                 "challenge", this.getNickName());
-                        out.println(tryAgainString);
-                        out.flush();
+                        if (currentGuest.getPort() == this.hostPlayer.getSocketToHost().getLocalPort()){
+                            this.hostPlayer.inputQueue.put(tryAgainString);
+                        }
+                        else {
+                            out.println(tryAgainString);
+                            out.flush();
+                        }
+
                         continue;
                     }
                     if (score == 0){
@@ -617,8 +650,10 @@ public class Host extends Observable implements ClientHandler{
                         out.flush();
                     }
                     else {
-                        // ack , score to guest Create success message
-//                        this.board.placeTile();
+                        // update player score in name to score map
+                        this.NameToScore.put(json.get("Source").getAsString(), this.NameToScore.get(json.get("Source").getAsString()) + score);
+                        setChanged();
+                        notifyObservers("update map");
 
                         this.currentSuccessMessageSocket = currentGuest;
                         this.currentSuccessMessagePrevScore = json.get("PrevScore").getAsString();
@@ -640,34 +675,70 @@ public class Host extends Observable implements ClientHandler{
                         this.SendUpdateBoardMessage(this.board.parseBoardToString(this.board.getTiles()), this.NickName);
                     }
                 }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
             }
+            catch (InterruptedException e) {e.printStackTrace();}
+            catch (IOException e) {throw new RuntimeException(e);}
         }
     }
 
-    public void HandleChallenge(boolean res , String prevScore, String prevBoard, Word w){
-        if(res){
-//            Character[][] toUpdateBoard = this.player.parseStringToCharacterArray(prevBoard);
+    public void HandleChallenge(boolean res , String prevScore, Word w) {
+
+        if(res) {
+            System.out.println("challenge success");
+            int row = w.getRow();
+            int col = w.getCol();
             Character[][] toUpdateBoard = this.hostPlayer.player.prevBoard;
             for(Tile t : w.getTiles()){
-                Tile.Bag.getBagModel().put(t);
+                if (t != null) {
+                    Tile.Bag.getBagModel().put(t);
+                    board.removeTile(row, col);
+                }
+                if (w.isVertical()) {
+                    row++;
+                }
+                else {
+                    col++;
+                }
             }
-            this.SendUpdateBoardMessage(prevBoard, this.NickName);
-            String jsonChallengingYou = this.SendSucceededChallengeYouMessage(this.NickName, board.parseCharacterArrayToString(toUpdateBoard));
+            this.SendUpdateBoardMessage(board.parseCharacterArrayToString(toUpdateBoard), this.NickName);
+            String jsonChallengingYou = this.SendSucceededChallengeYouMessage(this.NickName, prevScore);
+            try {Thread.sleep(1000);}
+            catch (InterruptedException e) {e.printStackTrace();}
             try {
-                PrintWriter printWriter = new PrintWriter(this.currentSuccessMessageSocket.getOutputStream());
-                printWriter.println(jsonChallengingYou);
-                printWriter.flush();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+                if (currentSuccessMessageSocket.getPort() == this.hostPlayer.getSocketToHost().getLocalPort()) {
+                    this.hostPlayer.inputQueue.put(jsonChallengingYou);
+                }
+                else {
+                    PrintWriter printWriter = new PrintWriter(this.currentSuccessMessageSocket.getOutputStream());
+                    printWriter.println(jsonChallengingYou);
+                    printWriter.flush();
+                }
             }
-
+            catch (IOException e) {throw new RuntimeException(e);}
+            catch (InterruptedException e) {e.printStackTrace();}
         }
         else{
             System.out.println("Challenge didn't success, the word is legal");
+        }
+    }
+
+    private void sendChallengeSuccess() {
+        MessageHandler messageHandler = new MessageHandler();
+        messageHandler.createChallengeSuccessMessage();
+        for(Socket socket : this.GuestList) {
+
+            try {
+                if (socket.getPort() == this.hostPlayer.getSocketToHost().getLocalPort()){
+                    this.hostPlayer.inputQueue.put(messageHandler.jsonHandler.toJsonString());
+                }
+                else{
+                    OutputStream outToClient = socket.getOutputStream();
+                    PrintWriter out = new PrintWriter(outToClient);
+                    out.println(messageHandler.jsonHandler.toJsonString());
+                    out.flush();
+                }
+            }
+            catch (IOException | InterruptedException e) {throw new RuntimeException(e);}
         }
     }
 
@@ -756,7 +827,6 @@ public class Host extends Observable implements ClientHandler{
         writer.println(json.toJsonString());
 
     }
-
 
     public Socket getSocket(String source){
         System.out.println(source);

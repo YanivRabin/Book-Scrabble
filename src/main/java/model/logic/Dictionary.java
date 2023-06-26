@@ -17,7 +17,7 @@ public class Dictionary {
 
         lru = new CacheManager(400, new LRU());
         lfu = new CacheManager(100, new LFU());
-        bloomFilter = new BloomFilter(32768,"MD5","SHA1", "SHA-256", "SHA-512");
+        bloomFilter = new BloomFilter(65536,"MD5","SHA1", "SHA-256", "SHA-512");
         files = args;
         for (String file : files) {
 

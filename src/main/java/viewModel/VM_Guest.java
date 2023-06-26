@@ -15,16 +15,13 @@ import java.util.Observer;
 public class VM_Guest extends Observable implements ViewModel, Observer {
 
     Guest guest;
-
     Tile[][] gameBoard;
     Tile.Bag gameBag;
-
     String name, hostNickName;
     ArrayList<Tile> currentTiles;
     int playerTurn, myTurn, players;
     private boolean isGameStart;
     private final Object gameStartMonitor = new Object();
-
     private final IntegerProperty scoreProperty;
 
     // constructor
@@ -100,23 +97,17 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
     public int tryPlaceWord(Word word) {
 
         // get the current score
-        int score = scoreProperty.get();
+        int scoreBefore = scoreProperty.get();
 
         // try place word func
         guest.SendTryPlaceWordMessage(guest.NickName, hostNickName, word.toString(), word.getRow(), word.getCol(), word.isVertical());
         try { Thread.sleep(2000); }
         catch (InterruptedException e) { e.printStackTrace(); }
-
-        // set the new score
-        scoreProperty.set(guest.player.getCurrentScore());
-
-        // print for test
-        System.out.println("prev score: " + score);
-        System.out.println("current score: " + guest.player.getCurrentScore());
+        updateScore();
 
         // if the currentScore - prevScore is 0, its mean the word received 0 points
-        if (score != 0) {
-            return scoreProperty.get() - score;
+        if (scoreBefore != 0) {
+            return scoreProperty.get() - scoreBefore;
         }
         // if its this first turn send back the current score
         else {
@@ -168,6 +159,15 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
 
         scoreProperty.set(guest.player.getCurrentScore());
     }
+    @Override
+    public void updateBoard() {
+
+        gameBoard = guest.player.getCurrentBoardAsTiles();
+    }
+    @Override
+    public void endGame() {
+        guest.sendEndGame();
+    }
 
     // getters
     @Override
@@ -200,7 +200,6 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
 
         // "start game," + host.getNickName()
         String[] message = arg.toString().split(",");
-
         if (message[0].equals("start game")) {
             System.out.println("guest viewModel observer update: start game");
             isGameStart = true;
@@ -210,29 +209,55 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
             synchronized (gameStartMonitor) { gameStartMonitor.notifyAll(); }
         }
 
-        if (message[0].equals("update board")) {
+        if (arg.equals("update board")) {
             System.out.println("guest viewModel observer update: update board");
             gameBoard = guest.player.getCurrentBoardAsTiles();
             setChanged();
             notifyObservers("update board");
         }
 
-        if (message[0].equals("pass turn")) {
+        if (arg.equals("pass turn")) {
             System.out.println("guest viewModel observer update: pass turn");
             setChanged();
             notifyObservers("pass turn");
         }
 
-        if (message[0].equals("challenge fail")) {
+        if (arg.equals("challenge fail")) {
             System.out.println("guest viewModel observer update: challenge fail");
             setChanged();
             notifyObservers("challenge fail");
         }
 
-        if (message[0].equals("challenge alive")) {
+        if (arg.equals("challenge alive")) {
             System.out.println("guest viewModel observer update: challenge alive");
             setChanged();
             notifyObservers("challenge alive");
+        }
+
+        if (arg.equals("challenge success")) {
+            System.out.println("guest viewModel observer update: challenge success");
+            setChanged();
+            notifyObservers("challenge success");
+        }
+
+        if (arg.equals("update score")) {
+            System.out.println("guest viewModel observer update: update score");
+            setChanged();
+            notifyObservers("update score");
+        }
+
+//        if (message[0].equals("new player joined")){
+//            System.out.println("guest viewModel observer update: new player joined");
+////            playersScore.put(message[1], 0);
+//            NameToScore = guest.getNameToScore();
+//            setChanged();
+//            notifyObservers("new player joined");
+//        }
+        if (message[0].equals("end game")) {
+            System.out.println("guest viewModel observer update: end game");
+            setChanged();
+            notifyObservers("end game," + message[1]);
+
         }
     }
 }
