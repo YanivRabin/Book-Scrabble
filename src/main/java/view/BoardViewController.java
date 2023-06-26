@@ -29,34 +29,24 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 public class BoardViewController implements Initializable, Observer {
 
-    ViewModel viewModel;
-
-    Tile[][] gameBoard;
-
+    ViewModel viewModel; // VM_Host or VM_Guest
+    Tile[][] gameBoard; // the player current board
     ArrayList<Tile> currentTiles;  // the tiles in the hand
     ArrayList<Button> usedButtons; // the tiles button that used during turn
-
     Pair<Integer, Integer>[] positions; // the used tiles positions
-    int positionsIndex;                 // an index to put in the position array, also for checking
-
-    Tile selectedTile;    // the tile that selected
+    int positionsIndex; // an index to put in the position array, also for checking
+    Tile selectedTile; // the tile that selected
     Button clickedButton; // the tile button that selected
-
     boolean blockingTiles; // if selected tile then block other buttons
-
-    ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
-
+    ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1); // thread pool for challenge
     @FXML
     private GridPane boardGrid;
-
     @FXML
     private Text score, message;
-
     @FXML
-    private AnchorPane tilesContainer, anchorPane;
-
+    private AnchorPane tilesContainer;
     @FXML
-    private Button EndTurn, resetWord, TryPlaceWord, challenge;
+    private Button EndTurn, resetWord, TryPlaceWord, challenge, EndGame;
 
     public void setViewModel(ViewModel vm) {
 
@@ -99,19 +89,8 @@ public class BoardViewController implements Initializable, Observer {
             message.setText("First word must be placed on the purple square");
         }
 
-        // allow challenge button for 10 seconds
-        challenge.setDisable(false);
-
-        executor.submit(() -> {
-            try {
-                for (int i = 0; i < 20; i++) {
-                    Thread.sleep(1000);  // Sleep for one second at a time
-                }
-                challenge.setDisable(true);
-                viewModel.updatePrev();
-            }
-            catch (InterruptedException e) { System.out.println("Thread pool problem"); }
-        });
+        // disable challenge for first turn
+        challenge.setDisable(true);
     }
 
     @Override
@@ -285,10 +264,8 @@ public class BoardViewController implements Initializable, Observer {
 
         // if only placed one tile to continue word from other tiles
         if (positionsIndex == 1) {
-
             startRow = positions[0].getKey();
             startCol = positions[0].getValue();
-
             if (startRow == 14) {
                 // check vertical
                 if (this.gameBoard[startRow - 1][startCol] != null) {
@@ -308,7 +285,6 @@ public class BoardViewController implements Initializable, Observer {
                     oneTileCheck = true;
                 }
             }
-
             if (startCol == 14) {
                 if (gameBoard[startRow][startCol - 1] != null) {
                     vertical = false;
@@ -328,9 +304,7 @@ public class BoardViewController implements Initializable, Observer {
                     oneTileCheck = true;
                 }
             }
-
             if (!oneTileCheck) {
-
                 System.out.println("Word must contain 2 tiles or more");
                 message.setText("Word must contain 2 tiles or more");
                 resetTilesButtonClick();
@@ -338,19 +312,14 @@ public class BoardViewController implements Initializable, Observer {
             }
         }
         if (positionsIndex > 1 || oneTileCheck) {
-
             if (!oneTileCheck) {
-
                 // checking to see if all is on the same row/col and find the first tile location the player put
                 // not vertical ( from left to right )
                 if (positions[0].getKey().intValue() == positions[1].getKey().intValue()) {
-
                     System.out.println("not vertical");
                     startRow = positions[0].getKey();
                     startCol = positions[0].getValue();
-
                     for (int i = 0; i < positionsIndex - 1; i++) {
-
                         if (positions[i].getKey().intValue() != positions[i + 1].getKey().intValue()) {
                             System.out.println("Word placed incorrect");
                             message.setText("Word placed incorrect");
@@ -366,14 +335,11 @@ public class BoardViewController implements Initializable, Observer {
                 }
                 // else vertical
                 else {
-
                     System.out.println("vertical");
                     vertical = true;
                     startRow = positions[0].getKey();
                     startCol = positions[0].getValue();
-
                     for (int i = 0; i < positionsIndex - 1; i++) {
-
                         if (positions[i].getValue().intValue() != positions[i + 1].getValue().intValue()) {
                             System.out.println("Word placed incorrect");
                             message.setText("Word placed incorrect");
@@ -393,54 +359,42 @@ public class BoardViewController implements Initializable, Observer {
             // and place tiles in word by order
             int i = 1;
             if (vertical) {
-
                 // checking if there are tiles before
                 while ((startRow - i) >= 0) {
-
                     if (gameBoard[startRow - i][startCol] != null) {
-
                         // set the new start row
                         startRow--;
                     }
                     else { break; }
                 }
-
                 // add the first tile to the array
                 if (isTilePlacedDuringTurn(startRow, startCol)) {
-
                     tilesForWord.add(gameBoard[startRow][startCol]);
                 }
                 else {
-
                     tilesForWord.add(null);
                 }
-
                 // checking if there are tiles after start to add to array
                 while ((startRow + i) <= 14) {
-
                     if (gameBoard[startRow + i][startCol] != null) {
-
                         if (isTilePlacedDuringTurn(startRow + i, startCol)) {
-
                             tilesForWord.add(gameBoard[startRow + i][startCol]);
                         }
                         else {
-
                             tilesForWord.add(null);
                         }
                         i++;
                     }
-                    else { break; }
+                    else {
+                        break;
+                    }
                 }
             }
             //not vertical
             else {
-
                 // checking if there are tiles before
                 while ((startCol - i) >= 0) {
-
                     if (gameBoard[startRow][startCol - i] != null) {
-
                         // set the new start row
                         startCol--;
                     }
@@ -449,26 +403,20 @@ public class BoardViewController implements Initializable, Observer {
 
                 // add the first tile to the array
                 if (isTilePlacedDuringTurn(startRow, startCol)) {
-
                     tilesForWord.add(gameBoard[startRow][startCol]);
                 }
                 else {
-
                     tilesForWord.add(null);
                 }
 
                 // checking if there are tiles after start to add to array
                 while ((startCol + i) <= 14) {
-
                     if (gameBoard[startRow][startCol + i] != null) {
-
                         // add the first tile to the array
                         if (isTilePlacedDuringTurn(startRow, startCol + i)) {
-
                             tilesForWord.add(gameBoard[startRow][startCol + i]);
                         }
                         else {
-
                             tilesForWord.add(null);
                         }
                         i++;
@@ -478,12 +426,10 @@ public class BoardViewController implements Initializable, Observer {
             }
         }
         else {
-
             System.out.println("Word must contain 2 tiles or more");
             message.setText("Word must contain 2 tiles or more");
             return;
         }
-
 
         Tile[] tilesArray = new Tile[tilesForWord.size()];
         for (int i = 0; i < tilesArray.length; i++) {
@@ -498,18 +444,12 @@ public class BoardViewController implements Initializable, Observer {
         // if word legal pass turn else call reset button
         int wordScore = viewModel.tryPlaceWord(word);
         if (wordScore > 0) {
-
             // success
-            System.out.println("Score: " + wordScore);
             successPlaceWord(word);
-            message.setText("");
-
             // pass turn to next player
             viewModel.passTurn();
         }
         else {
-
-            System.out.println("Word not legal");
             message.setText("Word not legal");
             resetTilesButtonClick();
         }
@@ -553,9 +493,6 @@ public class BoardViewController implements Initializable, Observer {
         usedButtons.clear();
         clickedButton = null;
         enableButtons();
-
-        // send updated board to everyone
-//        viewModel.updateBoard();
     }
 
     public void EndTurnButtonClick() {
@@ -567,8 +504,7 @@ public class BoardViewController implements Initializable, Observer {
 
     public void EndGameButtonClick() {
 
-        //call resetPositionsArray();
-        System.out.println("End Game Clicked");
+        viewModel.endGame();
     }
 
     @FXML
@@ -580,47 +516,49 @@ public class BoardViewController implements Initializable, Observer {
     @Override
     public void update(Observable o, Object arg) {
 
-        if (o instanceof ViewModel vm) {
+        if (o instanceof ViewModel) {
+
+            String[] observermessage = arg.toString().split(",");
 
             if (arg.equals("pass turn")) {
                 executor.shutdownNow();  // Try to stop currently running tasks
                 executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);  // Recreate the executor
                 System.out.println("board observer update: pass turn");
                 // update player turn for each player
-                vm.updatePlayerTurn();
-                // Check if it's this player's turn
-                if (vm.getCurrentPlayer() == viewModel.getMyTurn()) {
-                    // enable all
-                    message.setText("Your turn!");
-                    enableButtons();
-                    TryPlaceWord.setDisable(false);
-                    resetWord.setDisable(false);
-                    EndTurn.setDisable(false);
-                }
-                else {
-                    // disable all
-                    message.setText("");
-                    disableButtons();
-                    TryPlaceWord.setDisable(true);
-                    resetWord.setDisable(true);
-                    EndTurn.setDisable(true);
-                }
-                // allow challenge button for 10 seconds
+                viewModel.updatePlayerTurn();
+                // disable all
+                message.setText("You have 5 seconds to try challenge");
+                disableButtons();
+                TryPlaceWord.setDisable(true);
+                resetWord.setDisable(true);
+                EndTurn.setDisable(true);
                 challenge.setDisable(false);
                 executor.submit(() -> {
                     try {
-                        for (int i = 0; i < 20; i++) {
-                            Thread.sleep(1000);  // Sleep for one second at a time
-                        }
+                        Thread.sleep(50000);
                         challenge.setDisable(true);
                         viewModel.updatePrev();
+                        // Check if it's this player's turn
+                        if (viewModel.getCurrentPlayer() == viewModel.getMyTurn()) {
+                            // enable all
+                            message.setText("Your turn!");
+                            enableButtons();
+                            TryPlaceWord.setDisable(false);
+                            resetWord.setDisable(false);
+                            EndTurn.setDisable(false);
+                        }
+                        else {
+                            message.setText("");
+                        }
                     }
-                    catch (InterruptedException e) { System.out.println("Thread pool problem"); }
+                    catch (InterruptedException e) { System.out.println("Thread pool interrupted"); }
                 });
             }
 
             if (arg.equals("challenge alive")) {
                 System.out.println("board observer update: challenge alive");
+                executor.shutdownNow();
+                executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
                 message.setText("Someone clicked challenge");
                 // reset all player options and disable buttons
                 resetTilesButtonClick();
@@ -633,23 +571,33 @@ public class BoardViewController implements Initializable, Observer {
 
             if (arg.equals("challenge fail")) {
                 System.out.println("board observer update: challenge fail");
+                viewModel.updatePrev();
                 // Check if it's this player's turn
-                if (vm.getCurrentPlayer() == viewModel.getMyTurn()) {
+                if (viewModel.getCurrentPlayer() == viewModel.getMyTurn()) {
                     // enable all
-                    message.setText("Your turn!");
+                    message.setText("Challenge failed, its your turn!");
                     enableButtons();
                     TryPlaceWord.setDisable(false);
                     resetWord.setDisable(false);
                     EndTurn.setDisable(false);
                 }
+                else {
+                    message.setText("Challenge failed, continue play");
+                }
             }
 
             if (arg.equals("update board")) {
                 System.out.println("board observer update: update board");
+                // Clear existing labels from the grid
+                Platform.runLater(() ->  boardGrid.getChildren().removeIf(node -> node instanceof Label));
+                // update board
+                viewModel.updateBoard();
+                // set the current board
                 gameBoard = viewModel.getBoard();
-                viewModel.updateScore();
+                // change the board grid to the new game board
                 for (int row = 0; row < 15; row++) {
                     for (int col = 0; col < 15; col++) {
+
                         if (gameBoard[row][col] != null) {
                             // place only letter
                             Label letter = new Label(String.valueOf(gameBoard[row][col].letter));
@@ -661,15 +609,55 @@ public class BoardViewController implements Initializable, Observer {
                             // adding the letter to the board
                             final int finalRow = row;
                             final int finalCol = col;
-                            Platform.runLater(() -> {
-                                if (!boardGrid.getChildren().contains(letter)) {
-                                    boardGrid.add(letter, finalCol, finalRow);
-                                }
-                            });
+                            Platform.runLater(() -> boardGrid.add(letter, finalCol, finalRow));
                         }
                     }
                 }
+                // Check if it's this player's turn
+                if (viewModel.getCurrentPlayer() == viewModel.getMyTurn()) {
+                    // enable all
+                    message.setText("Your turn!");
+                    enableButtons();
+                    TryPlaceWord.setDisable(false);
+                    resetWord.setDisable(false);
+                    EndTurn.setDisable(false);
+                }
+                else {
+                    message.setText("");
+                }
             }
+
+            if (arg.equals("update score")) {
+                System.out.println("board observer update: update score");
+                viewModel.updateScore();
+            }
+
+            if (observermessage[0].equals("end game")) {
+                System.out.println("board observer update: end game");
+                message.setText("Game ended, winner is: " + observermessage[1]);
+                disableButtons();
+                TryPlaceWord.setDisable(true);
+                resetWord.setDisable(true);
+                EndTurn.setDisable(true);
+                challenge.setDisable(true);
+                EndGame.setDisable(true);
+            }
+
+//            if (arg.equals("challenge success")) {
+//                System.out.println("guest viewModel observer update: challenge success");
+//                // Check if it's this player's turn
+//                if (viewModel.getCurrentPlayer() == viewModel.getMyTurn()) {
+//                    // enable all
+//                    message.setText("Challenge succeed, your turn!");
+//                    enableButtons();
+//                    TryPlaceWord.setDisable(false);
+//                    resetWord.setDisable(false);
+//                    EndTurn.setDisable(false);
+//                }
+//                else {
+//                    message.setText("Challenge succeed");
+//                }
+//            }
         }
     }
 }

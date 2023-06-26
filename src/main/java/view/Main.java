@@ -16,6 +16,10 @@ public class Main extends Application {
         stage.setTitle("Book Scrabble");
         stage.setScene(scene);
         stage.show();
+        stage.setOnCloseRequest(e -> {
+            e.consume();  // This line consumes the close request event, so the window won't close yet
+            System.exit(0);
+        });
     }
 
     public static void main(String[] args) {
