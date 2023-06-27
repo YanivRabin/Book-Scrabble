@@ -10,7 +10,7 @@
 
 <h3 align="center">Book Scrabble</h3>
   <p align="center">
-    <a href="https://github.com/github_username/repo_name">View Demo</a>
+    <a href="https://www.canva.com/design/DAFnBPqWJ-k/zWN0Vjxt-08yZsxyX7DLtg/watch?utm_content=DAFnBPqWJ-k&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink">Gameplay and Project Overview Video</a>
     ·
     <a href="https://view.monday.com/1187919453-d087be1e389a3575ae0b3f30a8bc5adb?r=euc1">View Gantt</a>
 ·
@@ -73,6 +73,16 @@ After installing Java, you can clone this repository using the following url in 
 * Scoring system based on the values of each letter tile
 * Validation of word placement according to the rules of Scrabble
 <p align="right"><a href="#readme-top">back to top</a></p>
+
+## Project Diagram
+####Model
+<img src="Model.png" alt="model">
+
+####ViewModel
+<img src="ViewModel.png" alt="viewModel" width="300">
+
+####View
+<img src="View.png" alt="view">
 
 
 ## Contributors
