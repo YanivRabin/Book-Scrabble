@@ -25,10 +25,10 @@ To play the game, you need to have Java JDK 1.8 or above installed on your compu
 You can download the version of Java from the official website: https://www.oracle.com/java/technologies/javase-downloads.html
 or from your local IDE.
 
-After installing Java, you can clone this repository using the following command in your terminal:
+After installing Java, you can clone this repository using the following url in the VCS:
 
    ```sh
-   git clone https://github.com/YanivRabin/Book-Scrabble.git
+   https://github.com/YanivRabin/Book-Scrabble.git
    ```
 <p align="right"><a href="#readme-top">back to top</a></p>
 
