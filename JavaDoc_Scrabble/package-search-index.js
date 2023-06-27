@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"m":"view.bookscrabble","l":"model"},{"m":"view.bookscrabble","l":"model.data"},{"m":"view.bookscrabble","l":"model.logic"},{"m":"view.bookscrabble","l":"test"},{"m":"view.bookscrabble","l":"view"},{"m":"view.bookscrabble","l":"viewModel"}];updateSearchResults();

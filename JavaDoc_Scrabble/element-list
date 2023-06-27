@@ -1,0 +1,7 @@
+module:view.bookscrabble
+model
+model.data
+model.logic
+test
+view
+viewModel
