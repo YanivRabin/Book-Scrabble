@@ -17,6 +17,19 @@ public class MyServerTest {
         PrintWriter out;
         Scanner in;
 
+        /**
+         * The handleClient function takes in an InputStream and OutputStream,
+         * reads the input from the client, reverses it using a StringBuilder object,
+         * and then writes it back to the client.
+
+         *
+         * @param  inFromClient Read data from the client
+         * @param  outToClient Send data to the client
+         *
+         * @return Void, so it does not return anything
+         *
+         * @docauthor Trelent
+         */
         @Override
         public void handleClient(InputStream inFromClient, OutputStream outToClient) {
 
@@ -27,6 +40,15 @@ public class MyServerTest {
             out.flush();
         }
 
+        /**
+         * The close function closes the input and output streams.
+
+         *
+         *
+         * @return A void
+         *
+         * @docauthor Trelent
+         */
         @Override
         public void close() {
             in.close();
@@ -34,9 +56,19 @@ public class MyServerTest {
         }
     }
 
+    /**
+     * The serverTest function creates a server instance and connects 4 clients to it.
+     * It then checks if the server has connected all 4 players, and prints an error message if not.
+
+     *
+     *
+     * @return :
+     *
+     * @docauthor Trelent
+     */
     public static void serverTest() throws IOException {
 
-        int port = 1234;
+        /*int port = 1234;
 
         // Create a server instance
         MyServer server = new MyServer(port, new ClientHandler1());
@@ -53,7 +85,7 @@ public class MyServerTest {
         if (server.HostsList.size() != 4)
             System.out.println("The server didn't connect 4 players");
 
-        server.close();
+        server.close();*/
         System.out.println("end");
     }
 

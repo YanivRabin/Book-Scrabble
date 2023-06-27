@@ -27,6 +27,7 @@ public class DictionaryManager {
         books.put("TheMatrix", new Dictionary("src/main/resources/books/TheMatrix.txt"));
     }
 
+
     /**
      * The get function is a singleton function that returns the DictionaryManager
      * object. If there is no DictionaryManager object, it creates one and then
@@ -64,13 +65,14 @@ public class DictionaryManager {
         return DictionaryManagerModelHelper.model_instance;
     }
 
+
     /**
      * The query function checks if a word exist in the books dictionary.
      *
      *
-     * @param String... args Pass in a variable number of arguments
+     * @param args args Pass a variable number of arguments to the query function
      *
-     * @return True if the word is in any of the dictionaries
+     * @return True if the word exists in at least one of the books
      *
      * @docauthor Trelent
      */
@@ -97,9 +99,9 @@ public class DictionaryManager {
      * The challenge function checks if a word exist in the books dictionary.
      *
      *
-     * @param String... args Pass in a variable number of arguments
+     * @param args args Pass an array of strings as a parameter
      *
-     * @return True if the word exists in any of the dictionaries
+     * @return True if the word is in any of the books
      *
      * @docauthor Trelent
      */

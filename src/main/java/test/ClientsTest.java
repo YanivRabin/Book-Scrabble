@@ -10,14 +10,23 @@ import java.net.Socket;
 import java.util.Scanner;
 
 public class ClientsTest {
-    // need to write test for Host Guest and my server connection and
-    // send strings
-    // get score
-    // connect 4 guests
-    // connect multiple hosts
+
+    /**
+     * The main function is used to test the server and client.
+     * It creates a GameServer, Hosts and Guests.
+     * The Hosts connect to the GameServer, then create 3 Guests each that also connect to the GameServer.
+
+     *
+     * @param  args Pass command line arguments to the program
+     *
+     * @return A value of type void
+     *
+     * @docauthor Trelent
+     */
     public static void main(String[] args) throws IOException, InterruptedException {
         // Create the GameServer
-        MyServer gameServer = new MyServer(1234, new BookScrabbleHandler());
+        MyServer gameServer = MyServer.getModel();
+        gameServer.initMyServer(1234, new BookScrabbleHandler());
         // Start the GameServer
         gameServer.start();
 
@@ -65,12 +74,12 @@ public class ClientsTest {
 
             guest1.player.setCurrentTiles("WINAGGED");
             guest1.SendTryPlaceWordMessage(guest1.NickName, host.NickName, "WIN", 7,7,true);
-            Thread.sleep(5000);
+            Thread.sleep(10000);
 //            guest1.SendTryPlaceWordMessage(guest1.NickName, host.NickName, "WIN", 7,7,true);
             System.out.println(guest1.player.getCurrentScore());
             guest2.player.setCurrentTiles("ZOWAGGED");
-            guest2.SendTryPlaceWordMessage(guest2.NickName, host.NickName, "OW", 7,6,false);
-            Thread.sleep(5000);
+            guest2.SendTryPlaceWordMessage(guest2.NickName, host.NickName, "_OW", 7,7,false);
+            Thread.sleep(10000);
             System.out.println(guest2.player.getCurrentScore());
 
             host.hostPlayer.player.setCurrentTiles("JOYIPSXR");

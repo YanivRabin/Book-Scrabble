@@ -3,6 +3,16 @@ import model.data.*;
 
 public class BoardTest {
 
+    /**
+     * The get function takes a string and returns an array of tiles.
+     *
+     *
+     * @param  s Create a new tile array
+     *
+     * @return An array of tiles
+     *
+     * @docauthor Trelent
+     */
     private static Tile[] get(String s) {
 
         Tile[] ts = new Tile[s.length()];
@@ -14,6 +24,16 @@ public class BoardTest {
         return ts;
     }
 
+    /**
+     * The boardTest function tests the board class.
+     * It checks if the board is a singleton, and then it places words on the board to test if they are placed correctly.
+
+     *
+     *
+     * @return Nothing
+     *
+     * @docauthor Trelent
+     */
     public static void boardTest() {
 
         Board b = Board.getBoard();

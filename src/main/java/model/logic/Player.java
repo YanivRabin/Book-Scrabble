@@ -1,44 +1,32 @@
 package model.logic;
 
 import com.google.gson.Gson;
+import model.data.Tile;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Player {
     String socketIP;
+
+    int numOfPlayersInGame;
+
+    int playerIndex;
     String nickName;
+
+
+
+    public String hostNickName;
     int currentScore;
     int prevScore;
     List<Character> currentTiles;
     List<Character> prevTiles;
+
+
+
     Character[][] currentBoard;
     Character[][] prevBoard;
 
-
-    /**
-     * The Player function is a constructor for the Player class.
-     * It takes in four parameters: socketIP, nickName, score and currentTiles.
-     * The function sets the values of these parameters to their respective variables in the Player class.
-
-     *
-     * @param String socketIP Store the ip address of the player
-     * @param String nickName Set the nickname of the player
-    public void setnickname(string nickname) {
-            this
-     * @param int score Set the score of the player
-     * @param List&lt;Character&gt; currentTiles Store the tiles that a player has
-     *
-     * @return A player object
-     *
-     * @docauthor Trelent
-     */
-    public Player(String socketIP, String nickName, int score, List<Character> currentTiles) {
-        this.socketIP = socketIP;
-        this.nickName = nickName;
-        this.currentScore = score;
-        this.currentTiles = currentTiles;
-    }
 
     /**
      * The Player function is a constructor for the Player class.
@@ -46,11 +34,11 @@ public class Player {
      * The function sets the instance variables of this class to be equal to these parameters.
 
      *
-     * @param String socketIP Store the ip address of the player
-     * @param String nickName Set the nickname of the player
-     * @param int score Set the current score of the player
+     * @param  socketIP Store the ip address of the player's socket
+     * @param  nickName Set the player's nickname
+     * @param  score Set the currentscore and prevscore to a certain value
      *
-     * @return An object of type player
+     * @return A new player object with the given socketip, nickname and score
      *
      * @docauthor Trelent
      */
@@ -58,7 +46,10 @@ public class Player {
         this.socketIP = socketIP;
         this.nickName = nickName;
         this.currentScore = score;
+        this.prevScore = score;
         this.currentTiles = new ArrayList<>();
+        this.currentBoard = new Character[15][15];
+        this.prevBoard = new Character[15][15];
     }
 
     /**
@@ -88,6 +79,19 @@ public class Player {
     }
 
     /**
+     * The getHostNickName function returns the host's nickname.
+     *
+     *
+     *
+     * @return The hostnickname variable
+     *
+     * @docauthor Trelent
+     */
+    public String getHostNickName() {
+        return hostNickName;
+    }
+
+    /**
      * The getCurrentScore function returns the current score of the player.
      *
      *
@@ -98,6 +102,32 @@ public class Player {
      */
     public int getCurrentScore() {
         return currentScore;
+    }
+
+    /**
+     * The getCurrentBoard function returns the current board.
+     *
+     *
+     *
+     * @return The current board, which is a 2d array of characters
+     *
+     * @docauthor Trelent
+     */
+    public Character[][] getCurrentBoard() {
+        return currentBoard;
+    }
+
+    /**
+     * The getPlayerIndex function returns the playerIndex of the current player.
+     *
+     *
+     *
+     * @return The playerindex variable
+     *
+     * @docauthor Trelent
+     */
+    public int getPlayerIndex() {
+        return playerIndex;
     }
 
     /**
@@ -206,21 +236,6 @@ public class Player {
             currentTiles.add(word.charAt(i));
         }
     }
-    /**
-     * The setCurrentBoard function takes in a String and converts it into a 2D array of characters.
-     *
-     *
-     * @param  currentBoard Convert the currentboard into a 2d array of character objects
-     *
-     * @return A character[][] array
-     *
-     * @docauthor Trelent
-     */
-    public void setCurrentBoard(String currentBoard) {
-        Gson gson = new Gson();
-        Character[][] board = gson.fromJson(currentBoard, Character[][].class);
-        this.currentBoard = board;
-    }
 
     /**
      * The getBoard function takes in a JSON string and returns the board as a 2D array of characters.
@@ -232,10 +247,8 @@ public class Player {
      *
      * @docauthor Trelent
      */
-    public Character[][] getBoard(String jsonValue) {
-        Gson gson = new Gson();
-        Character[][] board = gson.fromJson(jsonValue, Character[][].class);
-        return board;
+    public void setCurrentBoard(String jsonValue) {
+        this.currentBoard =  this.parseStringToCharacterArray(jsonValue);
     }
 
 
@@ -261,7 +274,7 @@ public class Player {
      * can be made using only tiles from the currentTiles array.
      *
      *
-     * @param String word Check if the word is in the dictionary
+     * @param  word Check if the word is in the dictionary
      *
      * @return True if the word can be formed using the current tiles, otherwise it returns false
      *
@@ -285,6 +298,85 @@ public class Player {
             }
         }
         return c == word.length() - counterNull;
+    }
+
+    /**
+     * The getNumOfPlayersInGame function returns the number of players in the game.
+     *
+     *
+     *
+     * @return The number of players in the game
+     *
+     * @docauthor Trelent
+     */
+    public int getNumOfPlayersInGame() {
+        return numOfPlayersInGame;
+    }
+
+    /**
+     * The setNumOfPlayersInGame function sets the number of players in a game.
+     *
+     *
+     * @param  numOfPlayersInGame Set the number of players in the game
+     *
+     * @return Void, which means it returns nothing
+     *
+     * @docauthor Trelent
+     */
+    public void setNumOfPlayersInGame(int numOfPlayersInGame) {
+        this.numOfPlayersInGame = numOfPlayersInGame;
+    }
+
+    /**
+     * The parseStringToCharacterArray function takes a String representation of the board and returns a 2D Character array
+     * representing the same board. The function is used to convert from one representation to another, which can be useful
+     * for testing purposes. For example, if you have an implementation that uses Strings as input but you want to test it with
+     * your implementation that uses 2D arrays as input, then this function will allow you to do so. It also allows us (the TAs)
+     * to test your code using our own implementations of BogglePlayer without having access to your source code! This is called &quot;black box&quot; testing.
+     *
+     * @param  boardString Store the boardstring
+     *
+     * @return A 2d array of characters
+     *
+     * @docauthor Trelent
+     */
+    public Character[][] parseStringToCharacterArray(String boardString) {
+        String[] rows = boardString.trim().split("\n");
+        int rowCount = rows.length;
+        int colCount = rows[0].length();
+
+        Character[][] characterBoard = new Character[rowCount][colCount];
+
+        for (int i = 0; i < rowCount; i++) {
+            for (int j = 0; j < colCount; j++) {
+                char tileChar = rows[i].charAt(j);
+                characterBoard[i][j] = (tileChar != '.') ? tileChar : null;
+            }
+        }
+
+        return characterBoard;
+    }
+
+    /**
+     * The getCurrentBoardAsTiles function is a helper function that returns the current board as an array of tiles.
+     *
+     *
+     *
+     * @return A 2d array of tile objects
+     *
+     * @docauthor Trelent
+     */
+    public Tile[][] getCurrentBoardAsTiles() {
+
+        Tile[][] temp = new Tile[15][15];
+        for (int row = 0; row < 15; row++) {
+            for (int col = 0; col < 15; col++) {
+                if (currentBoard[row][col] != null) {
+                    temp[row][col] = Tile.Bag.getBagModel().getTileForTileArray(currentBoard[row][col]);
+                }
+            }
+        }
+        return temp;
     }
 
 }

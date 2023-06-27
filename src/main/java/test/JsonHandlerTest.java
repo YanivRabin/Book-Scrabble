@@ -4,6 +4,16 @@ import model.logic.JsonHandler;
 
 public class JsonHandlerTest {
     // Testing the JsonHandler class
+    /**
+     * The main function is used to test the JsonHandler class.
+     *
+     *
+     * @param  args Pass command line arguments to the main function
+     *
+     * @return :
+     *
+     * @docauthor Trelent
+     */
     public static void main(String[] args) {
         Character[][] board = {{1, 2, 3}, {4, 5, 6}};
         String source = "John";
@@ -15,7 +25,6 @@ public class JsonHandlerTest {
         String socketDestination = "192.168.0.2:9090";
 
         JsonHandler json = new JsonHandler();
-        json.addBoard(board);
         json.addSource(source);
         json.addDestination(destination);
         json.addMessage(message);

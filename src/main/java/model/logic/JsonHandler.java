@@ -3,6 +3,7 @@ package model.logic;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import model.data.Tile;
 
 public class JsonHandler {
     // keys with capital
@@ -13,35 +14,30 @@ public class JsonHandler {
         json = new JsonObject();
     }
 
-    /**
-     * The addBoard function adds a board to the JSON object.
-     *
-     *
-     * @param Character[][] board Add the board to the json object
-     *
-     * @return A jsonobject
-     *
-     * @docauthor Trelent
-     */
-    /**
-     * The addBoard function adds a board to the JSON object.
-     *
-     *
-     * @param Character[][] board Add the board to the json object
-     *
-     * @return A json object with the board added to it
-     *
-     * @docauthor Trelent
-     */
-    public void addBoard(Character[][] board) {
+    /*public void addBoard(Character[][] board) {
         json.add("Board", new Gson().toJsonTree(board));
+    }*/
+
+    /**
+     * The addBoard function adds a board to the JSON object.
+     *
+     *
+     * @param board board Set the board of the game
+     *
+     * @return A void because it does not return anything
+     *
+     * @docauthor Trelent
+     */
+    public void addBoard(String board) {
+        json.addProperty("Board", board);
     }
+
 
     /**
      * The addSource function adds a source to the JSONObject.
      *
      *
-     * @param String nickname Add a nickname to the json object
+     * @param nickname nickname Add a nickname to the json object
      *
      * @return A jsonobject
      *
@@ -55,7 +51,7 @@ public class JsonHandler {
      * The addDestination function adds a destination to the JSON object.
      *
      *
-     * @param String destination Add a destination to the json object
+     * @param destination destination Add a destination to the json object
      *
      * @return Nothing, it just adds a property to the json object
      *
@@ -68,7 +64,7 @@ public class JsonHandler {
      * The addMessageType function adds a message type to the JSON object.
      *
      *
-     * @param String message Add a message to the json object
+     * @param message message Add a message to the json object
      *
      * @return A jsonobject
      *
@@ -81,7 +77,7 @@ public class JsonHandler {
      * The addMessage function adds a message to the JSON object.
      *
      *
-     * @param String message Add a message to the json object
+     * @param message message Add a message to the json object
      *
      * @return Void, which means it returns nothing
      *
@@ -102,12 +98,46 @@ public class JsonHandler {
      *
      * @docauthor Trelent
      */
+    /**
+     * The addNewScore function adds a new score to the JSONObject.
+     *
+     *
+     * @param score score Add a new score to the json object
+     *
+     * @return The new score
+     *
+     * @docauthor Trelent
+     */
     public void addNewScore(int score) {json.addProperty("NewScore", score);}
+    /**
+     * The addPrevScore function adds the previous score to the JSON object.
+     *
+     *
+     * @param score score Set the score of the player
+    public void addscore(int score) {json
+     *
+     * @return The score
+     *
+     * @docauthor Trelent
+     */
+    public void addPrevScore(int score) {json.addProperty("PrevScore", score);}
+    /**
+     * The addPrevBoard function adds a new property to the JSONObject called &quot;PrevBoard&quot; and sets it equal to the String prevBoard.
+     *
+     *
+     * @param prevBoard prevBoard Set the previous board of the player
+     *
+     * @return The previous board
+     *
+     * @docauthor Trelent
+     */
+    public void addPrevBoard(String prevBoard) {json.addProperty("PrevBoard", prevBoard);}
+
     /**
      * The addWord function adds a word to the JSON object.
      *
      *
-     * @param String word Add a word to the json object
+     * @param word word Add a word to the json object
      *
      * @return A jsonobject
      *
@@ -120,7 +150,7 @@ public class JsonHandler {
      * The addAction function adds an action to the JSON object.
      *
      *
-     * @param String action Add an action to the json object
+     * @param action action Add an action to the json object
      *
      * @return A jsonobject, which is the json object that was created in the constructor
      *
@@ -133,7 +163,7 @@ public class JsonHandler {
      * The addStartTiles function adds the start tiles to the board.
      *
      *
-     * @param String message Add the message to the json object
+     * @param message message Add the message to the json object
     public void addmessage(string message) {
             json
      *
@@ -148,7 +178,7 @@ public class JsonHandler {
      * The addNewCurrentTiles function adds the new current tiles to the JSON object.
      *
      *
-     * @param String currentTiles Set the current tiles in the game
+     * @param  currentTiles Set the current tiles in the game
      *
      * @return A string that contains the new tiles on the board
      *
@@ -161,7 +191,7 @@ public class JsonHandler {
      * The addCurrentTiles function adds the current tiles to the JSON object.
      *
      *
-     * @param String currentTiles Set the current tiles of the game
+     * @param  currentTiles Set the current tiles of the game
      *
      * @return The current tiles
      *
@@ -174,7 +204,7 @@ public class JsonHandler {
      * The addSocketSource function adds a socket source to the JSON object.
      *
      *
-     * @param String socketSource Set the socket source for the json
+     * @param  socketSource Set the socket source for the json
      *
      * @return A void
      *
@@ -187,7 +217,7 @@ public class JsonHandler {
      * The addVertical function adds a boolean value to the JSONObject.
      *
      *
-     * @param Boolean bool Determine whether the chart is displayed vertically or horizontally
+     * @param  bool Determine whether the chart is displayed vertically or horizontally
      *
      * @return A jsonobject
      *
@@ -200,7 +230,7 @@ public class JsonHandler {
      * The addRow function adds a row to the JSON object.
      *
      *
-     * @param int row Add a row to the table
+     * @param  row Add a row to the table
      *
      * @return A jsonobject
      *
@@ -209,25 +239,54 @@ public class JsonHandler {
     public void addRow(int row) {
         json.addProperty("Row", row);
     }
+
     /**
      * The addColumn function adds a column to the JSON object.
      *
      *
-     * @param int column Specify the column number in which you want to add a new column
+     * @param  column Specify the column number
      *
-     * @return A jsonobject
+     * @return A jsonobject, which can be used to add more properties
      *
      * @docauthor Trelent
      */
     public void addColumn(int column) {
         json.addProperty("Column", column);
     }
+    /**
+     * The addPlayerIndex function adds the player index to the JSON object.
+     *
+     *
+     * @param  index Specify which player is being added to the game
+     *
+     * @return A jsonobject
+     *
+     * @docauthor Trelent
+     */
+    public void addPlayerIndex(int index) {
+        json.addProperty("PlayerIndex", index);
+    }
+    /**
+     * The addNumOfPlayers function adds the number of players to the JSON object.
+     *
+     *
+     * @param  num Set the number of players in the game
+     *
+     * @return A jsonobject
+     *
+     * @docauthor Trelent
+     */
+    public void addNumOfPlayers(int num) {
+        json.addProperty("NumOfPlayers", num);
+    }
+
+
 
     /**
      * The addSocketDestination function adds a socket destination to the JSON object.
      *
      *
-     * @param String socketDestination Set the socket destination
+     * @param  socketDestination Set the socket destination
      *
      * @return Void
      *
@@ -272,7 +331,7 @@ public class JsonHandler {
      * The convertStringToJsonObject function takes in a String and converts it to a JsonObject.
      *
      *
-     * @param String jsonString Convert the jsonstring into a jsonobject
+     * @param  jsonString Convert the jsonstring into a jsonobject
      *
      * @return A jsonobject
      *

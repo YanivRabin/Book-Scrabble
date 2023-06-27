@@ -1,36 +1,46 @@
 package model.logic;
 
 import com.google.gson.JsonObject;
-import model.data.Board;
 import model.data.Tile;
 import model.data.Word;
+import model.data.Board;
+
 
 import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.*;
 import java.util.*;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 
-public class Host implements ClientHandler{
+public class Host extends Observable implements ClientHandler {
+
     //Logic Members
     int Port;
     String IP;
     ServerSocket LocalServer;
     Socket HostSocketToLocalServer;
     boolean Stop;
+    Socket currentSuccessMessageSocket;
+    String currentSuccessMessagePrevScore;
+    Word currentSuccessMessageWord;
 
     final int MaxGuests = 4;
     public List<Socket> GuestList;
     Socket SocketToMyServer;
+    public Map<String,Integer> NameToScore;
+
+    public Future<String> getStringFuture() {
+        return stringFuture;
+    }
+
+    public void setStringFuture(Future<String> stringFuture) {
+        this.stringFuture = stringFuture;
+    }
+
+    public Future<String> stringFuture ;
     MyServer GameServer; // The MyServer this host connected to
     static ExecutorService executorService = Executors.newFixedThreadPool(10); // only for one host
     BlockingQueue<String> inputQueue = new LinkedBlockingQueue<>();
-
-
-
+    public BlockingQueue<String> inputQueueFromGameServer = new LinkedBlockingQueue<>();
 
     //Data-Game Members
     public String NickName;
@@ -40,27 +50,31 @@ public class Host implements ClientHandler{
     Board board ; // singleton and get instance model
     private BufferedReader reader;
     private PrintWriter writer;
+    String prevScore;
 
     //Default CTOR
     /**
-     * The Host function is the main function of the Host class.
-     * It creates a new thread that listens for incoming connections from clients, and then adds them to an ArrayList of guests.
-     * The host also has a nickname, which can be changed by calling setNickName().
-
+     * The Host function is the main function of the Host class. It creates a new thread for each client that connects to it, and then
+     * runs a loop which waits for messages from clients. When it receives one, it checks if its an end game message or not. If so,
+     * then the host will send out all scores to all players and close down their threads (and thus disconnect them). Otherwise,
+     * if its just a normal move message from one player to another (or itself), then we simply update our board model with this move
+     * and send out an updated board state to everyone else in the game.
      *
      *
-     * @return A string with the host's nickname and port number
+     * @return The port number of the host
      *
      * @docauthor Trelent
      */
-    public Host(){
-        this.board = Board.getBoard();
+    public Host() {
+
+        this.board = Board.getBoardModel();
         this.bag = Tile.Bag.getBagModel();
         this.Port = GeneratePort();
         this.Stop = false;
         this.GuestList =new ArrayList<>();
         this.NickName="Host "+ getPort();
         this.hostPlayer = new Guest(NickName);
+        this.NameToScore = new HashMap<>();
     }
 
     private static class HostModelHelper {
@@ -131,20 +145,43 @@ public class Host implements ClientHandler{
         return LocalServer;
     }
 
+    /**
+     * The getSocketToMyServer function returns the socket that is connected to the server.
+     *
+     *
+     *
+     * @return The socket to my server
+     *
+     * @docauthor Trelent
+     */
+    public Socket getSocketToMyServer() {
+        return SocketToMyServer;
+    }
+
     //Connects Host to Main Server
     /**
      * The CreateSocketToServer function creates a socket to the server.
      *
      *
-     * @param  server Get the ip and port of the server
+     * @param server server Get the ip and port of the server
      *
-     * @return A socket to the server
+     * @return A socket object
      *
      * @docauthor Trelent
      */
     public void CreateSocketToServer(MyServer server) throws IOException {
         GameServer=server;
         this.SocketToMyServer = new Socket(server.getIP(), server.getPort());
+//        executorService.submit(this::HandleMessageFromGameServer);
+
+        executorService.execute(()->{
+            try {
+                handleGameServer(this.SocketToMyServer.getInputStream(), this.SocketToMyServer.getOutputStream());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
         System.out.println("Host Connected to Main Server");
     }
     /**
@@ -175,9 +212,8 @@ public class Host implements ClientHandler{
      *
      * @docauthor Trelent
      */
-    public void CreateProfile(String NickName){
+    public void setNickName(String NickName){
         this.NickName = NickName;
-        // add Photo or avatar
     }
 
     //start Host server
@@ -203,6 +239,32 @@ public class Host implements ClientHandler{
     }
 
     /**
+     * The getLocalNetworkAddress function returns the local network address of the device.
+     *
+     *
+     *
+     * @return The ip address of the local network interface
+     *
+     * @docauthor Trelent
+     */
+    private String getLocalNetworkAddress() throws SocketException {
+        Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+        while (interfaces.hasMoreElements()) {
+            NetworkInterface iface = interfaces.nextElement();
+            // filters out 127.0.0.1 and inactive interfaces
+            if (iface.isLoopback() || !iface.isUp())
+                continue;
+
+            Enumeration<InetAddress> addresses = iface.getInetAddresses();
+            while(addresses.hasMoreElements()) {
+                InetAddress addr = addresses.nextElement();
+                if (addr instanceof Inet4Address) return addr.getHostAddress();
+            }
+        }
+        return null;  // or throw an exception
+    }
+
+    /**
      * The runServer function is the main function of the server.
      * It opens a socket with a given port and waits for clients to connect.
      * When it receives a client, it adds him to its list of guests and starts handling his requests in another thread.
@@ -214,20 +276,15 @@ public class Host implements ClientHandler{
      * @docauthor Trelent
      */
     public void runServer() throws IOException {
-        //open server with the port that given
-        this.LocalServer = new ServerSocket(this.Port);
-        executorService.submit(this::handleRequests);
-        System.out.println("Host Server started on port :" + this.Port);
-        this.IP = this.LocalServer.getInetAddress().getHostAddress();
-        this.CreateSocketToLocalServer(this.IP, this.Port);
 
-        /*executorService.execute(()->{
-            try {
-                handleClient(this.HostSocketToLocalServer.getInputStream(), this.HostSocketToLocalServer.getOutputStream());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });*/
+
+        //open server with the port that given
+//        this.LocalServer = new ServerSocket(this.Port,4, InetAddress.getLocalHost());
+        this.LocalServer = new ServerSocket(this.Port, 0, InetAddress.getByName("0.0.0.0"));
+        executorService.submit(this::handleRequests);
+//        this.IP = this.LocalServer.getInetAddress().getHostAddress();
+        this.IP = this.getLocalNetworkAddress();  // The method to get your local network address
+        this.CreateSocketToLocalServer(this.IP, this.Port);
 
         executorService.execute(()->{
             try {
@@ -237,13 +294,14 @@ public class Host implements ClientHandler{
             }
         });
 
-
         while (!this.Stop ) {
             try{
                 if(this.GuestList.size() < this.MaxGuests) {
                     Socket guest = this.LocalServer.accept();
                     this.GuestList.add(guest);
-
+                    // notify VM_Host
+                    setChanged();
+                    notifyObservers("guest connect");
                     if (guest.getPort() == hostPlayer.getSocketToHost().getLocalPort()){
                         System.out.println("Host Connected, Number of players: " + GuestList.size());
                     }
@@ -255,16 +313,10 @@ public class Host implements ClientHandler{
                             throw new RuntimeException(e);
                         }
                     });
-
-
-
-
-
                 }
             }catch (IOException e){
                 e.printStackTrace();
             }
-            // Implement with thread pool
         }
     }
 
@@ -281,21 +333,186 @@ public class Host implements ClientHandler{
      */
     public void SendStartGameMessage(String hostNickName){
         // only serverHost
-
+        int c = 0;
         for(Socket socket : this.GuestList){
             try {
                 MessageHandler messageHandler = new MessageHandler();
                 List<Character> StartGameTiles = this.GenerateTiles(8);
-                messageHandler.CreateStartGameMessage(this.CharavterslistToString(StartGameTiles), hostNickName);
+                messageHandler.CreateStartGameMessage(this.CharavterslistToString(StartGameTiles),
+                        hostNickName, c, this.GuestList.size());
                 OutputStream outToClient = socket.getOutputStream();
                 PrintWriter out = new PrintWriter(outToClient);
                 out.println(messageHandler.jsonHandler.toJsonString());
                 out.flush();
+                c++;
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
     }
+
+    /**
+     * The sendPassTurnMessage function is used to send a message to all players in the game that it is their turn.
+     * This function will be called when the host player passes his/her turn.
+
+     *
+     *
+     * @return A message that is sent to all players
+     *
+     * @docauthor Trelent
+     */
+    public void sendPassTurnMessage() {
+        MessageHandler messageHandler = new MessageHandler();
+        messageHandler.createPassTurnMessage();
+        for(Socket socket : this.GuestList) {
+
+            try {
+                if (socket.getPort() == this.hostPlayer.getSocketToHost().getLocalPort()){
+                    this.hostPlayer.inputQueue.put(messageHandler.jsonHandler.toJsonString());
+                }
+                else{
+                    OutputStream outToClient = socket.getOutputStream();
+                    PrintWriter out = new PrintWriter(outToClient);
+                    out.println(messageHandler.jsonHandler.toJsonString());
+                    out.flush();
+                }
+            }
+            catch (IOException | InterruptedException e) {throw new RuntimeException(e);}
+        }
+    }
+    /**
+     * The sendStopChallengeAlive function is used to send a message to all the players in the game,
+     * telling them that they should stop sending challenge alive messages. This function is called when
+     * a player has been found cheating and therefore needs to be removed from the game. The host will then
+     * call this function so that no more challenge alive messages are sent by any of the players in order for
+     * them not to get confused about which player was kicked out of the game.
+
+     *
+     *
+     * @return A boolean
+     *
+     * @docauthor Trelent
+     */
+    public void sendStopChallengeAlive() {
+        MessageHandler messageHandler = new MessageHandler();
+        messageHandler.createStopChallengeAlive();
+        for(Socket socket : this.GuestList) {
+
+            try {
+                if (socket.getPort() == this.hostPlayer.getSocketToHost().getLocalPort()){
+                    this.hostPlayer.inputQueue.put(messageHandler.jsonHandler.toJsonString());
+                }
+                else{
+                    OutputStream outToClient = socket.getOutputStream();
+                    PrintWriter out = new PrintWriter(outToClient);
+                    out.println(messageHandler.jsonHandler.toJsonString());
+                    out.flush();
+                }
+            }
+            catch (IOException | InterruptedException e) {throw new RuntimeException(e);}
+        }
+    }
+
+    /**
+     * The sendEndGame function is used to send a message to all players in the game that the game has ended.
+     *
+     *
+     * @param winner winner Identify the winner of the game
+     *
+     * @return A string
+     *
+     * @docauthor Trelent
+     */
+    public void sendEndGame(String winner) {
+        MessageHandler messageHandler = new MessageHandler();
+        messageHandler.createEndGameMessage(winner);
+        for(Socket socket : this.GuestList) {
+
+            try {
+                if (socket.getPort() == this.hostPlayer.getSocketToHost().getLocalPort()){
+                    this.hostPlayer.inputQueue.put(messageHandler.jsonHandler.toJsonString());
+                }
+                else{
+                    OutputStream outToClient = socket.getOutputStream();
+                    PrintWriter out = new PrintWriter(outToClient);
+                    out.println(messageHandler.jsonHandler.toJsonString());
+                    out.flush();
+                }
+            }
+            catch (IOException | InterruptedException e) {throw new RuntimeException(e);}
+        }
+    }
+
+    /**
+     * The getWinner function returns the name of the player with the highest score.
+     *
+     *
+     *
+     * @return The name of the player with the highest score
+     *
+     * @docauthor Trelent
+     */
+    public String getWinner() {
+        int maxScore = 0;
+        String winner = "";
+        for (String name : this.NameToScore.keySet()) {
+            if (this.NameToScore.get(name) > maxScore) {
+                maxScore = this.NameToScore.get(name);
+                winner = name;
+            }
+        }
+        return winner;
+    }
+
+    /**
+     * The sendUpdatePrevToCurrent function is used to send the previous state of the game to all players.
+     * This function is called when a player has just joined and needs to be updated on what has happened in the game so far.
+
+     *
+     *
+     * @return A string
+     *
+     * @docauthor Trelent
+     */
+    public void sendUpdatePrevToCurrent() {
+        MessageHandler messageHandler = new MessageHandler();
+        messageHandler.updatePrevToCurrent();
+        for(Socket socket : this.GuestList) {
+            try {
+                if (socket.getPort() == this.hostPlayer.getSocketToHost().getLocalPort()){
+                    this.hostPlayer.inputQueue.put(messageHandler.jsonHandler.toJsonString());
+                }
+                else{
+                    OutputStream outToClient = socket.getOutputStream();
+                    PrintWriter out = new PrintWriter(outToClient);
+                    out.println(messageHandler.jsonHandler.toJsonString());
+                    out.flush();
+                }
+            }
+            catch (IOException | InterruptedException e) {throw new RuntimeException(e);}
+        }
+    }
+
+    /**
+     * The CreateMessageToGameServer function takes in a message and socketSource,
+     * creates a MessageHandler object, calls the CreateMessageToGameServer function
+     * from the MessageHandler class with the given parameters, and returns a JSON string.
+
+     *
+     * @param message message Send a message to the game server
+     * @param socketSource socketSource Determine which socket to send the message to
+     *
+     * @return A string
+     *
+     * @docauthor Trelent
+     */
+    public String CreateMessageToGameServer(String message, String socketSource){
+        // only serverHost
+        MessageHandler messageHandler = new MessageHandler();
+        messageHandler.CreateMessageToGameServer(message, socketSource);
+        return messageHandler.jsonHandler.toJsonString();
+    }
+
     /**
      * The SendTryAgainMessage function is used to send a message to the client that they have lost and can try again.
      *
@@ -335,21 +552,25 @@ public class Host implements ClientHandler{
         messageHandler.CreateSuccessMessage(destination, newScore, action, newCurrentTiles, hostNickName);
         return messageHandler.jsonHandler.toJsonString();
     }
+
     /**
-     * The SendSucceededChallengeYouMessage function is used to send a message to the client that the challenge has been accepted.
+     * The SendSucceededChallengeYouMessage function is used to send a message to the client that
+     * indicates that the challenge has been accepted. The function takes in two parameters, hostNickName and prevScore.
+     * It then creates a new MessageHandler object and calls its CreateSucceededChallengeYouMessage function with these two parameters.
+     * Finally, it returns the json string created by this call as its return value.
+
      *
-     *
-     * @param  board Send the current state of the board to the client
-     * @param  hostNickName Identify the player who sent the challenge
+     * @param hostNickName hostNickName Identify the host of the game
+     * @param prevScore prevScore Send the previous score of the host to the client
      *
      * @return A string
      *
      * @docauthor Trelent
      */
-    public String SendSucceededChallengeYouMessage(Character[][] board, String hostNickName){
+    public String SendSucceededChallengeYouMessage(String hostNickName, String prevScore){
         // only serverHost
         MessageHandler messageHandler = new MessageHandler();
-        messageHandler.CreateSucceededChallengeYouMessage(board, hostNickName);
+        messageHandler.CreateSucceededChallengeYouMessage(hostNickName, prevScore);
         return messageHandler.jsonHandler.toJsonString();
     }
     /**
@@ -363,86 +584,50 @@ public class Host implements ClientHandler{
      *
      * @docauthor Trelent
      */
-    public void SendUpdateBoardMessage(Character[][] board, String hostNickName){
+    public void SendUpdateBoardMessage(String board, String hostNickName){
         // only serverHost
         MessageHandler messageHandler = new MessageHandler();
         messageHandler.CreateUpdateBoardMessage(board, hostNickName);
         for(Socket socket : this.GuestList){
             try {
-                OutputStream outToClient = socket.getOutputStream();
-                PrintWriter out = new PrintWriter(outToClient);
-                out.println(messageHandler.jsonHandler.toJsonString());
-                out.flush();
+                if (socket.getPort() == this.hostPlayer.getSocketToHost().getLocalPort()){
+                    this.hostPlayer.inputQueue.put(messageHandler.jsonHandler.toJsonString());
+                }
+                else {
+                    OutputStream outToClient = socket.getOutputStream();
+                    PrintWriter out = new PrintWriter(outToClient);
+                    out.println(messageHandler.jsonHandler.toJsonString());
+                    out.flush();
+                }
             } catch (IOException e) {
                 throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
     }
-    /**
-     * The SendTryPlaceWordMessage function is used to send a message to the local server
-     * that contains information about the word that a player wants to place on the board.
-     * The function takes in as parameters: source, destination, word, row, column and vertical.
-     * Source is where this message came from (the client). Destination is where it's going (the local server). Word
-     * represents what word we want to place on the board. Row and Column represent which position we want our first letter of our word placed at. Vertical represents whether or not we are placing our letters vertically or horizontally on the board. This function also checks if you
-     *
-     * @param  source Identify the player who sent the message
-     * @param  destination Determine where the message is going to be sent
-     * @param  word Determine if the player is using his current tiles
-     * @param  row Determine the row on the board where a word is placed
-     * @param  column Determine the column that the word is placed in
-     * @param  vertical Determine if the word is vertical or horizontal
-     *
-     * @return Nothing
-     *
-     * @docauthor Trelent
-     */
-    public void SendTryPlaceWordMessage(String source, String destination, String word,
-                                        int row, int column, boolean vertical){
-        // as a player
-        if(!this.player.usingCurrentTiles(word)){
-            System.out.println("You are not using your tiles, Not Sending");
-        }
-        else{
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append(hostPlayer.getSocketToHost().getInetAddress());
-            stringBuilder.append(":");
-            stringBuilder.append(hostPlayer.getSocketToHost().getLocalPort());
-            String socketSource = stringBuilder.toString();
-            MessageHandler messageHandler = new MessageHandler();
-            messageHandler.CreateTryPlaceWordMessage(source, destination, word, row, column,
-                    vertical, this.player.getCurrentTiles(), socketSource);
-            this.SendMessageToLocalServer(messageHandler.jsonHandler);
-        }
-    }
-    /**
-     * The SendChallengeMessage function is used to send a challenge message to the local server.
-     *
-     *
-     * @param  source Identify the player who sent the message
-     * @param  destination Determine the destination of the message
-     * @param  word Store the word that is being challenged
-     * @param  row Specify the row of the first letter in a word
-     * @param  column Specify the column of the first letter in a word
-     * @param  vertical Determine whether the word is placed horizontally or vertically
-     *
-     * @return A json object
-     *
-     * @docauthor Trelent
-     */
-    public void SendChallengeMessage(String source, String destination, String word,
-                                     int row, int column, boolean vertical){
-        // as a player
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(hostPlayer.getSocketToHost().getInetAddress());
-        stringBuilder.append(":");
-        stringBuilder.append(hostPlayer.getSocketToHost().getLocalPort());
-        String socketSource = stringBuilder.toString();
-        MessageHandler messageHandler = new MessageHandler();
-        messageHandler.CreateChallengeMessage(source, destination, word, row, column,
-                vertical, this.player.getCurrentTiles(), socketSource);
-        this.SendMessageToLocalServer(messageHandler.jsonHandler);
-    }
 
+    public void SendNewTilesMessage(String tiles, String source, Socket currentGuest){
+        // only serverHost
+        MessageHandler messageHandler = new MessageHandler();
+        messageHandler.CreateGenerateNewTilesMessage(source, tiles);
+        try {
+            if (currentGuest.getPort() == this.hostPlayer.getSocketToHost().getLocalPort()){
+                this.hostPlayer.inputQueue.put(messageHandler.jsonHandler.toJsonString());
+            }
+            else {
+                OutputStream outToClient = currentGuest.getOutputStream();
+                PrintWriter out = new PrintWriter(outToClient);
+                out.println(messageHandler.jsonHandler.toJsonString());
+                out.flush();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+    }
 
     /**
      * The handleClient function is the function that handles all of the communication between
@@ -478,18 +663,20 @@ public class Host implements ClientHandler{
     }
 
     /**
-     * The handleRequests function is responsible for handling the requests that are sent to the server.
-     * It takes in a request from the inputQueue and then processes it accordingly.
+     * The handleRequests function is responsible for handling all the requests that are sent to the host.
+     * It handles them by using a switch case, and then sending back an appropriate response.
 
      *
      *
-     * @return A void
+     * @return Void
      *
      * @docauthor Trelent
      */
     public void handleRequests() {
         while (!this.LocalServer.isClosed()) {
             int score = 0;
+            boolean flagChallenge = true;
+            Word Q_word = null;
             try {
                 String jsonString = inputQueue.take(); //blocking call
                 System.out.println(jsonString);
@@ -501,46 +688,225 @@ public class Host implements ClientHandler{
                             boolean q_vertical = json.get("Vertical").getAsString().equals("true");
                             int q_row = Integer.parseInt(json.get("Row").getAsString());
                             int q_column = Integer.parseInt(json.get("Column").getAsString());
-                            Word Q_word = new Word(getTileArray(q_word), q_row, q_column, q_vertical);
+                            Q_word = new Word(getTileArray(q_word), q_row, q_column, q_vertical);
                             score = this.board.tryPlaceWord(Q_word);
+                            prevScore = json.get("PrevScore").getAsString();
                             break;
                         case "challenge":
-                            String c_word = json.get("Word").getAsString();
-                            boolean c_vertical = json.get("Vertical").getAsString().equals("true");
-                            int c_row = Integer.parseInt(json.get("Row").getAsString());
-                            int c_column = Integer.parseInt(json.get("Column").getAsString());
-                            Word C_word = new Word(getTileArray(c_word), c_row, c_column, c_vertical);
-                            // do the Challenge
+                            this.sendStopChallengeAlive();
+                            Thread.sleep(2000);
+
+                            ArrayList<Word> challengeAllTheWords = this.board.getWordsForChallenge(this.currentSuccessMessageWord);
+                            int counterChallenge = 0;
+                            for(Word w : challengeAllTheWords){
+                                StringBuilder stringBuilder = new StringBuilder();
+                                stringBuilder.append("C,");
+                                stringBuilder.append(w.toString());
+
+                                StringBuilder stringBuilderSocket = new StringBuilder();
+                                stringBuilderSocket.append(Host.getModel().getSocketToMyServer().getInetAddress());
+                                stringBuilderSocket.append(":");
+                                stringBuilderSocket.append(Host.getModel().getSocketToMyServer().getLocalPort());
+                                String socketSource = stringBuilderSocket.toString();
+
+                                String jsonStringChallenge = Host.getModel().CreateMessageToGameServer(stringBuilder.toString(),socketSource);
+                                Host.getModel().SendMessageToGameServer(jsonStringChallenge);
+
+//                                this.SendMessageToGameServer(stringBuilder.toString());
+                                boolean res = this.inputQueueFromGameServer.take().equals("true");
+                                if(!res){
+                                    counterChallenge++;
+                                }
+                            }
+                            if(counterChallenge != challengeAllTheWords.size()){
+                                flagChallenge = false;
+                            }
+                            else {
+                                this.HandleChallenge(true, this.currentSuccessMessagePrevScore, this.currentSuccessMessageWord);
+                                continue;
+                            }
                             break;
+                        case "update board":
+                            this.hostPlayer.inputQueue.put(jsonString);
+                            continue;
+                        case "pass turn":
+                            this.sendPassTurnMessage();
+                            continue;
+                        case "new player joined":
+                            this.NameToScore.put(json.get("Message").getAsString(), 0);
+                            continue;
+                        case "end game":
+                            this.sendEndGame(getWinner());
+                            setChanged();
+                            notifyObservers("end game");
+                            continue;
+                        case "generate new tiles":
+                            String currentTiles = json.get("CurrentTiles").getAsString();
+                            for (char c: currentTiles.toCharArray()) {
+                                bag.put(bag.getTileForTileArray(c));
+                            }
+                            List<Character> newTiles = this.GenerateTiles(8);
+                            StringBuilder sb = new StringBuilder();
+                            for (Character c: newTiles) {
+                                sb.append(c.charValue());
+                            }
+                            String socketSource = json.get("SocketSource").getAsString();
+                            Socket currentGuest = getSocket(socketSource);
+                            SendNewTilesMessage(sb.toString(),socketSource,currentGuest);
+                            continue;
+
                     }
 
                     String socketSource = json.get("SocketSource").getAsString();
-                    Socket currentGuest = getSocket(socketSource);
+                    Socket currentGuest = getSocket(socketSource);// here
                     PrintWriter out = new PrintWriter(currentGuest.getOutputStream());
+                    if (!flagChallenge){
+                        String tryAgainString = this.SendTryAgainMessage(currentGuest.toString(), 0,
+                                "challenge", this.getNickName());
+                        if (currentGuest.getPort() == this.hostPlayer.getSocketToHost().getLocalPort()){
+                            this.hostPlayer.inputQueue.put(tryAgainString);
+                        }
+                        else {
+                            out.println(tryAgainString);
+                            out.flush();
+                        }
+
+                        continue;
+                    }
                     if (score == 0){
+                        if(Objects.equals(json.get("Source").getAsString(), this.NickName)){
+                            this.hostPlayer.inputQueue.put(this.SendTryAgainMessage(json.get("Source").getAsString(), 0,
+                                    "try place word" , this.NickName));
+                            continue;
+                        }
                         // ignore to guest Create try again message
                         out.println(this.SendTryAgainMessage(json.get("Source").getAsString(), 0,
                                 "try place word" , this.NickName));
                         out.flush();
                     }
                     else {
-                        // ack , score to guest Create success message
+                        // update player score in name to score map
+                        this.NameToScore.put(json.get("Source").getAsString(), this.NameToScore.get(json.get("Source").getAsString()) + score);
+                        setChanged();
+                        notifyObservers("update map");
+
+                        this.currentSuccessMessageSocket = currentGuest;
+                        this.currentSuccessMessagePrevScore = json.get("PrevScore").getAsString();
+                        this.currentSuccessMessageWord = Q_word;
                         String guestCurrentTiles = json.get("CurrentTiles").getAsString();
                         List<Character> NewCurrentTiles = this.reduceTilesFromCurrentTiles(json.get("Word").getAsString(),
                                 this.ConvertCurrentTilesToList(guestCurrentTiles));
                         System.out.println("New Score to add: "+score);
                         String jsonSuccess = this.SendSuccessMessage(json.get("Source").getAsString(), score,
                                 "try place word", this.CharavterslistToString(NewCurrentTiles), this.NickName);
+                        if(Objects.equals(json.get("Source").getAsString(), this.NickName)){
+                            this.hostPlayer.inputQueue.put(jsonSuccess);
+                            this.SendUpdateBoardMessage(this.board.parseBoardToString(this.board.getTiles()), this.NickName);
+                            continue;
+                        }
                         out.println(jsonSuccess);
                         out.flush();
                         // notify all
+                        this.SendUpdateBoardMessage(this.board.parseBoardToString(this.board.getTiles()), this.NickName);
                     }
                 }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
             }
+            catch (InterruptedException e) {e.printStackTrace();}
+            catch (IOException e) {throw new RuntimeException(e);}
+        }
+    }
+
+    /**
+     * The HandleChallenge function is called when a player challenges another player's word.
+     * If the challenge succeeds, then the tiles that were used to form the challenged word are returned to their respective bag and removed from the board.
+     * The board is updated accordingly and sent back to all players in order for them to update their boards as well.
+     * A message is also sent back indicating that a challenge has succeeded, which will be handled by each client individually (see Client class).
+
+     *
+     * @param res res Determine whether the challenge was successful or not
+     * @param prevScore prevScore Update the score of the player who challenged you
+     * @param w w Get the row and column of the word
+    public void handlechallenge(boolean res , string prevscore, word w) {
+
+            if(res) {
+                system
+     *
+     * @return A boolean, which is the result of the challenge
+     *
+     * @docauthor Trelent
+     */
+    public void HandleChallenge(boolean res , String prevScore, Word w) {
+
+        if(res) {
+            System.out.println("challenge success");
+            int row = w.getRow();
+            int col = w.getCol();
+            Character[][] toUpdateBoard = this.hostPlayer.player.prevBoard;
+            for(Tile t : w.getTiles()){
+                if (t != null) {
+                    Tile.Bag.getBagModel().put(t);
+                    board.removeTile(row, col);
+                }
+                if (w.isVertical()) {
+                    row++;
+                }
+                else {
+                    col++;
+                }
+            }
+            this.SendUpdateBoardMessage(board.parseCharacterArrayToString(toUpdateBoard), this.NickName);
+            String jsonChallengingYou = this.SendSucceededChallengeYouMessage(this.NickName, prevScore);
+            try {Thread.sleep(1000);}
+            catch (InterruptedException e) {e.printStackTrace();}
+            try {
+                if (currentSuccessMessageSocket.getPort() == this.hostPlayer.getSocketToHost().getLocalPort()) {
+                    this.hostPlayer.inputQueue.put(jsonChallengingYou);
+                }
+                else {
+                    PrintWriter printWriter = new PrintWriter(this.currentSuccessMessageSocket.getOutputStream());
+                    printWriter.println(jsonChallengingYou);
+                    printWriter.flush();
+                }
+            }
+            catch (IOException e) {throw new RuntimeException(e);}
+            catch (InterruptedException e) {e.printStackTrace();}
+        }
+        else{
+            System.out.println("Challenge didn't success, the word is legal");
+        }
+    }
+
+    /**
+     * The sendChallengeSuccess function is called when the host player has successfully created a challenge.
+     * It sends a message to all players in the game that they have been challenged and are now waiting for
+     * other players to join. The message contains information about who sent it, what type of message it is,
+     * and what data should be displayed on screen (in this case &quot;Waiting for Players&quot;). This function also sets up
+     * an input queue for each guest player so that they can receive messages from the host while waiting.
+
+
+     *
+     *
+     * @return A void, but it is not used anywhere
+     *
+     * @docauthor Trelent
+     */
+    private void sendChallengeSuccess() {
+        MessageHandler messageHandler = new MessageHandler();
+        messageHandler.createChallengeSuccessMessage();
+        for(Socket socket : this.GuestList) {
+
+            try {
+                if (socket.getPort() == this.hostPlayer.getSocketToHost().getLocalPort()){
+                    this.hostPlayer.inputQueue.put(messageHandler.jsonHandler.toJsonString());
+                }
+                else{
+                    OutputStream outToClient = socket.getOutputStream();
+                    PrintWriter out = new PrintWriter(outToClient);
+                    out.println(messageHandler.jsonHandler.toJsonString());
+                    out.flush();
+                }
+            }
+            catch (IOException | InterruptedException e) {throw new RuntimeException(e);}
         }
     }
 
@@ -563,6 +929,40 @@ public class Host implements ClientHandler{
             e.printStackTrace();
         }
     }
+
+    /**
+     * The handleGameServer function is a function that handles the input and output streams of the game server.
+     * It reads an object from the server, puts it in a queue, and then sends an object to the game server.
+
+     *
+     * @param inputStream inputStream Read the data from the server
+     * @param outputStream outputStream Send data to the server
+     *
+     * @return Nothing
+     *
+     * @docauthor Trelent
+     */
+    public void handleGameServer(InputStream inputStream, OutputStream outputStream) {
+        while (!this.SocketToMyServer.isClosed()) {
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+            try {
+                String jsonString = bufferedReader.readLine();
+                if (jsonString != null)// Read an object from the server
+                {
+                    try {
+                        inputQueueFromGameServer.put(jsonString); // Put the received object in the queue
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }  catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+
+
     /**
      * The GetMessageFromGameServer function is used to get a message from the game server.
      *
@@ -572,15 +972,13 @@ public class Host implements ClientHandler{
      *
      * @docauthor Trelent
      */
-    public String GetMessageFromGameServer() throws IOException {
-        Scanner in = new Scanner(new InputStreamReader(this.SocketToMyServer.getInputStream()));
-        StringBuilder stringBuilder = new StringBuilder();
-        while(in.hasNext()){
-            stringBuilder.append(in.nextLine());
-        }
-        String resultText = stringBuilder.toString();
+    public void GetMessageFromGameServer(String jsonString){
+        System.out.println(jsonString);
+        Future<String> stringFuture = executorService.submit(()->{
+           return jsonString;
+        });
+        this.setStringFuture(stringFuture);
 
-        return resultText;
     }
 
     /**
@@ -597,68 +995,24 @@ public class Host implements ClientHandler{
         writer.println(json.toJsonString());
 
     }
+
     /**
-     * The GetMessageFromLocalServer function is used to get the message from local server.
+     * The getSocket function takes a string as an argument and returns the socket that corresponds to it.
      *
      *
+     * @param source source Get the port number of the socket
      *
-     * @return A jsonobject, which contains all the information
+     * @return The socket of the client who sent the message
      *
      * @docauthor Trelent
      */
-/*    public void GetMessageFromLocalServer() throws IOException {
-        String jsonString = this.reader.readLine();
-        JsonObject json = JsonHandler.convertStringToJsonObject(jsonString);
-        switch (json.get("MessageType").getAsString()){
-            case "start game":
-                this.player = new Player(this.IP, this.NickName, 0);
-                this.player.addTiles(json.get("StartTiles").getAsString());
-                break;
-            case "success":
-                switch (json.get("Action").getAsString()) {
-                    case "try place word":
-                        System.out.println(this.NickName + "Try Place Word: " + "Success");
-                        this.player.addScore(Integer.parseInt(json.get("NewScore").getAsString()));
-                        this.player.prevScore = this.player.currentScore;
-                        this.player.setCurrentTiles(json.get("NewCurrentTiles").getAsString());
-                        // board change in Host.notifyall
-                        break;
-                    case "challenge":
-                        System.out.println(this.NickName + "Challenge: " + "Success");
-                        // score don't change
-                        // board change in Host.notifyall
-                        break;
-                }
-                break;
-            case "try again":
-                switch (json.get("Action").getAsString()){
-                    case "try place word":
-                        System.out.println(this.NickName + "Try Place Word: "+ "Didn't success, try again");
-                        break;
-                    case "challenge":
-                        System.out.println(this.NickName + "Challenge: "+ "Didn't success, try again");
-                        break;
-                }
-                break;
-            case "succeeded in challenging you":
-                System.out.println(this.NickName + ": i have been complicated");
-                this.player.currentScore = this.player.prevScore;
-                this.player.currentBoard = this.player.prevBoard;
-                this.player.currentTiles = this.player.prevTiles;
-                break;
-            case "update board":
-                System.out.println(this.NickName + " updated Board");
-                this.player.setCurrentBoard(json.get("Board").getAsString());
-                break;
-        }
-    }*/
-
     public Socket getSocket(String source){
+        System.out.println(source);
         String[] socketSplited = source.split(":");
         String ipSource = socketSplited[0].split("/")[1];
         String portSource = socketSplited[1];
         for(Socket s : this.GuestList){
-            if (Objects.equals(s.getInetAddress().toString().substring(1), ipSource) && s.getPort() == Integer.parseInt(portSource)){
+            if (s.getPort() == Integer.parseInt(portSource)){
                 return s;
             }
         }
@@ -745,8 +1099,9 @@ public class Host implements ClientHandler{
      */
     public List<Character> GenerateTiles(int number){
         List<Character> currentTiles = new ArrayList<>();
-        for(int i = 0 ; i < number-1 ; i++){
+        for(int i = 0 ; i < number ; i++){
             currentTiles.add(this.bag.getRand().letter);
+            // add End game if bag is empty
         }
         return currentTiles;
     }

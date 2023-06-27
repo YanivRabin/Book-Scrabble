@@ -1,12 +1,17 @@
 package model.logic;
 
-import java.io.IOException;
+import com.google.gson.JsonObject;
+
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class MyServer {
 
@@ -17,46 +22,50 @@ public class MyServer {
     String IP;
     boolean stop;
     public List<Socket> HostsList;
-    static ExecutorService executorService = Executors.newFixedThreadPool(2); // only for one host
+    static ExecutorService executorService = Executors.newFixedThreadPool(10); // only for one host
+
+    BlockingQueue<String> inputQueue = new LinkedBlockingQueue<>();
 
 
-    //ctr
+
     /**
-     * The MyServer function is a constructor that initializes the server with a port number and client handler.
+     * The MyServer function is the constructor for the MyServer class.
+     * It initializes a boolean variable stop to false, and an ArrayList of Hosts called HostsList.
+
      *
      *
-     * @param int port Set the port number of the server
-     * @param ClientHandler ch Pass the client handler to the server
-     *
-     * @return A boolean value
+     * @return The value of the stop variable, which is a boolean
      *
      * @docauthor Trelent
      */
-    public MyServer(int port, ClientHandler ch) {
-
-        this.clientHandler = ch;
-        this.port = port;
+    public MyServer() {
         this.stop = false;
         this.HostsList = new ArrayList<>();
     }
 
-    /**
-     * The getServer function is a static function that returns the singleton server.
-     *
-     *
-     * @param int port Set the port number that the server will listen to
-     * @param ClientHandler ch Set the client handler of the server
-     *
-     * @return The singleserver object
-     *
-     * @docauthor Trelent
-     */
     public static MyServer getServer(int port, ClientHandler ch) {
 
         if (singleServer == null)
-            singleServer = new MyServer(port, ch);
+            singleServer = new MyServer();
 
         return singleServer;
+    }
+
+    private static class MyServerModelHelper {
+        public static final MyServer model_instance = new MyServer();
+    }
+
+    /**
+     * The getModel function is a static function that returns the model instance of the Host class.
+     *
+     *
+     *
+     * @return The model_instance variable
+     *
+     * @docauthor Trelent
+     */
+    public static MyServer getModel() {
+        return MyServer.MyServerModelHelper.model_instance;
     }
     /**
      * The getPort function returns the port number of the server.
@@ -96,29 +105,34 @@ public class MyServer {
         return HostsList;
     }
 
+    /**
+     * The initMyServer function initializes the server with a port and clientHandler.
+     *
+     *
+     * @param  port Specify the port number on which the server will listen for incoming connections
+     * @param  clientHandler Set the clienthandler variable
+     *
+     * @return Void
+     *
+     * @docauthor Trelent
+     */
+    public void initMyServer(int port, ClientHandler clientHandler){
+        this.clientHandler = clientHandler;
+        this.port = port;
+    }
+
+
     //start server
     /**
-     * The start function creates a new thread and runs the runServer function in it.
-     * This is done so that the server can be running in the background while other functions are being executed.
+     * The start function creates a new thread and runs the runServer function on it.
 
      *
      *
-     * @return Void, so it is not possible to return anything from the start function
+     * @return Nothing
      *
      * @docauthor Trelent
      */
     public void start() {
-
-        //run server in the background
-        /*new Thread(() -> {
-
-            try {
-                runServer();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }).start();*/
-
         executorService.execute(()->{
             try {
                 runServer();
@@ -142,35 +156,113 @@ public class MyServer {
 
         //open server with the port that given
         this.server = new ServerSocket(port);
+        executorService.submit(this::handleRequests);
         System.out.println("Main Server started on port :" + this.port);
-//        this.server.setSoTimeout(1000);
         this.IP = this.server.getInetAddress().getHostAddress();
         while (!stop) {
 
             Socket host = this.server.accept();
             this.HostsList.add(host);
-            /*Thread hostThread = new Thread(() -> {
-                try {
-                    this.clientHandler.handleClient(host.getInputStream(), host.getOutputStream());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-            hostThread.start();*/
 
             executorService.execute(() -> {
                 try {
-                    this.clientHandler.handleClient(host.getInputStream(), host.getOutputStream());
+                    this.handleClient(host.getInputStream(), host.getOutputStream());
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             });
             System.out.println("Host Connected, Number of Hosts Connected: "+ HostsList.size());
 
-           // clientHandler.handleClient(host.getInputStream(), host.getOutputStream());
-            // Implement with thread pool
             }
     }
+
+    /**
+     * The handleClient function is called by the server when a client connects to it.
+     * It reads objects from the client and puts them in an input queue, which can be read by calling getInput().
+
+     *
+     * @param  inputStream Read data from the server
+     * @param  outputStream Send data to the client
+     *
+     * @return A void
+     *
+     * @docauthor Trelent
+     */
+    public void handleClient(InputStream inputStream, OutputStream outputStream) {
+        while (!this.server.isClosed()) {
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+            try {
+                String jsonString = bufferedReader.readLine();
+                if (jsonString != null)// Read an object from the server
+                {
+                    try {
+                        inputQueue.put(jsonString); // Put the received object in the queue
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }  catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+
+    /**
+     * The handleRequests function is a function that takes in the inputQueue and
+     * handles all of the requests that are put into it. It does this by taking
+     * each request from the queue, converting it to a JsonObject, and then using
+     * its socketSource field to find out which client sent it. Then, we use our
+     * ClientHandler class's handleClient method on this client with an InputStream
+     * made from our jsonString as well as an OutputStream made from the Socket's output stream.
+
+
+     *
+     *
+     * @return Nothing
+     *
+     * @docauthor Trelent
+     */
+    public void handleRequests() {
+        while (!this.server.isClosed()) {
+            try {
+                String jsonString = inputQueue.take();//blocking call
+                System.out.println(jsonString);
+                JsonObject json = JsonHandler.convertStringToJsonObject(jsonString);
+                Socket currentHost = getSocket(json.get("SocketSource").getAsString());
+                this.clientHandler.handleClient(new ByteArrayInputStream(jsonString.getBytes()),currentHost.getOutputStream());
+
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+    }
+
+    /**
+     * The getSocket function takes a string as an argument and returns the socket that corresponds to it.
+     *
+     *
+     * @param  source Get the ip address and port number of a socket
+     *
+     * @return A socket object
+     *
+     * @docauthor Trelent
+     */
+    public Socket getSocket(String source){
+        String[] socketSplited = source.split(":");
+        String ipSource = socketSplited[0].split("/")[1];
+        String portSource = socketSplited[1];
+        for(Socket s : this.HostsList){
+            if (s.getPort() == Integer.parseInt(portSource)){
+                return s;
+            }
+        }
+        return null;
+    }
+
 
     /**
      * The close function is used to close the server and all of its connections.

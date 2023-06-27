@@ -7,6 +7,18 @@ import java.io.PrintWriter;
 
 public class IOSearchTest {
 
+    /**
+     * The iOSearchTest function tests the IOSearcher class.
+     * It creates two text files, one with a string of words and another with a different string of words.
+     * Then it searches for the word &quot;is&quot; in both files using the search function from IOSearcher and prints out whether or not it was found.
+     * Next, it searches for the word &quot;cat&quot; in both files using the search function from IOSearcher and prints out whether or not it was found.
+
+     *
+     *
+     * @return The following:
+     *
+     * @docauthor Trelent
+     */
     public static void iOSearchTest() throws Exception {
 
         String words1 = "the quick brown fox \n jumps over the lazy dog";
