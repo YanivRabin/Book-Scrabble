@@ -48,6 +48,19 @@ public class BoardViewController implements Initializable, Observer {
     @FXML
     private Button EndTurn, resetWord, TryPlaceWord, challenge, EndGame;
 
+    /**
+     * The setViewModel function is used to set the viewModel for this controller.
+     *
+     *
+     * @param  vm Set the viewmodel variable to the parameter
+    public void updatehand() {
+
+
+     *
+     * @return Void
+     *
+     * @docauthor Trelent
+     */
     public void setViewModel(ViewModel vm) {
 
         viewModel = vm;
@@ -93,10 +106,32 @@ public class BoardViewController implements Initializable, Observer {
         challenge.setDisable(true);
     }
 
+    /**
+     * The initialize function is called when the FXML file is loaded.
+     * It sets up the buttons and text fields to be used in this class.
+
+     *
+     * @param  location Specify the location of the fxml file
+     * @param  resources Load the resources for the application
+     *
+     * @return Nothing
+     *
+     * @docauthor Trelent
+     */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
     }
 
+    /**
+     * The updateHand function updates the hand of tiles displayed on the screen.
+     * It does this by iterating through all of the children in a container, and if they are buttons, it sets their text to be equal to that tile's letter.
+
+     *
+     *
+     * @return Nothing
+     *
+     * @docauthor Trelent
+     */
     public void updateHand() {
 
         ObservableList<Node> children = tilesContainer.getChildren();
@@ -116,6 +151,19 @@ public class BoardViewController implements Initializable, Observer {
         }
     }
 
+    /**
+     * The handleTileButtonClick function is called when a tile button is clicked.
+     * It sets the selectedTile variable to the Tile object corresponding to the clicked button,
+     * and disables all buttons if blockingTiles is true. If blockingTiles is false, it enables all buttons.
+
+     *
+     * @param  event Get the source of the event
+
+     *
+     * @return A tile object
+     *
+     * @docauthor Trelent
+     */
     @FXML
     public void handleTileButtonClick(ActionEvent event) {
 
@@ -145,6 +193,17 @@ public class BoardViewController implements Initializable, Observer {
         }
     }
 
+    /**
+     * The handlePaneClick function is called when a pane on the boardGrid is clicked.
+     * It determines which pane was clicked and performs actions based on that information.
+     *
+     *
+     * @param MouseEvent event Get the source of the event
+     *
+     * @return A void
+     *
+     * @docauthor Trelent
+     */
     @FXML
     public void handlePaneClick(MouseEvent event) {
 
@@ -200,6 +259,17 @@ public class BoardViewController implements Initializable, Observer {
         }
     }
 
+    /**
+     * The resetTilesButtonClick function is called when the user clicks on the reset tiles button.
+     * It removes all of the tiles that were placed during this turn from both the gameBoard and boardGrid,
+     * resets other variables to their original values, and enables all of the buttons in rackGrid.
+
+     *
+     *
+     * @return Nothing
+     *
+     * @docauthor Trelent
+     */
     public void resetTilesButtonClick() {
 
         // remove the tiles from original board
@@ -243,6 +313,24 @@ public class BoardViewController implements Initializable, Observer {
         enableButtons();
     }
 
+    /**
+     * The isTilePlacedDuringTurn function checks if a tile has been placed during the turn.
+     *
+     *
+     * @param  row Check if the row of the tile matches any of the rows stored in positions array
+
+    public boolean istileplacedduringturn(int row, int column) {
+
+
+     * @param  column Check if the column is valid
+    public boolean isvalidcolumn(int column) {
+
+
+     *
+     * @return A boolean value that is true if the tile was placed during the turn and false otherwise
+     *
+     * @docauthor Trelent
+     */
     public boolean isTilePlacedDuringTurn(int row, int column) {
 
         // Check if the tile position matches any of the positions stored in the positions array
@@ -254,6 +342,17 @@ public class BoardViewController implements Initializable, Observer {
         return false;
     }
 
+    /**
+     * The TryPlaceWordButtonClick function is called when the user clicks on the &quot;Try Place Word&quot; button.
+     * It checks if all of the tiles that were placed during this turn are in a legal word, and if so, it adds them to
+     * the game board and passes turn to next player. If not, it resets all of those tiles back into their original positions.
+
+     *
+     *
+     * @return A boolean value
+     *
+     * @docauthor Trelent
+     */
     public void TryPlaceWordButtonClick() {
 
         ArrayList<Tile> tilesForWord = new ArrayList<>();
@@ -455,6 +554,16 @@ public class BoardViewController implements Initializable, Observer {
         }
     }
 
+    /**
+     * The resetPositionsArray function clears the positions array by setting all elements to null.
+     * It also resets the index of the positions array to 0.
+
+     *
+     *
+     * @return Nothing
+     *
+     * @docauthor Trelent
+     */
     public void resetPositionsArray() {
 
         // Clear the array by setting elements to null
@@ -462,6 +571,16 @@ public class BoardViewController implements Initializable, Observer {
         positionsIndex = 0;
     }
 
+    /**
+     * The enableButtons function is used to enable all the buttons in the tilesContainer.
+     * This function is called when a button has been clicked and it's time for another button to be clicked.
+
+     *
+     *
+     * @return Void
+     *
+     * @docauthor Trelent
+     */
     public void enableButtons() {
 
         blockingTiles = false;
@@ -472,6 +591,18 @@ public class BoardViewController implements Initializable, Observer {
         }
     }
 
+    /**
+     * The disableButtons function disables all the buttons in the tilesContainer except for
+     * the button that was clicked. This is done so that a user cannot click on multiple buttons
+     * at once, which would cause an error. The disableButtons function also sets blockingTiles to true,
+     * which prevents any other functions from being called while this function is running.
+
+     *
+     *
+     * @return Void, which means that it does not return anything
+     *
+     * @docauthor Trelent
+     */
     public void disableButtons() {
 
         blockingTiles = true;
@@ -482,6 +613,20 @@ public class BoardViewController implements Initializable, Observer {
         }
     }
 
+    /**
+     * The successPlaceWord function is called when the user successfully places a word on the board.
+     * It updates the tiles and hand, resets all helper variables for a new turn, and enables all buttons.
+
+     *
+     * @param  word Get the tiles that were used to place a word
+    public void updatehand() {
+
+
+     *
+     * @return Nothing
+     *
+     * @docauthor Trelent
+     */
     public void successPlaceWord(Word word) {
 
         // get the new tiles
@@ -495,6 +640,16 @@ public class BoardViewController implements Initializable, Observer {
         enableButtons();
     }
 
+    /**
+     * The EndTurnButtonClick function is called when the player clicks on the End Turn button.
+     * It calls resetTilesButtonClick to make sure that all tiles are in their proper place, and then it passes turn control to the next player.
+
+     *
+     *
+     * @return Nothing
+     *
+     * @docauthor Trelent
+     */
     public void EndTurnButtonClick() {
 
         // check if the player didn't put tiles and then pressed end turn
@@ -502,17 +657,50 @@ public class BoardViewController implements Initializable, Observer {
         viewModel.passTurn();
     }
 
+    /**
+     * The EndGameButtonClick function is called when the user clicks on the End Game button.
+     * It calls a function in the viewModel that ends the game and returns to main menu.
+
+     *
+     *
+     * @return A void
+     *
+     * @docauthor Trelent
+     */
     public void EndGameButtonClick() {
 
         viewModel.endGame();
     }
 
+    /**
+     * The challengeButtonClick function is called when the challenge button is clicked.
+     * It calls the viewModel's challenge function, which will send a request to the server for a new game.
+
+     *
+     *
+     * @return A void
+     *
+     * @docauthor Trelent
+     */
     @FXML
     public void challengeButtonClick() {
 
         viewModel.challenge();
     }
 
+    /**
+     * The update function is called whenever the ViewModel notifies its observers.
+     * The update function checks what type of notification it received and updates the board accordingly.
+
+     *
+     * @param  o Determine which observable object called the update function
+
+     * @param  arg Pass the message from the observable to its observers
+     *
+     * @return A string with the following format:
+     *
+     * @docauthor Trelent
+     */
     @Override
     public void update(Observable o, Object arg) {
 

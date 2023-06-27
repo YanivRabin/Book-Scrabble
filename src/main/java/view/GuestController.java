@@ -30,11 +30,33 @@ public class GuestController {
     @FXML
     Button enter;
 
+    /**
+     * The initialize function is called when the FXML file is loaded.
+     * It sets up the GUI and makes sure that it's ready to be used.
+
+     *
+     *
+     * @return A void, so it cannot be used in the if statement
+     *
+     * @docauthor Trelent
+     */
     @FXML
     public void initialize() {
         Platform.runLater(() -> ipTextField.requestFocus());
     }
 
+    /**
+     * The onIpTextFieldKeyPressed function is a function that allows the user to press tab on their keyboard
+     * and move from the ipTextField to the portTextField. This function also consumes any other key presses, so
+     * that they do not affect anything else in this program.
+
+     *
+     * @param  event Determine which key was pressed
+     *
+     * @return Nothing
+     *
+     * @docauthor Trelent
+     */
     @FXML
     public void onIpTextFieldKeyPressed(KeyEvent event) {
         if (event.getCode() == KeyCode.TAB) {
@@ -43,10 +65,30 @@ public class GuestController {
         }
     }
 
+    /**
+     * The setVM_Guest function sets the VM_Guest object for this class.
+     *
+     *
+     * @param  vm Set the vm_guest variable to the vm_guest object passed in
+     *
+     * @return The vm_guest object
+     *
+     * @docauthor Trelent
+     */
     public void setVM_Guest(VM_Guest vm) {
         vm_guest = vm;
     }
 
+    /**
+     * The backToMenuButton function is a function that allows the user to go back to the main menu.
+     *
+     *
+     * @param  event Get the source of the button that was clicked
+     *
+     * @return The user to the main menu
+     *
+     * @docauthor Trelent
+     */
     @FXML
     protected void backToMenuButton(ActionEvent event) throws IOException {
 
@@ -57,6 +99,17 @@ public class GuestController {
         stage.show();
     }
 
+    /**
+     * The checkIpPort function is responsible for checking if the IP and Port entered by the user are valid.
+     * If they are, it will connect to the server and wait for a game to start.
+     *
+     *
+     * @param  event Get the source of the event
+     *
+     * @return True if the connection is established and false otherwise
+     *
+     * @docauthor Trelent
+     */
     public void checkIpPort(ActionEvent event) {
 
         // check if ip and port are entered

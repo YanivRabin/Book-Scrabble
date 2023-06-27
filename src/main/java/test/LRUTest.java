@@ -5,6 +5,17 @@ import model.logic.LRU;
 
 public class LRUTest {
 
+    /**
+     * The lruTest function tests the LRU class by adding four elements to the cache,
+     * and then removing one element. The function checks that the removed element is
+     * equal to &quot;b&quot;. If it is not, an error message will be printed.
+
+     *
+     *
+     * @return &quot;wrong implementation for lru&quot;
+     *
+     * @docauthor Trelent
+     */
     public static void lruTest() {
 
         CacheReplacementPolicy lru = new LRU();

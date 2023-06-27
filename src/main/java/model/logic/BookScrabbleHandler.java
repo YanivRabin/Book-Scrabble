@@ -10,6 +10,18 @@ import java.util.Scanner;
 
 public class BookScrabbleHandler implements ClientHandler {
 
+    /**
+     * The handleClient function is responsible for handling the client's request.
+     * It reads a line from the client, and then sends back to it a response.
+     *
+     *
+     * @param inFromClient inFromClient Read from the client
+     * @param outToClient outToClient Write the response to the client
+     *
+     * @return Void
+     *
+     * @docauthor Trelent
+     */
     @Override
     public void handleClient(InputStream inFromClient, OutputStream outToClient) {
 
@@ -62,6 +74,18 @@ public class BookScrabbleHandler implements ClientHandler {
         }
     }
 
+    /**
+     * The close function is used to close the connection between the client and server.
+     * This function is called when a user logs out of their account, or if they are
+     * disconnected from the server for any reason. The function closes all open streams,
+     * and then closes the socket that was created in order to connect with this client.
+
+     *
+     *
+     * @return Void
+     *
+     * @docauthor Trelent
+     */
     @Override
     public void close() {}
 }

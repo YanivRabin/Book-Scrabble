@@ -19,6 +19,16 @@ public class HostController  {
     @FXML
     Label ipLabel, portLabel, players;
 
+    /**
+     * The setVM_Host function binds the amount of players to the player label.
+     *
+     *
+     * @param  vm Bind the amount of players to the player label
+     *
+     * @return A vm_host
+     *
+     * @docauthor Trelent
+     */
     public void setVM_Host(VM_Host vm) {
 
         vm_host = vm;
@@ -28,12 +38,33 @@ public class HostController  {
 
     }
 
+    /**
+     * The display function is used to display the IP and port of the server.
+     *
+     *
+     * @param  ip Set the text of the iplabel
+     * @param  port Set the text of portlabel
+     *
+     * @return A jpanel object
+     *
+     * @docauthor Trelent
+     */
     public void display(String ip, String port) {
 
         ipLabel.setText("IP: " + ip);
         portLabel.setText("Port: " + port);
     }
 
+    /**
+     * The backToMenuButton function is a function that allows the user to go back to the main menu.
+     *
+     *
+     * @param  event Get the source of the event
+     *
+     * @return The user to the main menu
+     *
+     * @docauthor Trelent
+     */
     @FXML
     protected void backToMenuButton(ActionEvent event) throws IOException {
 
@@ -44,6 +75,16 @@ public class HostController  {
         stage.show();
     }
 
+    /**
+     * The StartGameButton function is responsible for loading the board view and sending it to the BoardViewController.
+     *
+     *
+     * @param  actionEvent Get the source of the event
+     *
+     * @return A void, so the return type is void
+     *
+     * @docauthor Trelent
+     */
     public void StartGameButton(ActionEvent actionEvent) {
 
         try {

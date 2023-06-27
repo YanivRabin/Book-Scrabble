@@ -27,32 +27,110 @@ public class Guest extends Observable {
     public Player player;
     public String NickName;
 
+    /**
+     * The Guest function is a constructor for the Guest class.
+     * It takes in a String NickName and sets it as the NickName of the Guest object.
+
+     *
+     * @param NickName NickName Set the nickname of the guest object
+     *
+     * @return A string
+     *
+     * @docauthor Trelent
+     */
     public Guest(String NickName){
         this.NickName = NickName;
     }
 
+    /**
+     * The getSocketToHost function returns the SocketToHost variable.
+     *
+     *
+     *
+     * @return The socket to the host
+     *
+     * @docauthor Trelent
+     */
     public Socket getSocketToHost() {
         return SocketToHost;
     }
+    /**
+     * The getNickName function returns the NickName of the user.
+     *
+     *
+     *
+     * @return The value of the nickname variable
+     *
+     * @docauthor Trelent
+     */
     public String getNickName() {
         return NickName;
     }
+    /**
+     * The getReader function returns the BufferedReader object that was created in the constructor.
+     *
+     *
+     *
+     * @return The reader variable, which is a bufferedreader
+     *
+     * @docauthor Trelent
+     */
     public BufferedReader getReader() {
         return reader;
     }
 
+    /**
+     * The getWriter function returns the PrintWriter object that is used to write
+     * to the output stream.
+
+     *
+     *
+     * @return The writer object
+     *
+     * @docauthor Trelent
+     */
     public PrintWriter getWriter() {
         return writer;
     }
 
+    /**
+     * The getIpAddress function returns the ipAddress of a given object.
+     *
+     *
+     *
+     * @return The ipaddress variable
+     *
+     * @docauthor Trelent
+     */
     public String getIpAddress() {
         return ipAddress;
     }
 
+    /**
+     * The setNickName function sets the value of NickName to a new value.
+     *
+     *
+     * @param NickName NickName Set the nickname of the player
+     *
+     * @return Nothing, so it is void
+     *
+     * @docauthor Trelent
+     */
     public void setNickName(String NickName){
         this.NickName = NickName;
     }
 
+    /**
+     * The CreateSocketToHost function creates a socket to the host and sets up the input and output streams.
+     *
+     *
+     * @param HostIp HostIp Connect to the host
+     * @param Port Port Specify the port number of the host
+     *
+     * @return The sockettohost object, which is a socket to the host
+     *
+     * @docauthor Trelent
+     */
     public void CreateSocketToHost(String HostIp, int Port) throws IOException {
         if (this.validateIP(HostIp)){
             this.SocketToHost = new Socket(HostIp, Port);
@@ -74,6 +152,16 @@ public class Guest extends Observable {
         }
     }
 
+    /**
+     * The sendNewPlayerJoinedMessage function is used to send a message to the host that a new player has joined.
+     * This function is called when the client connects to the server.
+
+     *
+     *
+     * @return A string
+     *
+     * @docauthor Trelent
+     */
     public void sendNewPlayerJoinedMessage() {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(this.SocketToHost.getInetAddress());
@@ -85,6 +173,23 @@ public class Guest extends Observable {
     }
 
     // create all options Messages
+    /**
+     * The SendTryPlaceWordMessage function is used to send a message to the host
+     * that contains information about the word that was just placed on the board.
+     * The function takes in a source, destination, word, row and column of where it was placed on the board and whether or not it is vertical.
+     * It then creates a new MessageHandler object which will be used to create our JSON string. We then call CreateTryPlaceWordMessage from MessageHandler which will take in all of our parameters and create an appropriate JSON string for us. Finally we call SendToHost with this newly created JSON String as its parameter so that we can send it off
+     *
+     * @param source source Identify the player who sent the message
+     * @param destination destination Specify the destination of the message
+     * @param word word Send the word that is being placed on the board
+     * @param row row Specify the row of the first letter in a word
+     * @param column column Determine the column of the first letter in a word
+     * @param vertical vertical Determine the orientation of the word
+     *
+     * @return A void
+     *
+     * @docauthor Trelent
+     */
     public void SendTryPlaceWordMessage(String source, String destination, String word,
                                           int row, int column, boolean vertical){
         System.out.println(this.player.getNickName()+": try place word");
@@ -98,6 +203,16 @@ public class Guest extends Observable {
                 vertical, this.player.getCurrentTiles(), socketSource);
         this.SendToHost(messageHandler.jsonHandler);
     }
+    /**
+     * The SendChallengeMessage function is used to send a challenge message to the host.
+     *
+     *
+     * @param prevBoard prevBoard Send the previous board to the opponent
+     *
+     * @return A jsonobject
+     *
+     * @docauthor Trelent
+     */
     public void SendChallengeMessage(String prevBoard){
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(this.SocketToHost.getInetAddress());
@@ -109,6 +224,15 @@ public class Guest extends Observable {
         this.SendToHost(messageHandler.jsonHandler);
     }
 
+    /**
+     * The sendPassTurnMessage function is used to send a message to the host that the player has passed their turn.
+     *
+     *
+     *
+     * @return A json string with the following structure:
+     *
+     * @docauthor Trelent
+     */
     public void sendPassTurnMessage() {
 
         StringBuilder stringBuilder = new StringBuilder();
@@ -120,11 +244,31 @@ public class Guest extends Observable {
         this.SendToHost(messageHandler.jsonHandler);
     }
 
+    /**
+     * The SendToHost function is used to send a JsonHandler object to the host.
+     *
+     *
+     * @param json json Send a jsonhandler object to the host
+     *
+     * @return A void
+     *
+     * @docauthor Trelent
+     */
     public  void SendToHost(JsonHandler json) {
         this.writer.println(json.toJsonString());
         this.writer.flush();
     }
 
+    /**
+     * The sendEndGame function is used to send a message to the host that the game has ended.
+     * The function takes no parameters and returns nothing.
+
+     *
+     *
+     * @return A json object
+     *
+     * @docauthor Trelent
+     */
     public void sendEndGame() {
         String winner = "";
         StringBuilder stringBuilder = new StringBuilder();
@@ -136,6 +280,17 @@ public class Guest extends Observable {
         this.SendToHost(messageHandler.jsonHandler);
     }
 
+    /**
+     * The handleHost function is a function that reads the input stream from the host and puts it into a queue.
+     *
+     *
+     * @param inputStream inputStream Read the data from the server
+     * @param outputStream outputStream Write objects to the server
+     *
+     * @return Void
+     *
+     * @docauthor Trelent
+     */
     public void handleHost(InputStream inputStream, OutputStream outputStream) {
         while (!this.SocketToHost.isClosed()) {
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
@@ -155,6 +310,18 @@ public class Guest extends Observable {
         }
     }
 
+    /**
+     * The handleRequests function is a function that handles all the requests from the server.
+     * It takes in a json string and converts it to a JsonObject, then checks what type of message it is.
+     * Depending on what type of message it is, different actions are taken. For example if the messageType was &quot;start game&quot;,
+     * then we create a new player object with information about our tiles and host nickname etc... Then we notify observers that they should start their game now.
+
+     *
+     *
+     * @return Void
+     *
+     * @docauthor Trelent
+     */
     public void handleRequests() {
         while (!this.SocketToHost.isClosed()) {
             try {
@@ -167,7 +334,6 @@ public class Guest extends Observable {
                         this.player.addTiles(json.get("StartTiles").getAsString());
                         this.player.hostNickName = json.get("Source").getAsString();
                         this.player.playerIndex = json.get("PlayerIndex").getAsInt();
-                        this.player.setNumOfPlayersInGame(json.get("NumOfPlayers").getAsInt());
                         setChanged();
                         notifyObservers("start game," + this.player.getHostNickName());
                         break;
@@ -235,6 +401,16 @@ public class Guest extends Observable {
         }
     }
 
+    /**
+     * The validateIP function takes a String as an argument and returns true if the string is a valid IP address.
+     *
+     *
+     * @param ipAddress ipAddress Pass in the ip address to be validated
+     *
+     * @return A boolean value
+     *
+     * @docauthor Trelent
+     */
     public boolean validateIP(String ipAddress) {
         String[] parts = ipAddress.split("\\.");
 

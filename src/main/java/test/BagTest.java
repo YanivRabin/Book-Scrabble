@@ -4,6 +4,19 @@ import model.data.Tile.Bag;
 
 public class BagTest {
 
+    /**
+     * The bagTest function tests the Bag class to ensure that it is a singleton,
+     * and that its getQuantities method returns a clone of the quantities array.
+     * It also tests the getRand and put methods by ensuring that they do not change
+     * or return null when given invalid input. Finally, it ensures that getTile
+     * returns null for invalid inputs, but does not return null for valid inputs.
+
+     *
+     *
+     * @return Nothing
+     *
+     * @docauthor Trelent
+     */
     public static void bagTest() {
 
         Bag b = Tile.Bag.getBag();

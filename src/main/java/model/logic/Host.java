@@ -54,13 +54,14 @@ public class Host extends Observable implements ClientHandler {
 
     //Default CTOR
     /**
-     * The Host function is the main function of the Host class.
-     * It creates a new thread that listens for incoming connections from clients, and then adds them to an ArrayList of guests.
-     * The host also has a nickname, which can be changed by calling setNickName().
-
+     * The Host function is the main function of the Host class. It creates a new thread for each client that connects to it, and then
+     * runs a loop which waits for messages from clients. When it receives one, it checks if its an end game message or not. If so,
+     * then the host will send out all scores to all players and close down their threads (and thus disconnect them). Otherwise,
+     * if its just a normal move message from one player to another (or itself), then we simply update our board model with this move
+     * and send out an updated board state to everyone else in the game.
      *
      *
-     * @return A string with the host's nickname and port number
+     * @return The port number of the host
      *
      * @docauthor Trelent
      */
@@ -144,6 +145,15 @@ public class Host extends Observable implements ClientHandler {
         return LocalServer;
     }
 
+    /**
+     * The getSocketToMyServer function returns the socket that is connected to the server.
+     *
+     *
+     *
+     * @return The socket to my server
+     *
+     * @docauthor Trelent
+     */
     public Socket getSocketToMyServer() {
         return SocketToMyServer;
     }
@@ -153,9 +163,9 @@ public class Host extends Observable implements ClientHandler {
      * The CreateSocketToServer function creates a socket to the server.
      *
      *
-     * @param  server Get the ip and port of the server
+     * @param server server Get the ip and port of the server
      *
-     * @return A socket to the server
+     * @return A socket object
      *
      * @docauthor Trelent
      */
@@ -228,6 +238,15 @@ public class Host extends Observable implements ClientHandler {
         });
     }
 
+    /**
+     * The getLocalNetworkAddress function returns the local network address of the device.
+     *
+     *
+     *
+     * @return The ip address of the local network interface
+     *
+     * @docauthor Trelent
+     */
     private String getLocalNetworkAddress() throws SocketException {
         Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
         while (interfaces.hasMoreElements()) {
@@ -332,6 +351,16 @@ public class Host extends Observable implements ClientHandler {
         }
     }
 
+    /**
+     * The sendPassTurnMessage function is used to send a message to all players in the game that it is their turn.
+     * This function will be called when the host player passes his/her turn.
+
+     *
+     *
+     * @return A message that is sent to all players
+     *
+     * @docauthor Trelent
+     */
     public void sendPassTurnMessage() {
         MessageHandler messageHandler = new MessageHandler();
         messageHandler.createPassTurnMessage();
@@ -351,6 +380,19 @@ public class Host extends Observable implements ClientHandler {
             catch (IOException | InterruptedException e) {throw new RuntimeException(e);}
         }
     }
+    /**
+     * The sendStopChallengeAlive function is used to send a message to all the players in the game,
+     * telling them that they should stop sending challenge alive messages. This function is called when
+     * a player has been found cheating and therefore needs to be removed from the game. The host will then
+     * call this function so that no more challenge alive messages are sent by any of the players in order for
+     * them not to get confused about which player was kicked out of the game.
+
+     *
+     *
+     * @return A boolean
+     *
+     * @docauthor Trelent
+     */
     public void sendStopChallengeAlive() {
         MessageHandler messageHandler = new MessageHandler();
         messageHandler.createStopChallengeAlive();
@@ -371,6 +413,16 @@ public class Host extends Observable implements ClientHandler {
         }
     }
 
+    /**
+     * The sendEndGame function is used to send a message to all players in the game that the game has ended.
+     *
+     *
+     * @param winner winner Identify the winner of the game
+     *
+     * @return A string
+     *
+     * @docauthor Trelent
+     */
     public void sendEndGame(String winner) {
         MessageHandler messageHandler = new MessageHandler();
         messageHandler.createEndGameMessage(winner);
@@ -391,6 +443,15 @@ public class Host extends Observable implements ClientHandler {
         }
     }
 
+    /**
+     * The getWinner function returns the name of the player with the highest score.
+     *
+     *
+     *
+     * @return The name of the player with the highest score
+     *
+     * @docauthor Trelent
+     */
     public String getWinner() {
         int maxScore = 0;
         String winner = "";
@@ -403,6 +464,16 @@ public class Host extends Observable implements ClientHandler {
         return winner;
     }
 
+    /**
+     * The sendUpdatePrevToCurrent function is used to send the previous state of the game to all players.
+     * This function is called when a player has just joined and needs to be updated on what has happened in the game so far.
+
+     *
+     *
+     * @return A string
+     *
+     * @docauthor Trelent
+     */
     public void sendUpdatePrevToCurrent() {
         MessageHandler messageHandler = new MessageHandler();
         messageHandler.updatePrevToCurrent();
@@ -422,6 +493,19 @@ public class Host extends Observable implements ClientHandler {
         }
     }
 
+    /**
+     * The CreateMessageToGameServer function takes in a message and socketSource,
+     * creates a MessageHandler object, calls the CreateMessageToGameServer function
+     * from the MessageHandler class with the given parameters, and returns a JSON string.
+
+     *
+     * @param message message Send a message to the game server
+     * @param socketSource socketSource Determine which socket to send the message to
+     *
+     * @return A string
+     *
+     * @docauthor Trelent
+     */
     public String CreateMessageToGameServer(String message, String socketSource){
         // only serverHost
         MessageHandler messageHandler = new MessageHandler();
@@ -469,6 +553,20 @@ public class Host extends Observable implements ClientHandler {
         return messageHandler.jsonHandler.toJsonString();
     }
 
+    /**
+     * The SendSucceededChallengeYouMessage function is used to send a message to the client that
+     * indicates that the challenge has been accepted. The function takes in two parameters, hostNickName and prevScore.
+     * It then creates a new MessageHandler object and calls its CreateSucceededChallengeYouMessage function with these two parameters.
+     * Finally, it returns the json string created by this call as its return value.
+
+     *
+     * @param hostNickName hostNickName Identify the host of the game
+     * @param prevScore prevScore Send the previous score of the host to the client
+     *
+     * @return A string
+     *
+     * @docauthor Trelent
+     */
     public String SendSucceededChallengeYouMessage(String hostNickName, String prevScore){
         // only serverHost
         MessageHandler messageHandler = new MessageHandler();
@@ -543,12 +641,12 @@ public class Host extends Observable implements ClientHandler {
     }
 
     /**
-     * The handleRequests function is responsible for handling the requests that are sent to the server.
-     * It takes in a request from the inputQueue and then processes it accordingly.
+     * The handleRequests function is responsible for handling all the requests that are sent to the host.
+     * It handles them by using a switch case, and then sending back an appropriate response.
 
      *
      *
-     * @return A void
+     * @return Void
      *
      * @docauthor Trelent
      */
@@ -681,6 +779,25 @@ public class Host extends Observable implements ClientHandler {
         }
     }
 
+    /**
+     * The HandleChallenge function is called when a player challenges another player's word.
+     * If the challenge succeeds, then the tiles that were used to form the challenged word are returned to their respective bag and removed from the board.
+     * The board is updated accordingly and sent back to all players in order for them to update their boards as well.
+     * A message is also sent back indicating that a challenge has succeeded, which will be handled by each client individually (see Client class).
+
+     *
+     * @param res res Determine whether the challenge was successful or not
+     * @param prevScore prevScore Update the score of the player who challenged you
+     * @param w w Get the row and column of the word
+    public void handlechallenge(boolean res , string prevscore, word w) {
+
+            if(res) {
+                system
+     *
+     * @return A boolean, which is the result of the challenge
+     *
+     * @docauthor Trelent
+     */
     public void HandleChallenge(boolean res , String prevScore, Word w) {
 
         if(res) {
@@ -722,6 +839,20 @@ public class Host extends Observable implements ClientHandler {
         }
     }
 
+    /**
+     * The sendChallengeSuccess function is called when the host player has successfully created a challenge.
+     * It sends a message to all players in the game that they have been challenged and are now waiting for
+     * other players to join. The message contains information about who sent it, what type of message it is,
+     * and what data should be displayed on screen (in this case &quot;Waiting for Players&quot;). This function also sets up
+     * an input queue for each guest player so that they can receive messages from the host while waiting.
+
+
+     *
+     *
+     * @return A void, but it is not used anywhere
+     *
+     * @docauthor Trelent
+     */
     private void sendChallengeSuccess() {
         MessageHandler messageHandler = new MessageHandler();
         messageHandler.createChallengeSuccessMessage();
@@ -762,6 +893,18 @@ public class Host extends Observable implements ClientHandler {
         }
     }
 
+    /**
+     * The handleGameServer function is a function that handles the input and output streams of the game server.
+     * It reads an object from the server, puts it in a queue, and then sends an object to the game server.
+
+     *
+     * @param inputStream inputStream Read the data from the server
+     * @param outputStream outputStream Send data to the server
+     *
+     * @return Nothing
+     *
+     * @docauthor Trelent
+     */
     public void handleGameServer(InputStream inputStream, OutputStream outputStream) {
         while (!this.SocketToMyServer.isClosed()) {
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
@@ -780,19 +923,7 @@ public class Host extends Observable implements ClientHandler {
             }
         }
     }
-/*
-    public void HandleMessageFromGameServer(){
-        while (!this.SocketToMyServer.isClosed()) {
-            try {
-                String jsonString = inputQueueFromGameServer.take();
-                this.GetMessageFromGameServer(jsonString);
 
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-    }*/
 
 
     /**
@@ -828,6 +959,16 @@ public class Host extends Observable implements ClientHandler {
 
     }
 
+    /**
+     * The getSocket function takes a string as an argument and returns the socket that corresponds to it.
+     *
+     *
+     * @param source source Get the port number of the socket
+     *
+     * @return The socket of the client who sent the message
+     *
+     * @docauthor Trelent
+     */
     public Socket getSocket(String source){
         System.out.println(source);
         String[] socketSplited = source.split(":");

@@ -11,7 +11,7 @@ public class LFU implements CacheReplacementPolicy {
      * it increments its value by 1. Otherwise, it creates a new entry with value 1.
 
      *
-     * @param String word Add a word to the map
+     * @param  word Add a word to the map
      *
      * @return Nothing, but it will add the word to the map if it is not already there
      *

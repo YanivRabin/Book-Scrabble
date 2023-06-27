@@ -28,6 +28,16 @@ public class MyServer {
 
 
 
+    /**
+     * The MyServer function is the constructor for the MyServer class.
+     * It initializes a boolean variable stop to false, and an ArrayList of Hosts called HostsList.
+
+     *
+     *
+     * @return The value of the stop variable, which is a boolean
+     *
+     * @docauthor Trelent
+     */
     public MyServer() {
         this.stop = false;
         this.HostsList = new ArrayList<>();
@@ -95,6 +105,17 @@ public class MyServer {
         return HostsList;
     }
 
+    /**
+     * The initMyServer function initializes the server with a port and clientHandler.
+     *
+     *
+     * @param  port Specify the port number on which the server will listen for incoming connections
+     * @param  clientHandler Set the clienthandler variable
+     *
+     * @return Void
+     *
+     * @docauthor Trelent
+     */
     public void initMyServer(int port, ClientHandler clientHandler){
         this.clientHandler = clientHandler;
         this.port = port;
@@ -102,6 +123,15 @@ public class MyServer {
 
 
     //start server
+    /**
+     * The start function creates a new thread and runs the runServer function on it.
+
+     *
+     *
+     * @return Nothing
+     *
+     * @docauthor Trelent
+     */
     public void start() {
         executorService.execute(()->{
             try {
@@ -146,6 +176,18 @@ public class MyServer {
             }
     }
 
+    /**
+     * The handleClient function is called by the server when a client connects to it.
+     * It reads objects from the client and puts them in an input queue, which can be read by calling getInput().
+
+     *
+     * @param  inputStream Read data from the server
+     * @param  outputStream Send data to the client
+     *
+     * @return A void
+     *
+     * @docauthor Trelent
+     */
     public void handleClient(InputStream inputStream, OutputStream outputStream) {
         while (!this.server.isClosed()) {
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
@@ -166,6 +208,21 @@ public class MyServer {
     }
 
 
+    /**
+     * The handleRequests function is a function that takes in the inputQueue and
+     * handles all of the requests that are put into it. It does this by taking
+     * each request from the queue, converting it to a JsonObject, and then using
+     * its socketSource field to find out which client sent it. Then, we use our
+     * ClientHandler class's handleClient method on this client with an InputStream
+     * made from our jsonString as well as an OutputStream made from the Socket's output stream.
+
+
+     *
+     *
+     * @return Nothing
+     *
+     * @docauthor Trelent
+     */
     public void handleRequests() {
         while (!this.server.isClosed()) {
             try {
@@ -184,6 +241,16 @@ public class MyServer {
         }
     }
 
+    /**
+     * The getSocket function takes a string as an argument and returns the socket that corresponds to it.
+     *
+     *
+     * @param  source Get the ip address and port number of a socket
+     *
+     * @return A socket object
+     *
+     * @docauthor Trelent
+     */
     public Socket getSocket(String source){
         String[] socketSplited = source.split(":");
         String ipSource = socketSplited[0].split("/")[1];

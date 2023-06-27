@@ -16,8 +16,8 @@ public class CacheManager {
      * If it does exist, then we simply update its frequency.
 
      *
-     * @param int s Set the size of the cache
-     * @param CacheReplacementPolicy c Determine which cache replacement policy to use
+     * @param s s Set the size of the cache
+     * @param c c Determine which cache replacement policy to use
      *
      * @return A new cachemanager object with the given size and replacement policy
      *
@@ -35,7 +35,7 @@ public class CacheManager {
      * false otherwise.
 
      *
-     * @param String str Check if the cache contains a specific string
+     * @param str str Check if the cache contains a specific string
      *
      * @return True if and only if for some k &gt;= 1, the last k characters queried (in order from oldest to newest, including this letter just queried) spell one of the strings in the given list
      *
@@ -49,7 +49,7 @@ public class CacheManager {
      * Then, it adds str to both crp and cache.
 
      *
-     * @param String str Add a string to the cache
+     * @param str str Add a string to the cache
      *
      * @return Void
      *

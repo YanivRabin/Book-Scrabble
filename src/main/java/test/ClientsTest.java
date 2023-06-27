@@ -10,11 +10,19 @@ import java.net.Socket;
 import java.util.Scanner;
 
 public class ClientsTest {
-    // need to write test for Host Guest and my server connection and
-    // send strings
-    // get score
-    // connect 4 guests
-    // connect multiple hosts
+
+    /**
+     * The main function is used to test the server and client.
+     * It creates a GameServer, Hosts and Guests.
+     * The Hosts connect to the GameServer, then create 3 Guests each that also connect to the GameServer.
+
+     *
+     * @param  args Pass command line arguments to the program
+     *
+     * @return A value of type void
+     *
+     * @docauthor Trelent
+     */
     public static void main(String[] args) throws IOException, InterruptedException {
         // Create the GameServer
         MyServer gameServer = MyServer.getModel();
@@ -50,17 +58,14 @@ public class ClientsTest {
             Thread.sleep(3000);
             System.out.println();
             System.out.println(host.hostPlayer.player.getNickName());
-            System.out.println("Player index: "+ host.hostPlayer.player.getPlayerIndex());
             System.out.println(host.hostPlayer.player.getCurrentScore());
             host.hostPlayer.player.printCurrentTiles();
             System.out.println();
             System.out.println(guest1.player.getNickName());
-            System.out.println("Player index: "+ guest1.player.getPlayerIndex());
             System.out.println(guest1.player.getCurrentScore());
             guest1.player.printCurrentTiles();
             System.out.println();
             System.out.println(guest2.player.getNickName());
-            System.out.println("Player index: "+ guest2.player.getPlayerIndex());
             System.out.println(guest2.player.getCurrentScore());
             guest2.player.printCurrentTiles();
 

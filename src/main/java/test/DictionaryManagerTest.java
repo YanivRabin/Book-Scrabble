@@ -8,6 +8,18 @@ import java.util.Random;
 
 public class DictionaryManagerTest {
 
+    /**
+     * The dictionaryManagerTest function tests the DictionaryManager class.
+     * It creates three files, txt, and adds them to the dictionary manager.
+     * Then it checks if a word is in one of the dictionaries using query().
+     * Then it challenges a word from one dictionary against another using challenge().
+
+     *
+     *
+     * @return -5
+     *
+     * @docauthor Trelent
+     */
     public static void dictionaryManagerTest() {
         String t1[]=writeFile("t1.txt");
         String t2[]=writeFile("t2.txt");
@@ -33,6 +45,18 @@ public class DictionaryManagerTest {
 
     }
 
+    /**
+     * The writeFile function takes a String name as an argument and returns a String array.
+     * The function creates 10 random numbers between 10000 and 20000, stores them in the
+     * txt array, then writes them to the file with name &quot;name&quot;. It then returns txt.
+
+     *
+     * @param  name Name the file that is being written to
+     *
+     * @return An array of strings
+     *
+     * @docauthor Trelent
+     */
     public static String[] writeFile(String name) {
         Random r=new Random();
         String txt[]=new String[10];
