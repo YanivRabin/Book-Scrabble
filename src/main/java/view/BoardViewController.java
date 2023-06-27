@@ -46,7 +46,7 @@ public class BoardViewController implements Initializable, Observer {
     @FXML
     private AnchorPane tilesContainer;
     @FXML
-    private Button EndTurn, resetWord, TryPlaceWord, challenge, EndGame;
+    private Button EndTurn, resetWord, TryPlaceWord, challenge, EndGame, generateNewTiles;
 
     /**
      * The setViewModel function is used to set the viewModel for this controller.
@@ -97,6 +97,7 @@ public class BoardViewController implements Initializable, Observer {
             TryPlaceWord.setDisable(true);
             resetWord.setDisable(true);
             EndTurn.setDisable(true);
+            generateNewTiles.setDisable(true);
         }
         else {
             message.setText("First word must be placed on the purple square");
@@ -688,6 +689,12 @@ public class BoardViewController implements Initializable, Observer {
         viewModel.challenge();
     }
 
+    @FXML
+    public void generateNewTilesButtonClick() {
+
+        viewModel.generateNewTiles();
+    }
+
     /**
      * The update function is called whenever the ViewModel notifies its observers.
      * The update function checks what type of notification it received and updates the board accordingly.
@@ -720,6 +727,7 @@ public class BoardViewController implements Initializable, Observer {
                 TryPlaceWord.setDisable(true);
                 resetWord.setDisable(true);
                 EndTurn.setDisable(true);
+                generateNewTiles.setDisable(true);
                 challenge.setDisable(false);
                 executor.submit(() -> {
                     try {
@@ -734,6 +742,7 @@ public class BoardViewController implements Initializable, Observer {
                             TryPlaceWord.setDisable(false);
                             resetWord.setDisable(false);
                             EndTurn.setDisable(false);
+                            generateNewTiles.setDisable(false);
                         }
                         else {
                             message.setText("");
@@ -755,6 +764,7 @@ public class BoardViewController implements Initializable, Observer {
                 resetWord.setDisable(true);
                 EndTurn.setDisable(true);
                 challenge.setDisable(true);
+                generateNewTiles.setDisable(true);
             }
 
             if (arg.equals("challenge fail")) {
@@ -768,6 +778,7 @@ public class BoardViewController implements Initializable, Observer {
                     TryPlaceWord.setDisable(false);
                     resetWord.setDisable(false);
                     EndTurn.setDisable(false);
+                    generateNewTiles.setDisable(false);
                 }
                 else {
                     message.setText("Challenge failed, continue play");
@@ -809,6 +820,7 @@ public class BoardViewController implements Initializable, Observer {
                     TryPlaceWord.setDisable(false);
                     resetWord.setDisable(false);
                     EndTurn.setDisable(false);
+                    generateNewTiles.setDisable(false);
                 }
                 else {
                     message.setText("");
@@ -829,23 +841,14 @@ public class BoardViewController implements Initializable, Observer {
                 EndTurn.setDisable(true);
                 challenge.setDisable(true);
                 EndGame.setDisable(true);
+                generateNewTiles.setDisable(true);
             }
 
-//            if (arg.equals("challenge success")) {
-//                System.out.println("guest viewModel observer update: challenge success");
-//                // Check if it's this player's turn
-//                if (viewModel.getCurrentPlayer() == viewModel.getMyTurn()) {
-//                    // enable all
-//                    message.setText("Challenge succeed, your turn!");
-//                    enableButtons();
-//                    TryPlaceWord.setDisable(false);
-//                    resetWord.setDisable(false);
-//                    EndTurn.setDisable(false);
-//                }
-//                else {
-//                    message.setText("Challenge succeed");
-//                }
-//            }
+            if (arg.equals("update tiles")) {
+                System.out.println("board observer update: update tiles");
+                message.setText("Tiles are updated");
+                Platform.runLater(this::updateHand);
+            }
         }
     }
 }

@@ -317,6 +317,25 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
         guest.sendEndGame();
     }
 
+    @Override
+    public void generateNewTiles() {
+
+        guest.sendNewTiles();
+        try {Thread.sleep(1000);}
+        catch (InterruptedException e) {e.printStackTrace();}
+        updateTiles();
+        setChanged();
+        notifyObservers("update tiles");
+    }
+
+    @Override
+    public void newTiles() {
+
+        updateTiles();
+        setChanged();
+        notifyObservers("update tiles");
+    }
+
     // getters
     /**
      * The getBoard function returns the gameBoard array.
@@ -473,6 +492,11 @@ public class VM_Guest extends Observable implements ViewModel, Observer {
             setChanged();
             notifyObservers("end game," + message[1]);
 
+        }
+
+        if (arg.equals("new tiles")) {
+            System.out.println("guest viewModel observer update: update map");
+            newTiles();
         }
     }
 }

@@ -304,6 +304,20 @@ public class VM_Host extends Observable implements ViewModel, Observer {
         host.hostPlayer.sendEndGame();
     }
 
+    @Override
+    public void generateNewTiles() {
+
+        host.hostPlayer.sendNewTiles();
+    }
+
+    @Override
+    public void newTiles() {
+
+        updateTiles();
+        setChanged();
+        notifyObservers("update tiles");
+    }
+
     // getters
     /**
      * The getIp function returns the ip address of the client.
@@ -467,14 +481,19 @@ public class VM_Host extends Observable implements ViewModel, Observer {
         }
 
         if (message[0].equals("end game")) {
-            System.out.println("guest viewModel observer update: end game");
+            System.out.println("host viewModel observer update: end game");
             setChanged();
             notifyObservers("end game," + message[1]);
         }
 
         if (message[0].equals("update map")) {
-            System.out.println("guest viewModel observer update: update map");
+            System.out.println("host viewModel observer update: update map");
             NameToScore = host.NameToScore;
+        }
+
+        if (arg.equals("new tiles")) {
+            System.out.println("host viewModel observer update: update map");
+            newTiles();
         }
     }
 }

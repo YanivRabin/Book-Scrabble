@@ -296,4 +296,10 @@ public class MessageHandler {
         this.jsonHandler.addMessage(nickName);
 
     }
+
+    public void CreateGenerateNewTilesMessage(String socketSource, String tiles){
+        this.jsonHandler.addMessageType("generate new tiles");
+        this.jsonHandler.addCurrentTiles(tiles);
+        this.jsonHandler.addSocketSource(socketSource);
+    }
 }

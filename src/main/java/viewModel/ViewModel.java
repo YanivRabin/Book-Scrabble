@@ -22,6 +22,8 @@ public interface ViewModel {
     void updateScore();
     void updateBoard();
     void endGame();
+    void generateNewTiles();
+    void newTiles();
 
     // getters
     ArrayList<Tile> getCurrentTiles();

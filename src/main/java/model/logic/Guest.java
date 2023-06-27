@@ -224,6 +224,17 @@ public class Guest extends Observable {
         this.SendToHost(messageHandler.jsonHandler);
     }
 
+    public void sendNewTiles() {
+
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(this.SocketToHost.getInetAddress());
+        stringBuilder.append(":");
+        stringBuilder.append(this.SocketToHost.getLocalPort());
+        String socketSource = stringBuilder.toString();
+        MessageHandler messageHandler = new MessageHandler();
+        messageHandler.CreateGenerateNewTilesMessage(socketSource, player.getCurrentTiles());
+        this.SendToHost(messageHandler.jsonHandler);
+    }
     /**
      * The sendPassTurnMessage function is used to send a message to the host that the player has passed their turn.
      *
@@ -334,6 +345,7 @@ public class Guest extends Observable {
                         this.player.addTiles(json.get("StartTiles").getAsString());
                         this.player.hostNickName = json.get("Source").getAsString();
                         this.player.playerIndex = json.get("PlayerIndex").getAsInt();
+                        this.player.setNumOfPlayersInGame(json.get("NumOfPlayers").getAsInt());
                         setChanged();
                         notifyObservers("start game," + this.player.getHostNickName());
                         break;
@@ -394,6 +406,11 @@ public class Guest extends Observable {
                     case "challenge success":
                         setChanged();
                         notifyObservers("challenge success");
+                        break;
+                    case "generate new tiles":
+                        this.player.setCurrentTiles(json.get("CurrentTiles").getAsString());
+                        setChanged();
+                        notifyObservers("new tiles");
                         break;
                 }
             }
@@ -467,4 +484,6 @@ public class Guest extends Observable {
             e.printStackTrace();
         }
     }
+
+
 }

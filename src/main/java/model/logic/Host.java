@@ -607,6 +607,28 @@ public class Host extends Observable implements ClientHandler {
         }
     }
 
+    public void SendNewTilesMessage(String tiles, String source, Socket currentGuest){
+        // only serverHost
+        MessageHandler messageHandler = new MessageHandler();
+        messageHandler.CreateGenerateNewTilesMessage(source, tiles);
+        try {
+            if (currentGuest.getPort() == this.hostPlayer.getSocketToHost().getLocalPort()){
+                this.hostPlayer.inputQueue.put(messageHandler.jsonHandler.toJsonString());
+            }
+            else {
+                OutputStream outToClient = currentGuest.getOutputStream();
+                PrintWriter out = new PrintWriter(outToClient);
+                out.println(messageHandler.jsonHandler.toJsonString());
+                out.flush();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+    }
+
     /**
      * The handleClient function is the function that handles all of the communication between
      * the client and server. It reads in a JSON string from the input stream, then puts it into
@@ -718,6 +740,21 @@ public class Host extends Observable implements ClientHandler {
                             setChanged();
                             notifyObservers("end game");
                             continue;
+                        case "generate new tiles":
+                            String currentTiles = json.get("CurrentTiles").getAsString();
+                            for (char c: currentTiles.toCharArray()) {
+                                bag.put(bag.getTileForTileArray(c));
+                            }
+                            List<Character> newTiles = this.GenerateTiles(8);
+                            StringBuilder sb = new StringBuilder();
+                            for (Character c: newTiles) {
+                                sb.append(c.charValue());
+                            }
+                            String socketSource = json.get("SocketSource").getAsString();
+                            Socket currentGuest = getSocket(socketSource);
+                            SendNewTilesMessage(sb.toString(),socketSource,currentGuest);
+                            continue;
+
                     }
 
                     String socketSource = json.get("SocketSource").getAsString();
