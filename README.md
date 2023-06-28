@@ -75,13 +75,13 @@ After installing Java, you can clone this repository using the following url in 
 <p align="right"><a href="#readme-top">back to top</a></p>
 
 ## Project Diagram
-####Model
+<h4>Model</h4>
 <img src="Model.png" alt="model">
 
-####ViewModel
+<h4>ViewModel</h4>
 <img src="ViewModel.png" alt="viewModel" width="300">
 
-####View
+<h4>View</h4>
 <img src="View.png" alt="view">
 
 
